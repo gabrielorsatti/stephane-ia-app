@@ -1,0 +1,145 @@
+import { Target, Lightbulb, Copy } from "lucide-react";
+import { PROGRAMS, type ProgramExercise, type ProgramTemplate } from "../data/programs";
+import { useState } from "react";
+
+interface Props {
+  onFillInput?: (text: string) => void;
+}
+
+// Vue des templates de séances du programme courant.
+// Chaque exercice affiche ses cibles, son objectif et ses cues techniques.
+export function ProgramView({ onFillInput }: Props) {
+  const [activeId, setActiveId] = useState<string>(PROGRAMS[0].id);
+  const active = PROGRAMS.find((p) => p.id === activeId)!;
+
+  return (
+    <div className="space-y-4">
+      <div className="card">
+        <div className="flex items-center gap-2 mb-3">
+          <Target className="w-5 h-5 text-accent" />
+          <h2 className="text-lg font-semibold">Programme actuel</h2>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {PROGRAMS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setActiveId(p.id)}
+              className={[
+                "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                p.id === activeId
+                  ? "bg-accent text-black"
+                  : "bg-bg-soft border border-border text-text-muted hover:text-text",
+              ].join(" ")}
+            >
+              {p.nom}
+            </button>
+          ))}
+        </div>
+        {active.description && (
+          <p className="text-xs text-text-muted mt-3">{active.description}</p>
+        )}
+      </div>
+
+      <div className="space-y-3">
+        {active.exercises.map((ex, i) => (
+          <ExerciseCard
+            key={i}
+            exercise={ex}
+            onCopy={
+              onFillInput
+                ? () => onFillInput(exerciseToNlp(ex))
+                : undefined
+            }
+          />
+        ))}
+      </div>
+
+      {onFillInput && (
+        <div className="flex justify-end">
+          <button
+            className="btn-primary"
+            onClick={() => onFillInput(programToNlp(active))}
+          >
+            <Copy className="w-4 h-4" /> Charger la séance complète
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ExerciseCard({
+  exercise,
+  onCopy,
+}: {
+  exercise: ProgramExercise;
+  onCopy?: () => void;
+}) {
+  return (
+    <div className="card-elev space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="text-sm font-semibold">{exercise.nom}</div>
+          <div className="text-xs text-text-muted mt-0.5">
+            {exercise.sets} × {exercise.repsTarget}
+            {exercise.poidsTarget ? ` · ${exercise.poidsTarget}` : ""}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="chip bg-accent-muted/40 text-accent-soft">
+            {exercise.categorie}
+          </span>
+          {onCopy && (
+            <button
+              className="btn-ghost !p-1.5"
+              onClick={onCopy}
+              title="Copier dans la saisie NLP"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+      {exercise.objectif && (
+        <div className="flex items-start gap-2 text-xs text-accent-soft bg-accent-muted/20 border border-accent-muted/40 rounded-lg px-3 py-2">
+          <Target className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+          <span>
+            <strong className="font-semibold">Objectif :</strong>{" "}
+            {exercise.objectif}
+          </span>
+        </div>
+      )}
+      {exercise.cues && exercise.cues.length > 0 && (
+        <ul className="space-y-1">
+          {exercise.cues.map((c, i) => (
+            <li
+              key={i}
+              className="flex items-start gap-2 text-xs text-text-muted"
+            >
+              <Lightbulb className="w-3.5 h-3.5 mt-0.5 shrink-0 text-accent-soft" />
+              <span>{c}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// Convertit un exercice du template en ligne NLP saisissable.
+function exerciseToNlp(ex: ProgramExercise): string {
+  const reps = parseFirstInt(ex.repsTarget) ?? 10;
+  const poids = parseFirstInt(ex.poidsTarget ?? "");
+  return poids
+    ? `${ex.sets}x${reps} ${ex.nom} à ${poids}kg`
+    : `${ex.sets}x${reps} ${ex.nom}`;
+}
+
+function programToNlp(p: ProgramTemplate): string {
+  return p.exercises.map(exerciseToNlp).join("\n");
+}
+
+function parseFirstInt(s: string): number | null {
+  const m = s.match(/(\d+(?:[.,]\d+)?)/);
+  return m ? parseFloat(m[1].replace(",", ".")) : null;
+}

@@ -6,6 +6,7 @@ import { CalendarView } from "./components/CalendarView";
 import { CategoryChart } from "./components/CategoryChart";
 import { HistoryView } from "./components/HistoryView";
 import { PersonalRecords } from "./components/PersonalRecords";
+import { ProgramView } from "./components/ProgramView";
 import { ProgressionChart } from "./components/ProgressionChart";
 import { SessionInput } from "./components/SessionInput";
 import { StatsCards } from "./components/StatsCards";
@@ -13,7 +14,7 @@ import { VolumeChart } from "./components/VolumeChart";
 import { useBodyWeight } from "./hooks/useBodyWeight";
 import { useSessions } from "./hooks/useSessions";
 
-type Tab = "dashboard" | "historique" | "progression";
+type Tab = "dashboard" | "historique" | "progression" | "programme";
 
 export default function App() {
   const { sessions, addSession, removeSession, replaceAll: replaceSessions } =
@@ -21,6 +22,14 @@ export default function App() {
   const { entries, addEntry, latest, replaceAll: replaceBodyWeights } =
     useBodyWeight();
   const [tab, setTab] = useState<Tab>("dashboard");
+  const [prefillText, setPrefillText] = useState<string | undefined>();
+  const [prefillVersion, setPrefillVersion] = useState(0);
+
+  function fillFromProgram(text: string) {
+    setPrefillText(text);
+    setPrefillVersion((v) => v + 1);
+    setTab("dashboard");
+  }
 
   return (
     <div className="min-h-screen">
@@ -47,7 +56,9 @@ export default function App() {
               }}
             />
             <nav className="flex gap-1 bg-bg-card border border-border rounded-lg p-1">
-            {(["dashboard", "historique", "progression"] as Tab[]).map((t) => (
+            {(
+              ["dashboard", "historique", "progression", "programme"] as Tab[]
+            ).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -67,7 +78,11 @@ export default function App() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        <SessionInput onSave={addSession} />
+        <SessionInput
+          onSave={addSession}
+          prefillText={prefillText}
+          prefillVersion={prefillVersion}
+        />
 
         {tab === "dashboard" && (
           <>
@@ -98,6 +113,8 @@ export default function App() {
             <PersonalRecords sessions={sessions} />
           </div>
         )}
+
+        {tab === "programme" && <ProgramView onFillInput={fillFromProgram} />}
       </main>
 
       <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-text-dim">

@@ -1,16 +1,25 @@
 import { Sparkles, Calendar, Trash2, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { parseInput } from "../lib/parser";
 import type { ExerciseEntry, Session } from "../types";
 
 interface Props {
   onSave: (session: Omit<Session, "id">) => void;
+  // Texte injecté de l'extérieur (ex: chargement d'un template programme).
+  // Chaque nouvelle valeur remplace la saisie en cours.
+  prefillText?: string;
+  prefillVersion?: number;
 }
 
 // Champ de saisie NLP : analyse une phrase libre et propose un aperçu
 // structuré des exercices avant sauvegarde.
-export function SessionInput({ onSave }: Props) {
+export function SessionInput({ onSave, prefillText, prefillVersion }: Props) {
   const [text, setText] = useState("");
+
+  useEffect(() => {
+    if (prefillText !== undefined) setText(prefillText);
+    // prefillVersion permet de ré-appliquer le même texte plusieurs fois.
+  }, [prefillText, prefillVersion]);
   const [notes, setNotes] = useState("");
   const [bodyWeight, setBodyWeight] = useState<string>("");
   const [date, setDate] = useState<string>(

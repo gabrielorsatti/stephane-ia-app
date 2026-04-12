@@ -12,6 +12,8 @@ import { format, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
 import type { Session } from "../types";
 import { bestEstimated1RM } from "../lib/scoring";
+import { cuesFor, objectiveFor } from "../data/programs";
+import { Lightbulb, Target } from "lucide-react";
 
 interface Props {
   sessions: Session[];
@@ -48,8 +50,11 @@ export function ProgressionChart({ sessions }: Props) {
       .filter(Boolean) as { label: string; poids: number; rm: number }[];
   }, [sessions, current]);
 
+  const cues = current ? cuesFor(current) : [];
+  const objectif = current ? objectiveFor(current) : undefined;
+
   return (
-    <div className="card h-[360px] flex flex-col">
+    <div className="card flex flex-col">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold">Progression par exercice</h3>
         <select
@@ -66,8 +71,34 @@ export function ProgressionChart({ sessions }: Props) {
           ))}
         </select>
       </div>
+      {(objectif || cues.length > 0) && (
+        <div className="mb-3 space-y-2">
+          {objectif && (
+            <div className="flex items-start gap-2 text-xs text-accent-soft bg-accent-muted/20 border border-accent-muted/40 rounded-lg px-3 py-2">
+              <Target className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <span>
+                <strong className="font-semibold">Objectif :</strong> {objectif}
+              </span>
+            </div>
+          )}
+          {cues.length > 0 && (
+            <ul className="space-y-1 bg-bg-soft border border-border rounded-lg p-3">
+              {cues.map((c, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-xs text-text-muted"
+                >
+                  <Lightbulb className="w-3.5 h-3.5 mt-0.5 shrink-0 text-accent-soft" />
+                  <span>{c}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      <div className="h-[280px]">
       {data.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-text-dim text-sm">
+        <div className="h-full flex items-center justify-center text-text-dim text-sm">
           Pas encore de données pour cet exercice.
         </div>
       ) : (
@@ -104,6 +135,7 @@ export function ProgressionChart({ sessions }: Props) {
           </LineChart>
         </ResponsiveContainer>
       )}
+      </div>
     </div>
   );
 }
