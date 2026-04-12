@@ -4,10 +4,10 @@ import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { CalendarView } from "./components/CalendarView";
 import { CategoryChart } from "./components/CategoryChart";
+import { HistoryView } from "./components/HistoryView";
 import { PersonalRecords } from "./components/PersonalRecords";
 import { ProgressionChart } from "./components/ProgressionChart";
 import { SessionInput } from "./components/SessionInput";
-import { SessionList } from "./components/SessionList";
 import { StatsCards } from "./components/StatsCards";
 import { VolumeChart } from "./components/VolumeChart";
 import { useBodyWeight } from "./hooks/useBodyWeight";
@@ -84,7 +84,7 @@ export default function App() {
         {tab === "historique" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
-              <SessionList sessions={sessions} onRemove={removeSession} />
+              <HistoryView sessions={sessions} onRemove={removeSession} />
             </div>
             <div>
               <CalendarView sessions={sessions} />
