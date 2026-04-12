@@ -1,5 +1,14 @@
 import type { ExerciseEntry, SetEntry } from "../types";
-import { findExercise, normalize } from "./exercises";
+import { findExercise } from "./exercises";
+
+// Normalisation « douce » : minuscules + suppression d'accents, mais on
+// conserve la ponctuation (`*`, `,`, `.`, `@`) nécessaire aux regex numériques.
+function softNormalize(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
 
 // Résultat du parser : une liste d'exercices reconnus + les segments non reconnus.
 export interface ParseResult {
@@ -31,7 +40,7 @@ function toNumber(s: string): number {
 export function parseSegment(segment: string): ExerciseEntry | null {
   const raw = segment.trim();
   if (!raw) return null;
-  const norm = normalize(raw);
+  const norm = softNormalize(raw);
 
   // 1. Extraction des sets : "NxM", "N*M", "N séries de M", "N séries M rep"
   let sets = 0;

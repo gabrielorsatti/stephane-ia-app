@@ -1,0 +1,89 @@
+import { describe, expect, it } from "vitest";
+import { parseInput, parseSegment } from "./parser";
+
+describe("parseSegment", () => {
+  it("parse la forme canonique française", () => {
+    const ex = parseSegment("3 séries de 12 rep de DC à 80kg");
+    expect(ex).not.toBeNull();
+    expect(ex!.nom).toBe("Développé couché");
+    expect(ex!.categorie).toBe("Poussée");
+    expect(ex!.sets).toHaveLength(3);
+    expect(ex!.sets[0]).toEqual({ reps: 12, poids: 80 });
+  });
+
+  it("parse la forme NxM compacte", () => {
+    const ex = parseSegment("4x10 squat 100kg");
+    expect(ex!.nom).toBe("Squat");
+    expect(ex!.sets).toHaveLength(4);
+    expect(ex!.sets[0]).toEqual({ reps: 10, poids: 100 });
+  });
+
+  it("parse le nom d'exercice en premier avec @", () => {
+    const ex = parseSegment("développé couché 3x12 @ 80");
+    expect(ex!.nom).toBe("Développé couché");
+    expect(ex!.sets[0]).toEqual({ reps: 12, poids: 80 });
+  });
+
+  it("parse avec astérisque et virgule décimale", () => {
+    const ex = parseSegment("curl 3*10 à 12,5");
+    expect(ex!.nom).toBe("Curl biceps");
+    expect(ex!.sets[0]).toEqual({ reps: 10, poids: 12.5 });
+  });
+
+  it("parse SDT en tirage", () => {
+    const ex = parseSegment("SDT 5x5 120kg");
+    expect(ex!.nom).toBe("Soulevé de terre");
+    expect(ex!.categorie).toBe("Tirage");
+    expect(ex!.sets).toHaveLength(5);
+    expect(ex!.sets[0].poids).toBe(120);
+  });
+
+  it("retourne null si aucun exercice reconnu", () => {
+    expect(parseSegment("3x10 bidule 50kg")).toBeNull();
+  });
+
+  it("retourne null si pas de sets/reps", () => {
+    expect(parseSegment("DC 80kg")).toBeNull();
+  });
+
+  it("gère le poids du corps (pas de kg mentionné)", () => {
+    const ex = parseSegment("tractions 3x10");
+    expect(ex!.nom).toBe("Tractions");
+    expect(ex!.sets[0].poids).toBe(0);
+  });
+
+  it("privilégie l'alias le plus long", () => {
+    // "curl marteau" doit être préféré à "curl" seul.
+    const ex = parseSegment("curl marteau 3x10 à 15");
+    expect(ex!.nom).toBe("Curl marteau");
+  });
+});
+
+describe("parseInput", () => {
+  it("parse plusieurs lignes", () => {
+    const res = parseInput(
+      "3x12 DC à 80kg\n4x10 squat 100kg\ncurl 3x12 à 15",
+    );
+    expect(res.exercices).toHaveLength(3);
+    expect(res.unrecognized).toHaveLength(0);
+  });
+
+  it("sépare sur 'puis'", () => {
+    const res = parseInput("3x12 DC à 80kg puis 5x5 SDT 120kg");
+    expect(res.exercices).toHaveLength(2);
+    expect(res.exercices[0].nom).toBe("Développé couché");
+    expect(res.exercices[1].nom).toBe("Soulevé de terre");
+  });
+
+  it("remonte les segments non reconnus", () => {
+    const res = parseInput("3x10 bidule 50kg\n4x8 squat 100kg");
+    expect(res.exercices).toHaveLength(1);
+    expect(res.unrecognized).toHaveLength(1);
+  });
+
+  it("ignore les lignes vides", () => {
+    const res = parseInput("\n\n3x12 DC à 80kg\n\n");
+    expect(res.exercices).toHaveLength(1);
+    expect(res.unrecognized).toHaveLength(0);
+  });
+});
