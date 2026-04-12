@@ -1,5 +1,6 @@
 import { Dumbbell } from "lucide-react";
 import { useState } from "react";
+import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { CalendarView } from "./components/CalendarView";
 import { CategoryChart } from "./components/CategoryChart";
@@ -14,8 +15,10 @@ import { useSessions } from "./hooks/useSessions";
 type Tab = "dashboard" | "historique" | "progression";
 
 export default function App() {
-  const { sessions, addSession, removeSession } = useSessions();
-  const { entries, addEntry, latest } = useBodyWeight();
+  const { sessions, addSession, removeSession, replaceAll: replaceSessions } =
+    useSessions();
+  const { entries, addEntry, latest, replaceAll: replaceBodyWeights } =
+    useBodyWeight();
   const [tab, setTab] = useState<Tab>("dashboard");
 
   return (
@@ -33,7 +36,16 @@ export default function App() {
               </div>
             </div>
           </div>
-          <nav className="flex gap-1 bg-bg-card border border-border rounded-lg p-1">
+          <div className="flex items-center gap-3">
+            <BackupControls
+              sessions={sessions}
+              bodyWeights={entries}
+              onImport={(s, b) => {
+                replaceSessions(s);
+                replaceBodyWeights(b);
+              }}
+            />
+            <nav className="flex gap-1 bg-bg-card border border-border rounded-lg p-1">
             {(["dashboard", "historique", "progression"] as Tab[]).map((t) => (
               <button
                 key={t}
@@ -48,7 +60,8 @@ export default function App() {
                 {t}
               </button>
             ))}
-          </nav>
+            </nav>
+          </div>
         </div>
       </header>
 

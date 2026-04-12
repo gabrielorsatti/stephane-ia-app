@@ -42,7 +42,19 @@ export function useSessions() {
     [persist, sessions],
   );
 
-  return { sessions, ready, addSession, updateSession, removeSession };
+  const replaceAll = useCallback(
+    (next: Session[]) => persist(next),
+    [persist],
+  );
+
+  return {
+    sessions,
+    ready,
+    addSession,
+    updateSession,
+    removeSession,
+    replaceAll,
+  };
 }
 
 function sortByDateDesc(sessions: Session[]): Session[] {

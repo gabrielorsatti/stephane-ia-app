@@ -31,9 +31,14 @@ export function useBodyWeight() {
     [persist, entries],
   );
 
+  const replaceAll = useCallback(
+    (next: BodyWeightEntry[]) => persist(next),
+    [persist],
+  );
+
   const latest = entries[entries.length - 1];
 
-  return { entries, addEntry, removeEntry, latest };
+  return { entries, addEntry, removeEntry, latest, replaceAll };
 }
 
 function sortAsc(list: BodyWeightEntry[]): BodyWeightEntry[] {
