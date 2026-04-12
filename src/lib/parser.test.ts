@@ -57,6 +57,26 @@ describe("parseSegment", () => {
     const ex = parseSegment("curl marteau 3x10 à 15");
     expect(ex!.nom).toBe("Curl marteau");
   });
+
+  it("reconnaît les nouveaux mouvements du programme", () => {
+    const cases: Array<[string, string]> = [
+      ["DC haltères 3x10 à 32kg", "Développé couché haltères"],
+      ["DI machine 3x12 à 80kg", "Développé incliné machine"],
+      ["pec fly 3x12 à 25kg", "Pec fly"],
+      ["dips lestés 3x8 à 20kg", "Dips lestés"],
+      ["dips machine 3x12 à 100kg", "Dips machine"],
+      ["tractions pronation 3x10", "Tractions pronation"],
+      ["rowing unilatéral 3x12 à 45kg", "Rowing unilatéral"],
+      ["curl incliné 3x10 à 12kg", "Curl incliné"],
+      ["french press 3x10 à 10kg", "French press"],
+      ["élévations poulie 3x12 à 5kg", "Élévations poulie"],
+    ];
+    for (const [input, expected] of cases) {
+      const ex = parseSegment(input);
+      expect(ex, input).not.toBeNull();
+      expect(ex!.nom, input).toBe(expected);
+    }
+  });
 });
 
 describe("parseInput", () => {

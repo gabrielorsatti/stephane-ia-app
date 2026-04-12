@@ -21,6 +21,50 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     aliases: ["di", "developpe incline", "incline bench", "dev incline"],
   },
   {
+    canonical: "Développé incliné machine",
+    categorie: "Poussée",
+    aliases: [
+      "di machine",
+      "developpe incline machine",
+      "machine convergente",
+      "incline machine",
+      "convergente",
+    ],
+  },
+  {
+    canonical: "Développé couché haltères",
+    categorie: "Poussée",
+    aliases: [
+      "dc halteres",
+      "dc haltere",
+      "developpe couche halteres",
+      "db bench",
+      "dumbbell bench",
+    ],
+  },
+  {
+    canonical: "Pec fly",
+    categorie: "Poussée",
+    aliases: [
+      "pec fly",
+      "pec deck",
+      "ecarte machine",
+      "ecarte",
+      "butterfly",
+      "peck deck",
+    ],
+  },
+  {
+    canonical: "Dips machine",
+    categorie: "Poussée",
+    aliases: ["dips machine", "machine dips", "dips assiste"],
+  },
+  {
+    canonical: "Dips lestés",
+    categorie: "Poussée",
+    aliases: ["dips lestes", "weighted dips"],
+  },
+  {
     canonical: "Développé décliné",
     categorie: "Poussée",
     aliases: ["dd", "developpe decline", "decline bench"],
@@ -47,6 +91,15 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     aliases: ["tractions", "traction", "pull up", "pull-up", "pullup"],
   },
   {
+    canonical: "Tractions pronation",
+    categorie: "Tirage",
+    aliases: [
+      "tractions pronation",
+      "traction pronation",
+      "pull-up pronation",
+    ],
+  },
+  {
     canonical: "Rowing barre",
     categorie: "Tirage",
     aliases: ["rowing", "rowing barre", "barbell row", "bb row"],
@@ -59,12 +112,30 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
   {
     canonical: "Tirage vertical",
     categorie: "Tirage",
-    aliases: ["tirage vertical", "lat pulldown", "pulldown"],
+    aliases: [
+      "tirage vertical",
+      "tirage vertical neutre",
+      "tirage vertical supi",
+      "tirage neutre",
+      "lat pulldown",
+      "pulldown",
+    ],
   },
   {
     canonical: "Tirage horizontal",
     categorie: "Tirage",
     aliases: ["tirage horizontal", "seated row", "row machine"],
+  },
+  {
+    canonical: "Rowing unilatéral",
+    categorie: "Tirage",
+    aliases: [
+      "rowing unilateral",
+      "rowing uni",
+      "rowing poulie",
+      "unilateral row",
+      "one arm row",
+    ],
   },
   // Jambes
   {
@@ -128,6 +199,35 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     canonical: "Curl marteau",
     categorie: "Bras",
     aliases: ["curl marteau", "hammer curl"],
+  },
+  {
+    canonical: "Curl incliné",
+    categorie: "Bras",
+    aliases: [
+      "curl incline",
+      "incline curl",
+      "curl banc incline",
+      "curl 45",
+    ],
+  },
+  {
+    canonical: "French press",
+    categorie: "Bras",
+    aliases: [
+      "french press",
+      "french press poulie",
+      "barre au front poulie",
+    ],
+  },
+  {
+    canonical: "Élévations poulie",
+    categorie: "Épaules",
+    aliases: [
+      "elevations poulie",
+      "elevation poulie",
+      "lateral cable",
+      "lateral raise cable",
+    ],
   },
   {
     canonical: "Extension triceps",
