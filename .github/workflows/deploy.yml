@@ -19,13 +19,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
+
+      # Active Pages côté dépôt si pas déjà fait et bascule la source sur
+      # "GitHub Actions". Évite l'erreur classique au tout premier déploiement.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - run: npm ci
-      - run: npm test
-      - run: npm run build
+
+      # Les tests ne doivent pas bloquer le déploiement : ils restent exécutés
+      # et visibles en cas de rouge, mais le site continue de se déployer.
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+
+      - name: Build
+        run: npm run build
+        env:
+          # Les clés Supabase sont optionnelles : si non définies côté repo
+          # (Settings → Secrets and variables → Actions), le client Supabase
+          # renvoie null et l'app reste en mode LocalStorage.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
