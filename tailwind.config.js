@@ -5,21 +5,21 @@ export default {
     extend: {
       colors: {
         bg: {
-          DEFAULT: "#0a0a0b",
-          soft: "#111113",
-          card: "#17171a",
-          elev: "#1e1e22",
+          DEFAULT: "#faf6f1",
+          soft: "#f2ece3",
+          card: "#ffffff",
+          elev: "#f7f2ea",
         },
-        border: { DEFAULT: "#26262b", strong: "#35353d" },
+        border: { DEFAULT: "#e7ded0", strong: "#d2c6b2" },
         accent: {
-          DEFAULT: "#f97316",
-          soft: "#fb923c",
-          muted: "#7c2d12",
+          DEFAULT: "#a7c7b5",
+          soft: "#6a9e84",
+          muted: "#e4efe5",
         },
         text: {
-          DEFAULT: "#f4f4f5",
-          muted: "#a1a1aa",
-          dim: "#71717a",
+          DEFAULT: "#4a3f3a",
+          muted: "#7a6e66",
+          dim: "#a89d93",
         },
       },
       fontFamily: {

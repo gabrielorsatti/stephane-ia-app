@@ -82,7 +82,7 @@ export default function App() {
       <header className="border-b border-border bg-bg-soft/60 backdrop-blur sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-black shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-text shrink-0">
               <Dumbbell className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -110,7 +110,7 @@ export default function App() {
                   className={[
                     "px-3 py-1.5 text-xs font-medium rounded-md capitalize transition-colors",
                     tab === t
-                      ? "bg-accent text-black"
+                      ? "bg-accent text-text"
                       : "text-text-muted hover:text-text",
                   ].join(" ")}
                 >
@@ -134,10 +134,23 @@ export default function App() {
           </div>
         </div>
 
-        {/* Panneau mobile déroulant */}
-        {mobileNavOpen && (
-          <nav className="md:hidden border-t border-border bg-bg-soft">
-            <div className="max-w-6xl mx-auto px-4 py-2 flex flex-col gap-1">
+      </header>
+
+      {/* Panneau mobile : bottom sheet, ancré en bas pour rester accessible au pouce */}
+      {mobileNavOpen && (
+        <>
+          <div
+            className="md:hidden fixed inset-0 z-30 bg-text/20 backdrop-blur-sm"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <nav
+            className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-bg-card rounded-t-2xl shadow-2xl"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          >
+            <div className="flex justify-center pt-2 pb-1">
+              <div className="w-10 h-1 rounded-full bg-border-strong" />
+            </div>
+            <div className="px-4 pb-4 pt-2 flex flex-col gap-2">
               {TABS.map((t) => (
                 <button
                   key={t}
@@ -145,8 +158,8 @@ export default function App() {
                   className={[
                     "w-full text-left px-4 py-3 rounded-lg text-sm font-medium capitalize transition-colors",
                     tab === t
-                      ? "bg-accent text-black"
-                      : "bg-bg-card text-text-muted hover:text-text border border-border",
+                      ? "bg-accent text-text"
+                      : "bg-bg-soft text-text-muted hover:text-text border border-border",
                   ].join(" ")}
                 >
                   {t}
@@ -154,8 +167,8 @@ export default function App() {
               ))}
             </div>
           </nav>
-        )}
-      </header>
+        </>
+      )}
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <SessionInput

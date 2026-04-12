@@ -78,7 +78,7 @@ export function PersonalRecords({
                       manuel
                     </span>
                   )}
-                  <span className="chip bg-accent-muted/40 text-accent-soft">
+                  <span className="chip bg-accent-muted text-text-muted">
                     {pr.categorie}
                   </span>
                   <button

@@ -55,7 +55,7 @@ export function RecordEditor({ initial, onSave, onClose, onDelete }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+      className="fixed inset-0 z-30 bg-text/30 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
       onClick={onClose}
     >
       <div
@@ -151,7 +151,7 @@ export function RecordEditor({ initial, onSave, onClose, onDelete }: Props) {
         <div className="flex items-center justify-between gap-2 p-4 border-t border-border">
           {!isNew && onDelete ? (
             <button
-              className="btn-ghost text-red-400 hover:text-red-300"
+              className="btn-ghost text-rose-400 hover:text-rose-500"
               onClick={() => {
                 if (confirm("Supprimer cet override ?")) onDelete();
               }}

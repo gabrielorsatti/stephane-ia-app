@@ -17,14 +17,14 @@
     height: 10px;
   }
   ::-webkit-scrollbar-track {
-    background: #0a0a0b;
+    background: #faf6f1;
   }
   ::-webkit-scrollbar-thumb {
-    background: #26262b;
+    background: #e7ded0;
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #35353d;
+    background: #d2c6b2;
   }
 }
 
@@ -39,7 +39,7 @@
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none;
   }
   .btn-primary {
-    @apply btn bg-accent hover:bg-accent-soft text-black;
+    @apply btn bg-accent hover:bg-accent-soft text-text;
   }
   .btn-ghost {
     @apply btn bg-transparent hover:bg-bg-elev text-text-muted hover:text-text border border-border;

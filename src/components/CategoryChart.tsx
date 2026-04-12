@@ -31,17 +31,17 @@ export function CategoryChart({ sessions }: Props) {
       ) : (
         <ResponsiveContainer width="100%" height="85%">
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#26262b" />
-            <XAxis dataKey="categorie" stroke="#71717a" fontSize={11} />
-            <YAxis stroke="#71717a" fontSize={11} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e7ded0" />
+            <XAxis dataKey="categorie" stroke="#a89d93" fontSize={11} />
+            <YAxis stroke="#a89d93" fontSize={11} />
             <Tooltip
               contentStyle={{
-                background: "#17171a",
-                border: "1px solid #26262b",
+                background: "#ffffff",
+                border: "1px solid #e7ded0",
                 borderRadius: 8,
               }}
             />
-            <Bar dataKey="volume" fill="#f97316" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="volume" fill="#7ab29b" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       )}
