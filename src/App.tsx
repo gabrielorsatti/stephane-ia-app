@@ -1,5 +1,5 @@
-import { Dumbbell } from "lucide-react";
-import { useState } from "react";
+import { Dumbbell, Menu, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { CalendarView } from "./components/CalendarView";
@@ -32,6 +32,14 @@ export default function App() {
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // Referme le menu mobile à chaque changement d'onglet.
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [tab]);
+
+  const TABS: Tab[] = ["dashboard", "historique", "progression", "programme"];
 
   function fillFromProgram(text: string) {
     setPrefillText(text);
@@ -65,20 +73,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-border bg-bg-soft/60 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-black">
+      <header className="border-b border-border bg-bg-soft/60 backdrop-blur sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-black shrink-0">
               <Dumbbell className="w-5 h-5" />
             </div>
-            <div>
-              <div className="font-semibold">Personal Gym Tracker</div>
-              <div className="text-xs text-text-muted">
+            <div className="min-w-0">
+              <div className="font-semibold truncate">Personal Gym Tracker</div>
+              <div className="text-xs text-text-muted truncate">
                 Suis ta progression sans friction.
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <BackupControls
               sessions={sessions}
               bodyWeights={entries}
@@ -87,26 +95,60 @@ export default function App() {
                 replaceBodyWeights(b);
               }}
             />
-            <nav className="flex gap-1 bg-bg-card border border-border rounded-lg p-1">
-            {(
-              ["dashboard", "historique", "progression", "programme"] as Tab[]
-            ).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={[
-                  "px-3 py-1.5 text-xs font-medium rounded-md capitalize transition-colors",
-                  tab === t
-                    ? "bg-accent text-black"
-                    : "text-text-muted hover:text-text",
-                ].join(" ")}
-              >
-                {t}
-              </button>
-            ))}
+            {/* Navigation desktop : visible à partir de md */}
+            <nav className="hidden md:flex gap-1 bg-bg-card border border-border rounded-lg p-1">
+              {TABS.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={[
+                    "px-3 py-1.5 text-xs font-medium rounded-md capitalize transition-colors",
+                    tab === t
+                      ? "bg-accent text-black"
+                      : "text-text-muted hover:text-text",
+                  ].join(" ")}
+                >
+                  {t}
+                </button>
+              ))}
             </nav>
+            {/* Bouton hamburger : visible en dessous de md */}
+            <button
+              className="md:hidden btn-ghost !px-2 !py-2"
+              onClick={() => setMobileNavOpen((v) => !v)}
+              aria-label="Menu"
+              aria-expanded={mobileNavOpen}
+            >
+              {mobileNavOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Panneau mobile déroulant */}
+        {mobileNavOpen && (
+          <nav className="md:hidden border-t border-border bg-bg-soft">
+            <div className="max-w-6xl mx-auto px-4 py-2 flex flex-col gap-1">
+              {TABS.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={[
+                    "w-full text-left px-4 py-3 rounded-lg text-sm font-medium capitalize transition-colors",
+                    tab === t
+                      ? "bg-accent text-black"
+                      : "bg-bg-card text-text-muted hover:text-text border border-border",
+                  ].join(" ")}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </nav>
+        )}
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
@@ -167,9 +209,15 @@ export default function App() {
         {tab === "programme" && <ProgramView onFillInput={fillFromProgram} />}
       </main>
 
-      <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-text-dim">
-        Données stockées localement (LocalStorage) · Prêt pour une migration
-        SQLite/PostgreSQL
+      <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-text-dim space-y-1">
+        <div>
+          Application développée par{" "}
+          <span className="font-semibold text-text-muted">Gabriel Orsatti</span>
+        </div>
+        <div>
+          Données stockées localement (LocalStorage) · Prêt pour une migration
+          SQLite/PostgreSQL
+        </div>
       </footer>
     </div>
   );
