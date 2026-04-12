@@ -6,6 +6,6 @@ dist-ssr
 *.tsbuildinfo
 .DS_Store
 .env
-.env.*
-!.env.example
+.env.local
+.env.*.local
 .claude/
