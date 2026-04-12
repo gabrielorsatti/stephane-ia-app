@@ -60,4 +60,31 @@ describe("computeRecords", () => {
   it("retourne un tableau vide sans séance", () => {
     expect(computeRecords([])).toEqual([]);
   });
+
+  it("applique un override manuel sur un exercice existant", () => {
+    const recs = computeRecords(sessions, [
+      { nom: "Développé couché", maxPoids: 120, maxPoidsReps: 1 },
+    ]);
+    const bench = recs.find((r) => r.nom === "Développé couché")!;
+    expect(bench.maxPoids).toBe(120);
+    expect(bench.maxPoidsReps).toBe(1);
+    expect(bench.manualOverride).toBe(true);
+    // Les champs non surchargés restent les valeurs calculées.
+    expect(bench.totalSessions).toBe(2);
+  });
+
+  it("crée un PR depuis un override pour un exercice jamais fait", () => {
+    const recs = computeRecords(sessions, [
+      {
+        nom: "Clean & Jerk",
+        categorie: "Autre",
+        maxPoids: 80,
+        maxPoidsReps: 1,
+        maxPoidsDate: "2026-03-20",
+      },
+    ]);
+    const c = recs.find((r) => r.nom === "Clean & Jerk")!;
+    expect(c.maxPoids).toBe(80);
+    expect(c.totalSessions).toBe(0);
+  });
 });

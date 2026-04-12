@@ -12,6 +12,7 @@ import { SessionInput } from "./components/SessionInput";
 import { StatsCards } from "./components/StatsCards";
 import { VolumeChart } from "./components/VolumeChart";
 import { useBodyWeight } from "./hooks/useBodyWeight";
+import { useRecordOverrides } from "./hooks/useRecordOverrides";
 import { useSessions } from "./hooks/useSessions";
 import { sessionToNlp } from "./lib/toNlp";
 import type { Session } from "./types";
@@ -28,6 +29,11 @@ export default function App() {
   } = useSessions();
   const { entries, addEntry, latest, replaceAll: replaceBodyWeights } =
     useBodyWeight();
+  const {
+    overrides,
+    upsert: upsertOverride,
+    remove: removeOverride,
+  } = useRecordOverrides();
   const [tab, setTab] = useState<Tab>("dashboard");
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
@@ -202,7 +208,12 @@ export default function App() {
         {tab === "progression" && (
           <div className="space-y-4">
             <ProgressionChart sessions={sessions} />
-            <PersonalRecords sessions={sessions} />
+            <PersonalRecords
+              sessions={sessions}
+              overrides={overrides}
+              onUpsertOverride={upsertOverride}
+              onRemoveOverride={removeOverride}
+            />
           </div>
         )}
 

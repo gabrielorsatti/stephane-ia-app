@@ -1,4 +1,8 @@
-import type { BodyWeightEntry, Session } from "../types";
+import type {
+  BodyWeightEntry,
+  PersonalRecordOverride,
+  Session,
+} from "../types";
 
 // Abstraction de stockage. Actuellement adossée au LocalStorage mais prête
 // à être remplacée par une API SQLite/PostgreSQL : il suffit d'implémenter
@@ -13,6 +17,23 @@ export interface StorageAdapter {
 
 const KEY_SESSIONS = "gym-tracker:sessions:v1";
 const KEY_BW = "gym-tracker:bodyweight:v1";
+const KEY_OVERRIDES = "gym-tracker:pr-overrides:v1";
+
+// Les PR overrides restent volontairement découplés de StorageAdapter pour
+// l'instant : ils sont une préférence utilisateur, pas une donnée source.
+export const recordOverridesStore = {
+  async get(): Promise<PersonalRecordOverride[]> {
+    try {
+      const raw = localStorage.getItem(KEY_OVERRIDES);
+      return raw ? (JSON.parse(raw) as PersonalRecordOverride[]) : [];
+    } catch {
+      return [];
+    }
+  },
+  async save(list: PersonalRecordOverride[]): Promise<void> {
+    localStorage.setItem(KEY_OVERRIDES, JSON.stringify(list));
+  },
+};
 
 export const localStorageAdapter: StorageAdapter = {
   async getSessions() {

@@ -43,3 +43,17 @@ export interface BodyWeightEntry {
   date: string; // ISO
   poids: number;
 }
+
+// Surcharge manuelle des PR pour un exercice donné. Tous les champs sont
+// optionnels : ceux qui sont renseignés remplacent la valeur calculée à
+// partir des séances, les autres restent déduits automatiquement.
+export interface PersonalRecordOverride {
+  nom: string;
+  categorie?: Category;
+  maxPoids?: number;
+  maxPoidsReps?: number;
+  maxPoidsDate?: string;
+  best1RM?: number;
+  best1RMDate?: string;
+  notes?: string;
+}
