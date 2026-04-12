@@ -6,11 +6,12 @@ import { SessionList } from "./SessionList";
 interface Props {
   sessions: Session[];
   onRemove: (id: string) => void;
+  onEdit?: (session: Session) => void;
 }
 
 // Historique filtrable : recherche texte + catégories.
 // Une séance est retenue si au moins un de ses exercices passe le filtre.
-export function HistoryView({ sessions, onRemove }: Props) {
+export function HistoryView({ sessions, onRemove, onEdit }: Props) {
   const [query, setQuery] = useState("");
   const [categories, setCategories] = useState<Set<Category>>(new Set());
 
@@ -99,7 +100,11 @@ export function HistoryView({ sessions, onRemove }: Props) {
           </div>
         )}
       </div>
-      <SessionList sessions={filtered} onRemove={onRemove} />
+      <SessionList
+        sessions={filtered}
+        onRemove={onRemove}
+        onEdit={onEdit}
+      />
     </div>
   );
 }

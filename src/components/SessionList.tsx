@@ -1,16 +1,17 @@
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import type { Session } from "../types";
 import { sessionScore, sessionVolume } from "../lib/scoring";
 
 interface Props {
   sessions: Session[];
   onRemove: (id: string) => void;
+  onEdit?: (session: Session) => void;
 }
 
 // Historique des séances, les plus récentes en premier.
-export function SessionList({ sessions, onRemove }: Props) {
+export function SessionList({ sessions, onRemove, onEdit }: Props) {
   if (sessions.length === 0) {
     return (
       <div className="card text-center text-text-dim text-sm py-10">
@@ -21,13 +22,26 @@ export function SessionList({ sessions, onRemove }: Props) {
   return (
     <div className="space-y-3">
       {sessions.map((s) => (
-        <SessionCard key={s.id} session={s} onRemove={() => onRemove(s.id)} />
+        <SessionCard
+          key={s.id}
+          session={s}
+          onRemove={() => onRemove(s.id)}
+          onEdit={onEdit ? () => onEdit(s) : undefined}
+        />
       ))}
     </div>
   );
 }
 
-function SessionCard({ session, onRemove }: { session: Session; onRemove: () => void }) {
+function SessionCard({
+  session,
+  onRemove,
+  onEdit,
+}: {
+  session: Session;
+  onRemove: () => void;
+  onEdit?: () => void;
+}) {
   const vol = Math.round(sessionVolume(session));
   const score = sessionScore(session);
 
@@ -43,13 +57,24 @@ function SessionCard({ session, onRemove }: { session: Session; onRemove: () => 
             {session.bodyWeight ? ` · PDC ${session.bodyWeight}kg` : ""}
           </div>
         </div>
-        <button
-          className="btn-ghost !p-2"
-          onClick={onRemove}
-          aria-label="Supprimer"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <div className="flex gap-1">
+          {onEdit && (
+            <button
+              className="btn-ghost !p-2"
+              onClick={onEdit}
+              aria-label="Modifier"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
+          <button
+            className="btn-ghost !p-2"
+            onClick={onRemove}
+            aria-label="Supprimer"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         {session.exercices.map((ex, i) => (

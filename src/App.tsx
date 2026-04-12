@@ -13,23 +13,55 @@ import { StatsCards } from "./components/StatsCards";
 import { VolumeChart } from "./components/VolumeChart";
 import { useBodyWeight } from "./hooks/useBodyWeight";
 import { useSessions } from "./hooks/useSessions";
+import { sessionToNlp } from "./lib/toNlp";
+import type { Session } from "./types";
 
 type Tab = "dashboard" | "historique" | "progression" | "programme";
 
 export default function App() {
-  const { sessions, addSession, removeSession, replaceAll: replaceSessions } =
-    useSessions();
+  const {
+    sessions,
+    addSession,
+    updateSession,
+    removeSession,
+    replaceAll: replaceSessions,
+  } = useSessions();
   const { entries, addEntry, latest, replaceAll: replaceBodyWeights } =
     useBodyWeight();
   const [tab, setTab] = useState<Tab>("dashboard");
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   function fillFromProgram(text: string) {
     setPrefillText(text);
     setPrefillVersion((v) => v + 1);
+    setEditingId(null);
     setTab("dashboard");
   }
+
+  function startEdit(session: Session) {
+    setPrefillText(sessionToNlp(session));
+    setPrefillVersion((v) => v + 1);
+    setEditingId(session.id);
+    setTab("dashboard");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleSave(session: Omit<Session, "id">) {
+    if (editingId) {
+      updateSession(editingId, session);
+      setEditingId(null);
+      setPrefillText("");
+      setPrefillVersion((v) => v + 1);
+    } else {
+      addSession(session);
+    }
+  }
+
+  const editingSession = editingId
+    ? sessions.find((s) => s.id === editingId)
+    : undefined;
 
   return (
     <div className="min-h-screen">
@@ -79,9 +111,23 @@ export default function App() {
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <SessionInput
-          onSave={addSession}
+          onSave={handleSave}
           prefillText={prefillText}
           prefillVersion={prefillVersion}
+          editing={
+            editingSession
+              ? {
+                  date: editingSession.date,
+                  notes: editingSession.notes,
+                  bodyWeight: editingSession.bodyWeight,
+                }
+              : undefined
+          }
+          onCancelEdit={() => {
+            setEditingId(null);
+            setPrefillText("");
+            setPrefillVersion((v) => v + 1);
+          }}
         />
 
         {tab === "dashboard" && (
@@ -99,7 +145,11 @@ export default function App() {
         {tab === "historique" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
-              <HistoryView sessions={sessions} onRemove={removeSession} />
+              <HistoryView
+                sessions={sessions}
+                onRemove={removeSession}
+                onEdit={startEdit}
+              />
             </div>
             <div>
               <CalendarView sessions={sessions} />

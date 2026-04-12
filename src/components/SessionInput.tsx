@@ -1,4 +1,4 @@
-import { Sparkles, Calendar, Trash2, Plus } from "lucide-react";
+import { Sparkles, Calendar, Trash2, Plus, X, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { parseInput } from "../lib/parser";
 import type { ExerciseEntry, Session } from "../types";
@@ -9,17 +9,39 @@ interface Props {
   // Chaque nouvelle valeur remplace la saisie en cours.
   prefillText?: string;
   prefillVersion?: number;
+  // Mode édition : renseigné → le bouton devient "Mettre à jour" et
+  // onSave recevra la date/notes/bw pré-chargées.
+  editing?: {
+    date: string;
+    notes?: string;
+    bodyWeight?: number;
+  };
+  onCancelEdit?: () => void;
 }
 
 // Champ de saisie NLP : analyse une phrase libre et propose un aperçu
 // structuré des exercices avant sauvegarde.
-export function SessionInput({ onSave, prefillText, prefillVersion }: Props) {
+export function SessionInput({
+  onSave,
+  prefillText,
+  prefillVersion,
+  editing,
+  onCancelEdit,
+}: Props) {
   const [text, setText] = useState("");
 
   useEffect(() => {
     if (prefillText !== undefined) setText(prefillText);
     // prefillVersion permet de ré-appliquer le même texte plusieurs fois.
   }, [prefillText, prefillVersion]);
+
+  useEffect(() => {
+    if (editing) {
+      setDate(editing.date);
+      setNotes(editing.notes ?? "");
+      setBodyWeight(editing.bodyWeight ? String(editing.bodyWeight) : "");
+    }
+  }, [editing]);
   const [notes, setNotes] = useState("");
   const [bodyWeight, setBodyWeight] = useState<string>("");
   const [date, setDate] = useState<string>(
@@ -45,9 +67,18 @@ export function SessionInput({ onSave, prefillText, prefillVersion }: Props) {
 
   return (
     <div className="card space-y-4">
-      <div className="flex items-center gap-2">
-        <Sparkles className="w-5 h-5 text-accent" />
-        <h2 className="text-lg font-semibold">Nouvelle séance</h2>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-accent" />
+          <h2 className="text-lg font-semibold">
+            {editing ? "Modifier la séance" : "Nouvelle séance"}
+          </h2>
+        </div>
+        {editing && onCancelEdit && (
+          <button className="btn-ghost !py-1.5" onClick={onCancelEdit}>
+            <X className="w-4 h-4" /> Annuler
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -99,7 +130,15 @@ curl 3x12 à 15`}
           <Trash2 className="w-4 h-4" /> Effacer
         </button>
         <button className="btn-primary" onClick={handleSave} disabled={!canSave}>
-          <Plus className="w-4 h-4" /> Enregistrer
+          {editing ? (
+            <>
+              <Save className="w-4 h-4" /> Mettre à jour
+            </>
+          ) : (
+            <>
+              <Plus className="w-4 h-4" /> Enregistrer
+            </>
+          )}
         </button>
       </div>
     </div>
