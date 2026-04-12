@@ -4,6 +4,7 @@ import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { CalendarView } from "./components/CalendarView";
 import { CategoryChart } from "./components/CategoryChart";
+import { PersonalRecords } from "./components/PersonalRecords";
 import { ProgressionChart } from "./components/ProgressionChart";
 import { SessionInput } from "./components/SessionInput";
 import { SessionList } from "./components/SessionList";
@@ -94,7 +95,7 @@ export default function App() {
         {tab === "progression" && (
           <div className="space-y-4">
             <ProgressionChart sessions={sessions} />
-            <CategoryChart sessions={sessions} />
+            <PersonalRecords sessions={sessions} />
           </div>
         )}
       </main>
