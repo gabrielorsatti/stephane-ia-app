@@ -50,4 +50,67 @@
   .chip {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
+  .prose-coach {
+    @apply text-sm leading-relaxed;
+  }
+  .prose-coach p {
+    @apply my-1.5;
+  }
+  .prose-coach h1,
+  .prose-coach h2,
+  .prose-coach h3,
+  .prose-coach h4 {
+    @apply font-semibold mt-2 mb-1 text-text;
+  }
+  .prose-coach h1 {
+    @apply text-base;
+  }
+  .prose-coach h2 {
+    @apply text-sm;
+  }
+  .prose-coach h3,
+  .prose-coach h4 {
+    @apply text-xs uppercase tracking-wide text-text-muted;
+  }
+  .prose-coach ul,
+  .prose-coach ol {
+    @apply pl-5 my-1.5 space-y-1;
+  }
+  .prose-coach ul {
+    @apply list-disc;
+  }
+  .prose-coach ol {
+    @apply list-decimal;
+  }
+  .prose-coach strong {
+    @apply font-semibold text-text;
+  }
+  .prose-coach em {
+    @apply italic;
+  }
+  .prose-coach code {
+    @apply font-mono text-[12px] bg-bg-elev border border-border rounded px-1 py-0.5;
+  }
+  .prose-coach pre {
+    @apply bg-bg-elev border border-border rounded-lg p-2 my-2 overflow-x-auto text-[12px];
+  }
+  .prose-coach pre code {
+    @apply bg-transparent border-0 p-0;
+  }
+  .prose-coach table {
+    @apply w-full text-xs my-2 border-collapse;
+  }
+  .prose-coach th,
+  .prose-coach td {
+    @apply border border-border px-2 py-1 text-left;
+  }
+  .prose-coach th {
+    @apply bg-bg-elev font-semibold;
+  }
+  .prose-coach a {
+    @apply text-accent-soft underline hover:text-accent;
+  }
+  .prose-coach blockquote {
+    @apply border-l-2 border-accent-muted pl-3 text-text-muted my-2;
+  }
 }

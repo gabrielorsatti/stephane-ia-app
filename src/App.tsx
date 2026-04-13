@@ -4,6 +4,7 @@ import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { CalendarView } from "./components/CalendarView";
 import { CategoryChart } from "./components/CategoryChart";
+import { CoachChat } from "./components/CoachChat";
 import { ExerciseCatalog } from "./components/ExerciseCatalog";
 import { HistoryView } from "./components/HistoryView";
 import { Logo } from "./components/Logo";
@@ -14,6 +15,7 @@ import { SessionInput } from "./components/SessionInput";
 import { StatsCards } from "./components/StatsCards";
 import { VolumeChart } from "./components/VolumeChart";
 import { useBodyWeight } from "./hooks/useBodyWeight";
+import { usePrograms } from "./hooks/usePrograms";
 import { useRecordOverrides } from "./hooks/useRecordOverrides";
 import { useSessions } from "./hooks/useSessions";
 import { sessionToNlp } from "./lib/toNlp";
@@ -24,7 +26,8 @@ type Tab =
   | "historique"
   | "progression"
   | "programme"
-  | "exercices";
+  | "exercices"
+  | "coach";
 
 export default function App() {
   const {
@@ -41,6 +44,7 @@ export default function App() {
     upsert: upsertOverride,
     remove: removeOverride,
   } = useRecordOverrides();
+  const { programs, replaceAll: replaceAllPrograms } = usePrograms();
   const [tab, setTab] = useState<Tab>("dashboard");
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
@@ -58,6 +62,7 @@ export default function App() {
     "progression",
     "programme",
     "exercices",
+    "coach",
   ];
 
   function fillFromProgram(text: string) {
@@ -246,6 +251,16 @@ export default function App() {
         {tab === "programme" && <ProgramView onFillInput={fillFromProgram} />}
 
         {tab === "exercices" && <ExerciseCatalog />}
+
+        {tab === "coach" && (
+          <CoachChat
+            sessions={sessions}
+            bodyWeights={entries}
+            overrides={overrides}
+            programs={programs}
+            onApplyPrograms={replaceAllPrograms}
+          />
+        )}
       </main>
 
       <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-text-dim space-y-1">
