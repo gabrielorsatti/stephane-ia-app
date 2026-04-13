@@ -65,26 +65,26 @@ export function BodyWeightChart({ entries, onAdd }: Props) {
       ) : (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#cfc1a6" />
-            <XAxis dataKey="label" stroke="#8c7d71" fontSize={11} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2a3138" />
+            <XAxis dataKey="label" stroke="#8c95a0" fontSize={11} />
             <YAxis
-              stroke="#8c7d71"
+              stroke="#8c95a0"
               fontSize={11}
               domain={["dataMin - 2", "dataMax + 2"]}
             />
             <Tooltip
               contentStyle={{
-                background: "#f6efe2",
-                border: "1px solid #cfc1a6",
+                background: "#1a1f24",
+                border: "1px solid #2a3138",
                 borderRadius: 8,
               }}
             />
             <Line
               type="monotone"
               dataKey="poids"
-              stroke="#4f8570"
+              stroke="#a7e8c9"
               strokeWidth={2}
-              dot={{ fill: "#4f8570", r: 3 }}
+              dot={{ fill: "#a7e8c9", r: 3 }}
             />
           </LineChart>
         </ResponsiveContainer>

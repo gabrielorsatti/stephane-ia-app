@@ -179,7 +179,7 @@ function ParsedPreview({
       {unrecognized.map((seg, i) => (
         <div
           key={`u-${i}`}
-          className="text-xs text-rose-500 bg-rose-100/60 border border-rose-200 rounded-lg px-3 py-2"
+          className="text-xs text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2"
         >
           Non reconnu : « {seg} »
         </div>

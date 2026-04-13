@@ -73,7 +73,7 @@ export function HistoryView({ sessions, onRemove, onEdit }: Props) {
                 className={[
                   "chip border transition-colors",
                   active
-                    ? "bg-accent text-text border-accent"
+                    ? "bg-accent text-bg border-accent"
                     : "bg-bg-soft text-text-muted border-border hover:text-text",
                 ].join(" ")}
               >

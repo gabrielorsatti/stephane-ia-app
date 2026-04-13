@@ -1,4 +1,4 @@
-import { Dumbbell, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
@@ -6,6 +6,7 @@ import { CalendarView } from "./components/CalendarView";
 import { CategoryChart } from "./components/CategoryChart";
 import { ExerciseCatalog } from "./components/ExerciseCatalog";
 import { HistoryView } from "./components/HistoryView";
+import { Logo } from "./components/Logo";
 import { PersonalRecords } from "./components/PersonalRecords";
 import { ProgramView } from "./components/ProgramView";
 import { ProgressionChart } from "./components/ProgressionChart";
@@ -94,8 +95,8 @@ export default function App() {
       <header className="border-b border-border bg-bg-soft/60 backdrop-blur sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-text shrink-0">
-              <Dumbbell className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-accent shrink-0">
+              <Logo size={22} />
             </div>
             <div className="min-w-0">
               <div className="font-semibold truncate">Personal Gym Tracker</div>
@@ -122,7 +123,7 @@ export default function App() {
                   className={[
                     "px-3 py-1.5 text-xs font-medium rounded-md capitalize transition-colors",
                     tab === t
-                      ? "bg-accent text-text"
+                      ? "bg-accent text-bg"
                       : "text-text-muted hover:text-text",
                   ].join(" ")}
                 >
@@ -152,7 +153,7 @@ export default function App() {
       {mobileNavOpen && (
         <>
           <div
-            className="md:hidden fixed inset-0 z-30 bg-text/20 backdrop-blur-sm"
+            className="md:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileNavOpen(false)}
           />
           <nav
@@ -170,7 +171,7 @@ export default function App() {
                   className={[
                     "w-full text-left px-4 py-3 rounded-lg text-sm font-medium capitalize transition-colors",
                     tab === t
-                      ? "bg-accent text-text"
+                      ? "bg-accent text-bg"
                       : "bg-bg-soft text-text-muted hover:text-text border border-border",
                   ].join(" ")}
                 >

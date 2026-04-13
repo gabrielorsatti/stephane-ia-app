@@ -5,21 +5,34 @@ export default {
     extend: {
       colors: {
         bg: {
-          DEFAULT: "#ede3d3",
-          soft: "#e3d8c4",
-          card: "#f6efe2",
-          elev: "#e8dcc7",
+          DEFAULT: "#0f1316",
+          soft: "#161b1f",
+          card: "#1a1f24",
+          elev: "#222931",
         },
-        border: { DEFAULT: "#cfc1a6", strong: "#b6a687" },
+        border: { DEFAULT: "#2a3138", strong: "#3a434d" },
+        // Accent principal : menthe douce. Les accents secondaires (bleu
+        // poudré, lavande) sont exposés comme palettes dédiées pour les
+        // graphiques multi-séries.
         accent: {
-          DEFAULT: "#8ab8a0",
-          soft: "#4f8570",
-          muted: "#c7ddce",
+          DEFAULT: "#a7e8c9",
+          soft: "#7dd3ae",
+          muted: "#22372f",
+        },
+        powder: {
+          DEFAULT: "#a8d0e6",
+          soft: "#7fb5d4",
+          muted: "#1f3340",
+        },
+        lavender: {
+          DEFAULT: "#c9b8e8",
+          soft: "#a892d1",
+          muted: "#2e2940",
         },
         text: {
-          DEFAULT: "#3d332e",
-          muted: "#66584f",
-          dim: "#8c7d71",
+          DEFAULT: "#eef1f4",
+          muted: "#a8b2bc",
+          dim: "#6f7881",
         },
       },
       fontFamily: {

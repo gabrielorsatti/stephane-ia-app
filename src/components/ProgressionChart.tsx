@@ -32,21 +32,21 @@ const METRICS: Array<{
     key: "volume",
     label: "Volume total",
     sub: "Σ (poids × reps) par séance",
-    color: "#4f8570",
+    color: "#a7e8c9",
     unit: "kg",
   },
   {
     key: "intensity",
     label: "Intensité travail",
     sub: "Charge max sur séries 6–12 reps",
-    color: "#4a7a9e",
+    color: "#a8d0e6",
     unit: "kg",
   },
   {
     key: "pr",
     label: "Record absolu",
     sub: "Poids max soulevé (toutes reps)",
-    color: "#8068a6",
+    color: "#c9b8e8",
     unit: "kg",
   },
 ];
@@ -110,7 +110,7 @@ export function ProgressionChart({ sessions }: Props) {
             className={[
               "px-2 py-2 rounded-md text-xs font-medium transition-colors text-center",
               metric === m.key
-                ? "bg-accent text-text"
+                ? "bg-accent text-bg"
                 : "text-text-muted hover:text-text",
             ].join(" ")}
           >
@@ -168,16 +168,16 @@ export function ProgressionChart({ sessions }: Props) {
                   <stop offset="100%" stopColor={active.color} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#cfc1a6" />
-              <XAxis dataKey="label" stroke="#8c7d71" fontSize={11} />
-              <YAxis stroke="#8c7d71" fontSize={11} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2a3138" />
+              <XAxis dataKey="label" stroke="#8c95a0" fontSize={11} />
+              <YAxis stroke="#8c95a0" fontSize={11} />
               <Tooltip
                 contentStyle={{
-                  background: "#f6efe2",
-                  border: "1px solid #cfc1a6",
+                  background: "#1a1f24",
+                  border: "1px solid #2a3138",
                   borderRadius: 8,
                 }}
-                labelStyle={{ color: "#66584f" }}
+                labelStyle={{ color: "#a8b2bc" }}
                 formatter={(v: number) => [`${v} ${active.unit}`, active.label]}
               />
               <Area
@@ -192,16 +192,16 @@ export function ProgressionChart({ sessions }: Props) {
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#cfc1a6" />
-              <XAxis dataKey="label" stroke="#8c7d71" fontSize={11} />
-              <YAxis stroke="#8c7d71" fontSize={11} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#2a3138" />
+              <XAxis dataKey="label" stroke="#8c95a0" fontSize={11} />
+              <YAxis stroke="#8c95a0" fontSize={11} />
               <Tooltip
                 contentStyle={{
-                  background: "#f6efe2",
-                  border: "1px solid #cfc1a6",
+                  background: "#1a1f24",
+                  border: "1px solid #2a3138",
                   borderRadius: 8,
                 }}
-                labelStyle={{ color: "#66584f" }}
+                labelStyle={{ color: "#a8b2bc" }}
                 formatter={(v: number) => [`${v} ${active.unit}`, active.label]}
               />
               <Line

@@ -27,7 +27,7 @@ export function ProgramView({ onFillInput }: Props) {
               className={[
                 "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                 p.id === activeId
-                  ? "bg-accent text-text"
+                  ? "bg-accent text-bg"
                   : "bg-bg-soft border border-border text-text-muted hover:text-text",
               ].join(" ")}
             >

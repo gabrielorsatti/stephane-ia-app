@@ -18,8 +18,8 @@ export default defineConfig({
         short_name: "Gym Tracker",
         description:
           "Suivi de musculation avec saisie en langage naturel et statistiques.",
-        theme_color: "#8ab8a0",
-        background_color: "#ede3d3",
+        theme_color: "#a7e8c9",
+        background_color: "#0f1316",
         display: "standalone",
         orientation: "portrait",
         icons: [
