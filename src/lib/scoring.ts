@@ -50,6 +50,71 @@ export function sessionScore(session: Session): number {
   return Math.round(vol / 100 + intensity / 2);
 }
 
+// ─── Helpers dédiés à la vue "Progression par exercice" ──────────────────
+// Ces fonctions opèrent sur un ExerciseEntry isolé et servent à dériver les
+// 3 métriques du graphique de progression (volume / intensité travail / PR).
+
+// Volume total d'un exercice sur une séance : somme des poids × reps.
+export function volumeForExercise(ex: ExerciseEntry): number {
+  return exerciseVolume(ex);
+}
+
+// Poids max soulevé sur les séries dont le nombre de reps est dans [min, max]
+// (bornes incluses). Utile pour isoler la charge de travail hypertrophique
+// (6-12 reps par défaut) indépendamment des séries lourdes ou échauffement.
+export function maxPoidsInRepRange(
+  ex: ExerciseEntry,
+  min: number,
+  max: number,
+): number {
+  let best = 0;
+  for (const s of ex.sets) {
+    if (s.reps >= min && s.reps <= max && s.poids > best) best = s.poids;
+  }
+  return best;
+}
+
+// Record absolu : poids max soulevé, toutes reps confondues.
+export function maxPoidsAbsolute(ex: ExerciseEntry): number {
+  let best = 0;
+  for (const s of ex.sets) if (s.poids > best) best = s.poids;
+  return best;
+}
+
+// Construit la série temporelle d'un exercice sur l'historique des séances,
+// avec les 3 métriques. Les séances sans l'exercice ou sans donnée utile
+// pour la métrique retournent null sur ce point (filtré côté affichage).
+export interface ExerciseProgressionPoint {
+  date: string;
+  label: string;
+  volume: number;
+  intensity: number; // charge max sur séries [minReps, maxReps]
+  pr: number;        // charge max absolue
+}
+
+export function buildExerciseProgression(
+  sessions: Session[],
+  exerciseName: string,
+  opts: { minReps?: number; maxReps?: number } = {},
+): ExerciseProgressionPoint[] {
+  const minReps = opts.minReps ?? 6;
+  const maxReps = opts.maxReps ?? 12;
+  const points: ExerciseProgressionPoint[] = [];
+  const sorted = [...sessions].sort((a, b) => (a.date < b.date ? -1 : 1));
+  for (const s of sorted) {
+    const ex = s.exercices.find((e) => e.nom === exerciseName);
+    if (!ex) continue;
+    points.push({
+      date: s.date,
+      label: s.date.slice(5).replace("-", "/"), // mm/dd
+      volume: volumeForExercise(ex),
+      intensity: maxPoidsInRepRange(ex, minReps, maxReps),
+      pr: maxPoidsAbsolute(ex),
+    });
+  }
+  return points;
+}
+
 // Agrège le volume par catégorie pour une liste de séances.
 export function volumeByCategory(
   sessions: Session[],

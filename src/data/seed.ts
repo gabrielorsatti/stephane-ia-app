@@ -114,4 +114,51 @@ export const SEED_SESSIONS: Session[] = [
       },
     ],
   },
+  {
+    id: "seed-2026-04-12",
+    date: "2026-04-12",
+    bodyWeight: 80,
+    notes: "Séance épaules/pecs/triceps + course à pied.",
+    exercices: [
+      {
+        nom: "Développé militaire machine",
+        categorie: "Épaules",
+        sets: [
+          { reps: 10, poids: 60 },
+          { reps: 10, poids: 60 },
+        ],
+      },
+      {
+        nom: "Élévations latérales",
+        categorie: "Épaules",
+        sets: [
+          { reps: 10, poids: 9 },
+          { reps: 10, poids: 9 },
+        ],
+      },
+      {
+        nom: "Développé incliné machine",
+        categorie: "Poussée",
+        sets: [
+          { reps: 12, poids: 80 },
+          { reps: 8, poids: 85 },
+          { reps: 8, poids: 85 },
+        ],
+      },
+      {
+        nom: "Extension triceps poulie",
+        categorie: "Bras",
+        sets: [
+          { reps: 10, poids: 15 },
+          { reps: 12, poids: 12.5 },
+        ],
+      },
+      {
+        nom: "Course",
+        categorie: "Cardio",
+        sets: [],
+        cardio: { distance: 3.5, duree: 25, denivele: 50 },
+      },
+    ],
+  },
 ];

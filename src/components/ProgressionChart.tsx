@@ -1,6 +1,7 @@
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -8,10 +9,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { format, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
 import type { Session } from "../types";
-import { bestEstimated1RM } from "../lib/scoring";
+import { buildExerciseProgression } from "../lib/scoring";
 import { cuesFor, objectiveFor } from "../data/programs";
 import { Lightbulb, Target } from "lucide-react";
 
@@ -19,7 +19,41 @@ interface Props {
   sessions: Session[];
 }
 
-// Suivi de progression par mouvement : meilleure charge et 1RM estimé par séance.
+type Metric = "volume" | "intensity" | "pr";
+
+const METRICS: Array<{
+  key: Metric;
+  label: string;
+  sub: string;
+  color: string;
+  unit: string;
+}> = [
+  {
+    key: "volume",
+    label: "Volume total",
+    sub: "Σ (poids × reps) par séance",
+    color: "#4f8570",
+    unit: "kg",
+  },
+  {
+    key: "intensity",
+    label: "Intensité travail",
+    sub: "Charge max sur séries 6–12 reps",
+    color: "#4a7a9e",
+    unit: "kg",
+  },
+  {
+    key: "pr",
+    label: "Record absolu",
+    sub: "Poids max soulevé (toutes reps)",
+    color: "#8068a6",
+    unit: "kg",
+  },
+];
+
+// Progression par exercice : 3 métriques sélectionnables (volume / intensité
+// dans la fenêtre 6–12 reps / record absolu). Chaque métrique a sa couleur
+// pastel dédiée.
 export function ProgressionChart({ sessions }: Props) {
   const exercises = useMemo(() => {
     const set = new Set<string>();
@@ -28,34 +62,29 @@ export function ProgressionChart({ sessions }: Props) {
   }, [sessions]);
 
   const [selected, setSelected] = useState<string>(exercises[0] ?? "");
+  const [metric, setMetric] = useState<Metric>("volume");
 
-  // Maintient une sélection valide si la liste change.
   const current = exercises.includes(selected) ? selected : exercises[0] ?? "";
 
-  const data = useMemo(() => {
-    if (!current) return [];
-    return [...sessions]
-      .sort((a, b) => (a.date < b.date ? -1 : 1))
-      .map((s) => {
-        const ex = s.exercices.find((e) => e.nom === current);
-        if (!ex) return null;
-        const maxPoids = ex.sets.reduce((m, set) => Math.max(m, set.poids), 0);
-        const oneRm = Math.round(bestEstimated1RM(ex));
-        return {
-          label: format(parseISO(s.date), "dd/MM"),
-          poids: maxPoids,
-          rm: oneRm,
-        };
-      })
-      .filter(Boolean) as { label: string; poids: number; rm: number }[];
-  }, [sessions, current]);
+  const series = useMemo(
+    () => (current ? buildExerciseProgression(sessions, current) : []),
+    [sessions, current],
+  );
+
+  // On filtre les points à 0 pour la métrique courante — un exercice cardio
+  // n'a pas de charge, afficher une ligne plate à 0 n'a pas de sens.
+  const data = useMemo(
+    () => series.filter((p) => p[metric] > 0),
+    [series, metric],
+  );
 
   const cues = current ? cuesFor(current) : [];
   const objectif = current ? objectiveFor(current) : undefined;
+  const active = METRICS.find((m) => m.key === metric)!;
 
   return (
     <div className="card flex flex-col">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
         <h3 className="text-sm font-semibold">Progression par exercice</h3>
         <select
           className="input !py-1 !px-2 text-xs w-auto"
@@ -71,6 +100,32 @@ export function ProgressionChart({ sessions }: Props) {
           ))}
         </select>
       </div>
+
+      {/* Sélecteur de métrique */}
+      <div className="grid grid-cols-3 gap-1 mb-3 bg-bg-soft border border-border rounded-lg p-1">
+        {METRICS.map((m) => (
+          <button
+            key={m.key}
+            onClick={() => setMetric(m.key)}
+            className={[
+              "px-2 py-2 rounded-md text-xs font-medium transition-colors text-center",
+              metric === m.key
+                ? "bg-accent text-text"
+                : "text-text-muted hover:text-text",
+            ].join(" ")}
+          >
+            <div className="flex items-center justify-center gap-1.5">
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ background: m.color }}
+              />
+              <span>{m.label}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+      <div className="text-[11px] text-text-dim mb-3">{active.sub}</div>
+
       {(objectif || cues.length > 0) && (
         <div className="mb-3 space-y-2">
           {objectif && (
@@ -96,45 +151,69 @@ export function ProgressionChart({ sessions }: Props) {
           )}
         </div>
       )}
+
       <div className="h-[280px]">
-      {data.length === 0 ? (
-        <div className="h-full flex items-center justify-center text-text-dim text-sm">
-          Pas encore de données pour cet exercice.
-        </div>
-      ) : (
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#cfc1a6" />
-            <XAxis dataKey="label" stroke="#8c7d71" fontSize={11} />
-            <YAxis stroke="#8c7d71" fontSize={11} />
-            <Tooltip
-              contentStyle={{
-                background: "#f6efe2",
-                border: "1px solid #cfc1a6",
-                borderRadius: 8,
-              }}
-            />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Line
-              type="monotone"
-              dataKey="poids"
-              name="Charge max (kg)"
-              stroke="#4f8570"
-              strokeWidth={2}
-              dot={{ fill: "#4f8570", r: 3 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="rm"
-              name="1RM estimé (kg)"
-              stroke="#a6679a"
-              strokeWidth={2}
-              strokeDasharray="4 4"
-              dot={false}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      )}
+        {data.length === 0 ? (
+          <div className="h-full flex items-center justify-center text-text-dim text-sm text-center px-4">
+            {series.length === 0
+              ? "Pas encore de données pour cet exercice."
+              : `Aucune série ne correspond à cette métrique (${active.label.toLowerCase()}).`}
+          </div>
+        ) : metric === "volume" ? (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data}>
+              <defs>
+                <linearGradient id="progGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={active.color} stopOpacity={0.55} />
+                  <stop offset="100%" stopColor={active.color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#cfc1a6" />
+              <XAxis dataKey="label" stroke="#8c7d71" fontSize={11} />
+              <YAxis stroke="#8c7d71" fontSize={11} />
+              <Tooltip
+                contentStyle={{
+                  background: "#f6efe2",
+                  border: "1px solid #cfc1a6",
+                  borderRadius: 8,
+                }}
+                labelStyle={{ color: "#66584f" }}
+                formatter={(v: number) => [`${v} ${active.unit}`, active.label]}
+              />
+              <Area
+                type="monotone"
+                dataKey={metric}
+                stroke={active.color}
+                strokeWidth={2}
+                fill="url(#progGrad)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#cfc1a6" />
+              <XAxis dataKey="label" stroke="#8c7d71" fontSize={11} />
+              <YAxis stroke="#8c7d71" fontSize={11} />
+              <Tooltip
+                contentStyle={{
+                  background: "#f6efe2",
+                  border: "1px solid #cfc1a6",
+                  borderRadius: 8,
+                }}
+                labelStyle={{ color: "#66584f" }}
+                formatter={(v: number) => [`${v} ${active.unit}`, active.label]}
+              />
+              <Line
+                type="monotone"
+                dataKey={metric}
+                stroke={active.color}
+                strokeWidth={2}
+                dot={{ fill: active.color, r: 3 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

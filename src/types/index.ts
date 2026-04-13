@@ -25,10 +25,20 @@ export interface SetEntry {
   poids: number; // kg
 }
 
+// Champ optionnel pour le cardio : distance (km), durée (min), dénivelé (m).
+// Renseigné sur un ExerciseEntry de catégorie "Cardio" en plus (ou à la place)
+// des séries reps/poids.
+export interface CardioData {
+  distance?: number;
+  duree?: number;
+  denivele?: number;
+}
+
 export interface ExerciseEntry {
   nom: string;
   categorie: Category;
   sets: SetEntry[];
+  cardio?: CardioData;
 }
 
 export interface Session {

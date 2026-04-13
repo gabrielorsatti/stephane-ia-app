@@ -587,6 +587,16 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     aliases: ["pushdown", "triceps pushdown", "poulie triceps"],
   },
   {
+    canonical: "Extension triceps poulie",
+    categorie: "Bras",
+    aliases: [
+      "extension triceps poulie",
+      "extension poulie",
+      "triceps poulie barre",
+      "cable triceps extension",
+    ],
+  },
+  {
     canonical: "Pushdown corde",
     categorie: "Bras",
     aliases: ["pushdown corde", "rope pushdown", "triceps corde"],
