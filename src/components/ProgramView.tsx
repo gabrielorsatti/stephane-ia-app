@@ -1,6 +1,7 @@
 import { Target, Lightbulb, Copy } from "lucide-react";
-import { PROGRAMS, type ProgramExercise, type ProgramTemplate } from "../data/programs";
+import type { ProgramExercise, ProgramTemplate } from "../data/programs";
 import { useState } from "react";
+import { usePrograms } from "../hooks/usePrograms";
 
 interface Props {
   onFillInput?: (text: string) => void;
@@ -9,8 +10,18 @@ interface Props {
 // Vue des templates de séances du programme courant.
 // Chaque exercice affiche ses cibles, son objectif et ses cues techniques.
 export function ProgramView({ onFillInput }: Props) {
-  const [activeId, setActiveId] = useState<string>(PROGRAMS[0].id);
-  const active = PROGRAMS.find((p) => p.id === activeId)!;
+  const { programs } = usePrograms();
+  const [activeId, setActiveId] = useState<string>(programs[0]?.id ?? "");
+  const active =
+    programs.find((p) => p.id === activeId) ?? programs[0];
+
+  if (!active) {
+    return (
+      <div className="card text-sm text-text-dim text-center py-8">
+        Aucun programme défini.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -20,7 +31,7 @@ export function ProgramView({ onFillInput }: Props) {
           <h2 className="text-lg font-semibold">Programme actuel</h2>
         </div>
         <div className="flex flex-wrap gap-2">
-          {PROGRAMS.map((p) => (
+          {programs.map((p) => (
             <button
               key={p.id}
               onClick={() => setActiveId(p.id)}

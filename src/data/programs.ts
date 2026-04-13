@@ -18,8 +18,10 @@ export interface ProgramTemplate {
   exercises: ProgramExercise[];
 }
 
-// Templates du programme actuel, avec cues et objectifs issus du carnet.
-export const PROGRAMS: ProgramTemplate[] = [
+// Templates par défaut au premier lancement. Une fois copiés dans le store
+// éditable (cf. lib/programsStore.ts), ils sont modifiables par l'utilisateur
+// ou par les recommandations du Coach IA.
+export const DEFAULT_PROGRAMS: ProgramTemplate[] = [
   {
     id: "push",
     nom: "PUSH",
@@ -177,24 +179,38 @@ export const PROGRAMS: ProgramTemplate[] = [
   },
 ];
 
-// Cherche les cues associés à un exercice (par nom canonique).
-export function cuesFor(nom: string): string[] {
+// Lookup helpers — opèrent sur une liste de programmes passée en paramètre
+// pour rester compatibles avec le store éditable (cf. programsStore.ts).
+// L'API legacy `cuesFor(nom)` / `objectiveFor(nom)` lit désormais depuis le
+// store en runtime via getProgramsSync.
+import { getProgramsSync } from "../lib/programsStore";
+
+export function cuesForIn(programs: ProgramTemplate[], nom: string): string[] {
   const cues: string[] = [];
-  for (const prog of PROGRAMS) {
+  for (const prog of programs) {
     for (const ex of prog.exercises) {
       if (ex.nom === nom && ex.cues) cues.push(...ex.cues);
     }
   }
-  // Déduplique tout en préservant l'ordre.
   return [...new Set(cues)];
 }
 
-// Objectif courant connu pour un exercice donné.
-export function objectiveFor(nom: string): string | undefined {
-  for (const prog of PROGRAMS) {
+export function objectiveForIn(
+  programs: ProgramTemplate[],
+  nom: string,
+): string | undefined {
+  for (const prog of programs) {
     for (const ex of prog.exercises) {
       if (ex.nom === nom && ex.objectif) return ex.objectif;
     }
   }
   return undefined;
+}
+
+export function cuesFor(nom: string): string[] {
+  return cuesForIn(getProgramsSync(), nom);
+}
+
+export function objectiveFor(nom: string): string | undefined {
+  return objectiveForIn(getProgramsSync(), nom);
 }
