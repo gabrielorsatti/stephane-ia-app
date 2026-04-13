@@ -4,6 +4,7 @@ import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { CalendarView } from "./components/CalendarView";
 import { CategoryChart } from "./components/CategoryChart";
+import { ExerciseCatalog } from "./components/ExerciseCatalog";
 import { HistoryView } from "./components/HistoryView";
 import { PersonalRecords } from "./components/PersonalRecords";
 import { ProgramView } from "./components/ProgramView";
@@ -17,7 +18,12 @@ import { useSessions } from "./hooks/useSessions";
 import { sessionToNlp } from "./lib/toNlp";
 import type { Session } from "./types";
 
-type Tab = "dashboard" | "historique" | "progression" | "programme";
+type Tab =
+  | "dashboard"
+  | "historique"
+  | "progression"
+  | "programme"
+  | "exercices";
 
 export default function App() {
   const {
@@ -45,7 +51,13 @@ export default function App() {
     setMobileNavOpen(false);
   }, [tab]);
 
-  const TABS: Tab[] = ["dashboard", "historique", "progression", "programme"];
+  const TABS: Tab[] = [
+    "dashboard",
+    "historique",
+    "progression",
+    "programme",
+    "exercices",
+  ];
 
   function fillFromProgram(text: string) {
     setPrefillText(text);
@@ -231,6 +243,8 @@ export default function App() {
         )}
 
         {tab === "programme" && <ProgramView onFillInput={fillFromProgram} />}
+
+        {tab === "exercices" && <ExerciseCatalog />}
       </main>
 
       <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-text-dim space-y-1">

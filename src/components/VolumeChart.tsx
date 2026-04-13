@@ -35,25 +35,25 @@ export function VolumeChart({ sessions }: Props) {
           <AreaChart data={data}>
             <defs>
               <linearGradient id="volGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#7ab29b" stopOpacity={0.6} />
-                <stop offset="100%" stopColor="#7ab29b" stopOpacity={0} />
+                <stop offset="0%" stopColor="#4f8570" stopOpacity={0.6} />
+                <stop offset="100%" stopColor="#4f8570" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e7ded0" />
-            <XAxis dataKey="label" stroke="#a89d93" fontSize={11} />
-            <YAxis stroke="#a89d93" fontSize={11} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#cfc1a6" />
+            <XAxis dataKey="label" stroke="#8c7d71" fontSize={11} />
+            <YAxis stroke="#8c7d71" fontSize={11} />
             <Tooltip
               contentStyle={{
-                background: "#ffffff",
-                border: "1px solid #e7ded0",
+                background: "#f6efe2",
+                border: "1px solid #cfc1a6",
                 borderRadius: 8,
               }}
-              labelStyle={{ color: "#7a6e66" }}
+              labelStyle={{ color: "#66584f" }}
             />
             <Area
               type="monotone"
               dataKey="volume"
-              stroke="#7ab29b"
+              stroke="#4f8570"
               strokeWidth={2}
               fill="url(#volGrad)"
             />

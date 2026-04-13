@@ -104,13 +104,13 @@ export function ProgressionChart({ sessions }: Props) {
       ) : (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e7ded0" />
-            <XAxis dataKey="label" stroke="#a89d93" fontSize={11} />
-            <YAxis stroke="#a89d93" fontSize={11} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#cfc1a6" />
+            <XAxis dataKey="label" stroke="#8c7d71" fontSize={11} />
+            <YAxis stroke="#8c7d71" fontSize={11} />
             <Tooltip
               contentStyle={{
-                background: "#ffffff",
-                border: "1px solid #e7ded0",
+                background: "#f6efe2",
+                border: "1px solid #cfc1a6",
                 borderRadius: 8,
               }}
             />
@@ -119,15 +119,15 @@ export function ProgressionChart({ sessions }: Props) {
               type="monotone"
               dataKey="poids"
               name="Charge max (kg)"
-              stroke="#7ab29b"
+              stroke="#4f8570"
               strokeWidth={2}
-              dot={{ fill: "#7ab29b", r: 3 }}
+              dot={{ fill: "#4f8570", r: 3 }}
             />
             <Line
               type="monotone"
               dataKey="rm"
               name="1RM estimé (kg)"
-              stroke="#c9a6d4"
+              stroke="#a6679a"
               strokeWidth={2}
               strokeDasharray="4 4"
               dot={false}

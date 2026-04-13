@@ -29,7 +29,7 @@ export const SEED_SESSIONS: Session[] = [
         sets: [{ reps: 9, poids: 0 }],
       },
       {
-        nom: "Curl biceps",
+        nom: "Curl haltères",
         categorie: "Bras",
         sets: [{ reps: 10, poids: 8 }],
       },

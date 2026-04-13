@@ -26,7 +26,7 @@ describe("parseSegment", () => {
 
   it("parse avec astérisque et virgule décimale", () => {
     const ex = parseSegment("curl 3*10 à 12,5");
-    expect(ex!.nom).toBe("Curl biceps");
+    expect(ex!.nom).toBe("Curl haltères");
     expect(ex!.sets[0]).toEqual({ reps: 10, poids: 12.5 });
   });
 
@@ -62,14 +62,14 @@ describe("parseSegment", () => {
     const cases: Array<[string, string]> = [
       ["DC haltères 3x10 à 32kg", "Développé couché haltères"],
       ["DI machine 3x12 à 80kg", "Développé incliné machine"],
-      ["pec fly 3x12 à 25kg", "Pec fly"],
+      ["pec fly 3x12 à 25kg", "Pec deck"],
       ["dips lestés 3x8 à 20kg", "Dips lestés"],
       ["dips machine 3x12 à 100kg", "Dips machine"],
-      ["tractions pronation 3x10", "Tractions pronation"],
-      ["rowing unilatéral 3x12 à 45kg", "Rowing unilatéral"],
+      ["tractions pronation 3x10", "Tractions"],
+      ["rowing unilatéral 3x12 à 45kg", "Rowing haltère"],
       ["curl incliné 3x10 à 12kg", "Curl incliné"],
       ["french press 3x10 à 10kg", "French press"],
-      ["élévations poulie 3x12 à 5kg", "Élévations poulie"],
+      ["élévations poulie 3x12 à 5kg", "Élévations latérales poulie"],
     ];
     for (const [input, expected] of cases) {
       const ex = parseSegment(input);
