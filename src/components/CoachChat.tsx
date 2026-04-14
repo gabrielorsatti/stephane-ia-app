@@ -4,7 +4,12 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ProgramTemplate } from "../data/programs";
 import { buildCoachContext } from "../lib/coachContext";
-import { chatCompletion, getLLMConfig, type ChatMessage } from "../lib/llm";
+import {
+  chatCompletion,
+  getLLMConfig,
+  listModels,
+  type ChatMessage,
+} from "../lib/llm";
 import {
   extractRecommendation,
   type ProgramRecommendation,
@@ -72,6 +77,7 @@ export function CoachChat({
   const [activeRec, setActiveRec] = useState<ProgramRecommendation | null>(
     null,
   );
+  const [availableModels, setAvailableModels] = useState<string[] | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const config = getLLMConfig();
 
@@ -137,6 +143,17 @@ export function CoachChat({
     if (!loading) void send(RECOMMENDATION_TRIGGER);
   }
 
+  async function fetchModels() {
+    setError(null);
+    try {
+      const ids = await listModels();
+      setAvailableModels(ids);
+      console.log("[LLM] available models:", ids);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur inconnue");
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="card">
@@ -150,19 +167,50 @@ export function CoachChat({
               </span>
             )}
           </div>
-          <button
-            className="btn-primary !py-1.5 text-xs"
-            onClick={smartUpdate}
-            disabled={loading || !config}
-          >
-            <Sparkles className="w-4 h-4" /> Mise à jour intelligente
-          </button>
+          <div className="flex gap-2 flex-wrap">
+            <button
+              className="btn-ghost !py-1.5 text-xs"
+              onClick={fetchModels}
+              disabled={!config}
+              title="Lister les modèles disponibles sur le serveur"
+            >
+              Modèles dispo
+            </button>
+            <button
+              className="btn-primary !py-1.5 text-xs"
+              onClick={smartUpdate}
+              disabled={loading || !config}
+            >
+              <Sparkles className="w-4 h-4" /> Mise à jour intelligente
+            </button>
+          </div>
         </div>
         <p className="text-xs text-text-muted">
           Pose une question sur ta progression, demande des conseils techniques,
           ou clique sur « Mise à jour intelligente » pour que l'IA analyse tes
           dernières séances et propose des modifications de programme.
         </p>
+        {availableModels && (
+          <div className="mt-3 text-xs bg-bg-soft border border-border rounded-lg px-3 py-2 space-y-1">
+            <div className="font-semibold text-text">
+              Modèles disponibles ({availableModels.length}) — modèle actuel :{" "}
+              <code className="font-mono text-accent-soft">
+                {config?.model}
+              </code>
+            </div>
+            <div className="font-mono text-text-muted break-all">
+              {availableModels.length === 0
+                ? "(vide)"
+                : availableModels.join(", ")}
+            </div>
+            <div className="text-text-dim">
+              Si ton modèle n'est pas dans la liste, copie un nom ci-dessus dans{" "}
+              <code className="font-mono">VITE_LLM_MODEL</code> (
+              <code className="font-mono">.env</code>) puis redémarre{" "}
+              <code className="font-mono">npm run dev</code>.
+            </div>
+          </div>
+        )}
         {!config && (
           <div className="mt-3 text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 space-y-1">
             <div className="font-semibold">Clé API manquante</div>
