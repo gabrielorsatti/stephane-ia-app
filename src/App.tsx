@@ -17,6 +17,7 @@ import { ProgramView } from "./components/ProgramView";
 import { ProgressionChart } from "./components/ProgressionChart";
 import { SessionInput } from "./components/SessionInput";
 import { StatsCards } from "./components/StatsCards";
+import { UpdateToast } from "./components/UpdateToast";
 import { VolumeChart } from "./components/VolumeChart";
 import { useAuth } from "./hooks/useAuth";
 import { useBodyWeight } from "./hooks/useBodyWeight";
@@ -265,6 +266,8 @@ function AppInner() {
         active={tab}
         onChange={(t) => setTab(t as Tab)}
       />
+
+      <UpdateToast />
 
       <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-text-dim space-y-1">
         <div>

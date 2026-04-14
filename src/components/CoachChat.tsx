@@ -180,16 +180,33 @@ export function CoachChat({
               className="btn-primary !py-1.5 text-xs"
               onClick={smartUpdate}
               disabled={loading || !config}
+              title="Analyse ton volume et ton intensité des 4 dernières semaines pour ajuster ton programme selon le principe de surcharge progressive (séries, reps, charges)."
             >
               <Sparkles className="w-4 h-4" /> Mise à jour intelligente
             </button>
           </div>
         </div>
-        <p className="text-xs text-text-muted">
-          Pose une question sur ta progression, demande des conseils techniques,
-          ou clique sur « Mise à jour intelligente » pour que l'IA analyse tes
-          dernières séances et propose des modifications de programme.
-        </p>
+        <div className="text-xs text-text-muted space-y-1.5">
+          <p>
+            Ton coach a accès à toutes tes données (séances, records,
+            programmes) et peut :
+          </p>
+          <ul className="list-disc list-inside space-y-0.5 text-text-muted/90">
+            <li>analyser ta progression et détecter les stagnations,</li>
+            <li>
+              suggérer des charges / reps pour la prochaine séance,
+            </li>
+            <li>
+              proposer des modifications de programme — tu valides avant
+              application via le bouton « Appliquer ».
+            </li>
+          </ul>
+          <p className="text-text-dim pt-1">
+            Exemple : <em>« Mon DC stagne à 80 kg, que faire ? »</em> ou clique
+            sur <strong>Mise à jour intelligente</strong> pour une analyse
+            complète basée sur la surcharge progressive.
+          </p>
+        </div>
         {availableModels && (
           <div className="mt-3 text-xs bg-bg-soft border border-border rounded-lg px-3 py-2 space-y-1">
             <div className="font-semibold text-text">
