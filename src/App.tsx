@@ -23,7 +23,9 @@ import { useBodyWeight } from "./hooks/useBodyWeight";
 import { usePrograms } from "./hooks/usePrograms";
 import { useRecordOverrides } from "./hooks/useRecordOverrides";
 import { useSessions } from "./hooks/useSessions";
+import { migrateOwnerDataIfNeeded } from "./lib/ownerMigration";
 import { setCloudMode } from "./lib/storage";
+import { getSupabase } from "./lib/supabase";
 import { sessionToNlp } from "./lib/toNlp";
 import type { Session } from "./types";
 
@@ -47,7 +49,22 @@ function AppInner() {
   const auth = useAuth();
 
   useEffect(() => {
-    setCloudMode(auth.supabaseEnabled && !!auth.user);
+    const cloud = auth.supabaseEnabled && !!auth.user;
+    setCloudMode(cloud);
+    // Migration ciblée : seed du compte propriétaire si besoin, puis
+    // re-broadcast pour rafraîchir les graphiques avec les données injectées.
+    if (cloud && auth.user) {
+      const client = getSupabase();
+      if (client) {
+        void migrateOwnerDataIfNeeded(client, auth.user).then((migrated) => {
+          if (migrated) {
+            window.dispatchEvent(
+              new CustomEvent("gym-tracker:storage-changed"),
+            );
+          }
+        });
+      }
+    }
   }, [auth.supabaseEnabled, auth.user]);
 
   const {
