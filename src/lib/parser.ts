@@ -1,4 +1,5 @@
-import type { ExerciseEntry, SetEntry } from "../types";
+import type { CardioData, ExerciseEntry, SetEntry } from "../types";
+import { parsePace } from "./cardio";
 import { findExercise } from "./exercises";
 
 // Normalisation « douce » : minuscules + suppression d'accents, mais on
@@ -41,6 +42,21 @@ export function parseSegment(segment: string): ExerciseEntry | null {
   const raw = segment.trim();
   if (!raw) return null;
   const norm = softNormalize(raw);
+
+  // 0. Tentative cardio en priorité : on reconnaît un exercice Cardio
+  //    accompagné d'au moins une donnée (distance, durée ou dénivelé).
+  const def0 = findExercise(raw);
+  if (def0 && def0.categorie === "Cardio") {
+    const cardio = extractCardioData(norm);
+    if (cardio) {
+      return {
+        nom: def0.canonical,
+        categorie: def0.categorie,
+        sets: [],
+        cardio,
+      };
+    }
+  }
 
   // 1. Extraction des sets : "NxM", "N*M", "N séries de M", "N séries M rep"
   let sets = 0;
@@ -85,6 +101,53 @@ export function parseSegment(segment: string): ExerciseEntry | null {
     categorie: def.categorie,
     sets: setList,
   };
+}
+
+// Extrait distance (km), durée (min), dénivelé (m) et — si présente — allure
+// d'une ligne cardio normalisée. Retourne null si rien d'exploitable.
+// Formats couverts :
+//   "course 5km en 25min"
+//   "velo 20km allure 3:00"
+//   "course 10km 45min +100m"
+//   "course 45min" (durée seule)
+function extractCardioData(norm: string): CardioData | null {
+  const out: CardioData = {};
+
+  const dist = norm.match(/(\d+(?:[.,]\d+)?)\s*km\b/);
+  if (dist) out.distance = parseFloat(dist[1].replace(",", "."));
+
+  // Durée : "25min", "1h30", "1h", "90 minutes"
+  const hhmm = norm.match(/(\d+)\s*h\s*(\d{1,2})/);
+  const hOnly = !hhmm && norm.match(/(\d+(?:[.,]\d+)?)\s*h\b/);
+  const mOnly =
+    !hhmm && norm.match(/(\d+(?:[.,]\d+)?)\s*(?:min|minutes?|mn)\b/);
+  if (hhmm) {
+    out.duree = parseInt(hhmm[1], 10) * 60 + parseInt(hhmm[2], 10);
+  } else if (hOnly) {
+    out.duree = parseFloat(hOnly[1].replace(",", "")) * 60;
+  } else if (mOnly) {
+    out.duree = parseFloat(mOnly[1].replace(",", "."));
+  }
+
+  // Dénivelé : "+100m", "100m D+", "denivele 100"
+  const den =
+    norm.match(/\+\s*(\d+)\s*m\b/) ||
+    norm.match(/(\d+)\s*m\s*d\+/) ||
+    norm.match(/denivele?\s*(\d+)/);
+  if (den) out.denivele = parseInt(den[1], 10);
+
+  // Allure : "allure 3:00", "allure 4.30", "@3:00/km"
+  const paceMatch = norm.match(
+    /(?:allure|pace|@)\s*(\d+[:.]\d{1,2}|\d+(?:[.,]\d+)?)\s*(?:\/km)?/,
+  );
+  if (paceMatch && !out.duree && out.distance) {
+    const pace = parsePace(paceMatch[1]);
+    if (pace) out.duree = Math.round(pace * out.distance);
+  }
+
+  const hasAny =
+    out.distance != null || out.duree != null || out.denivele != null;
+  return hasAny ? out : null;
 }
 
 // Parse l'ensemble de la saisie en plusieurs exercices.

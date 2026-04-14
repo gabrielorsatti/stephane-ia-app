@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { maybeAutoBackup } from "../lib/backup";
 import { localStorageAdapter, makeId } from "../lib/storage";
 import type { Session } from "../types";
 
@@ -17,6 +18,10 @@ export function useSessions() {
     const sorted = sortByDateDesc(next);
     setSessions(sorted);
     void localStorageAdapter.saveSessions(sorted);
+    // Miroir défensif + auto-backup quotidien si activé.
+    void localStorageAdapter
+      .getBodyWeights()
+      .then((bw) => maybeAutoBackup(sorted, bw));
   }, []);
 
   const addSession = useCallback(

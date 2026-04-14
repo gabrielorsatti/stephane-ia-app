@@ -27,7 +27,8 @@ export interface SetEntry {
 
 // Champ optionnel pour le cardio : distance (km), durée (min), dénivelé (m).
 // Renseigné sur un ExerciseEntry de catégorie "Cardio" en plus (ou à la place)
-// des séries reps/poids.
+// des séries reps/poids. L'allure (min/km) est calculée à la volée depuis
+// distance + duree — pas stockée pour garder la source de vérité unique.
 export interface CardioData {
   distance?: number;
   duree?: number;

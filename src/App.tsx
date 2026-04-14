@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { CalendarView } from "./components/CalendarView";
+import { CardioStatsCard } from "./components/CardioStatsCard";
 import { CategoryChart } from "./components/CategoryChart";
 import { CoachChat } from "./components/CoachChat";
 import { ExerciseCatalog } from "./components/ExerciseCatalog";
@@ -215,6 +216,7 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <VolumeChart sessions={sessions} />
               <CategoryChart sessions={sessions} />
+              <CardioStatsCard sessions={sessions} />
               <BodyWeightChart entries={entries} onAdd={addEntry} />
               <CalendarView sessions={sessions} />
             </div>

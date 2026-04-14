@@ -79,6 +79,35 @@ describe("parseSegment", () => {
   });
 });
 
+describe("parseSegment cardio", () => {
+  it("parse 'Course 5km en 25min'", () => {
+    const ex = parseSegment("Course 5km en 25min");
+    expect(ex).not.toBeNull();
+    expect(ex!.categorie).toBe("Cardio");
+    expect(ex!.cardio?.distance).toBe(5);
+    expect(ex!.cardio?.duree).toBe(25);
+  });
+
+  it("parse 'Vélo 20km allure 3:00'", () => {
+    const ex = parseSegment("Vélo 20km allure 3:00");
+    expect(ex).not.toBeNull();
+    expect(ex!.categorie).toBe("Cardio");
+    expect(ex!.cardio?.distance).toBe(20);
+    // allure 3:00 sur 20km → 60 min
+    expect(ex!.cardio?.duree).toBe(60);
+  });
+
+  it("parse dénivelé '+100m'", () => {
+    const ex = parseSegment("Course 10km 45min +100m");
+    expect(ex!.cardio?.denivele).toBe(100);
+  });
+
+  it("parse durée en heures '1h30'", () => {
+    const ex = parseSegment("Vélo 40km 1h30");
+    expect(ex!.cardio?.duree).toBe(90);
+  });
+});
+
 describe("parseInput", () => {
   it("parse plusieurs lignes", () => {
     const res = parseInput(
