@@ -44,11 +44,15 @@ export function RecommendationModal({
 
   return (
     <div
-      className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
       onClick={onClose}
     >
       <div
-        className="bg-bg-card border border-border rounded-xl w-full max-w-2xl max-h-[90vh] overflow-auto"
+        className="bg-bg-card border border-border rounded-t-xl sm:rounded-xl w-full max-w-2xl max-h-[100dvh] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-bg-card">

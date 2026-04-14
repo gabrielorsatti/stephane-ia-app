@@ -1,11 +1,18 @@
 import type { Category } from "../types";
 
+// Type d'exercice — dimension orthogonale à la catégorie musculaire :
+//   strength   : poids libre / machine (volume = poids × reps)
+//   bodyweight : PDC seul ou lesté (volume = (poidsCorps + lest) × reps)
+//   cardio     : distance / durée (voir ExerciseEntry.cardio)
+export type ExerciseType = "strength" | "bodyweight" | "cardio";
+
 // Catalogue d'exercices avec aliases pour le parser NLP.
 // Chaque entrée mappe un nom canonique + catégorie + liste d'alias (minuscules, sans accent).
 export interface ExerciseDef {
   canonical: string;
   categorie: Category;
   aliases: string[];
+  type?: ExerciseType; // défaut dérivé : Cardio → cardio, sinon strength
 }
 
 export const EXERCISE_CATALOG: ExerciseDef[] = [
@@ -141,11 +148,13 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     canonical: "Dips",
     categorie: "Poussée",
     aliases: ["dips", "dip"],
+    type: "bodyweight",
   },
   {
     canonical: "Dips lestés",
     categorie: "Poussée",
     aliases: ["dips lestes", "weighted dips", "dips lest"],
+    type: "bodyweight",
   },
   {
     canonical: "Dips machine",
@@ -156,11 +165,13 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     canonical: "Pompes",
     categorie: "Poussée",
     aliases: ["pompes", "push up", "push-up", "pushup"],
+    type: "bodyweight",
   },
   {
     canonical: "Pompes lestées",
     categorie: "Poussée",
     aliases: ["pompes lestees", "pompes lestes", "weighted push up"],
+    type: "bodyweight",
   },
 
   // ────────── Tirage (dos, biceps en tirage, trapèzes) ──────────
@@ -202,6 +213,7 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
       "tractions pronation",
       "traction pronation",
     ],
+    type: "bodyweight",
   },
   {
     canonical: "Tractions supination",
@@ -213,6 +225,7 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
       "chin-up",
       "chinup",
     ],
+    type: "bodyweight",
   },
   {
     canonical: "Tractions neutres",
@@ -223,11 +236,13 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
       "tractions prise neutre",
       "neutral pull up",
     ],
+    type: "bodyweight",
   },
   {
     canonical: "Tractions lestées",
     categorie: "Tirage",
     aliases: ["tractions lestees", "tractions lestes", "weighted pull up"],
+    type: "bodyweight",
   },
   {
     canonical: "Tirage vertical",
@@ -631,6 +646,7 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     canonical: "Dips banc",
     categorie: "Bras",
     aliases: ["dips banc", "bench dips", "dips chaise"],
+    type: "bodyweight",
   },
 
   // ────────── Abdos (sangle abdominale) ──────────
@@ -734,6 +750,15 @@ function escapeRegex(s: string): string {
 export function categoryFor(nom: string): Category {
   const def = findExercise(nom);
   return def?.categorie ?? "Autre";
+}
+
+// Détermine le type d'un exercice (strength / bodyweight / cardio) depuis son
+// nom. Pilote l'UI adaptative : formules de volume, records, graphiques.
+export function exerciseType(nom: string): ExerciseType {
+  const def = findExercise(nom);
+  if (def?.type) return def.type;
+  if (def?.categorie === "Cardio") return "cardio";
+  return "strength";
 }
 
 // Renvoie les exercices regroupés par catégorie, dans l'ordre du catalogue.

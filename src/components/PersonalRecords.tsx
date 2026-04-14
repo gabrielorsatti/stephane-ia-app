@@ -91,20 +91,47 @@ export function PersonalRecords({
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <Stat
-                  label="Charge max"
-                  value={
-                    pr.maxPoids > 0
-                      ? `${pr.maxPoids} kg${pr.maxPoidsReps ? ` × ${pr.maxPoidsReps}` : ""}`
-                      : "PDC"
-                  }
-                  hint={formatDate(pr.maxPoidsDate)}
-                />
-                <Stat
-                  label="1RM estimé"
-                  value={pr.best1RM > 0 ? `${Math.round(pr.best1RM)} kg` : "—"}
-                  hint={formatDate(pr.best1RMDate)}
-                />
+                {pr.type === "bodyweight" ? (
+                  <>
+                    <Stat
+                      label="Max reps (PDC seul)"
+                      value={
+                        pr.maxRepsBodyweight
+                          ? `${pr.maxRepsBodyweight} reps`
+                          : "—"
+                      }
+                      hint={formatDate(pr.maxRepsBodyweightDate ?? "")}
+                    />
+                    <Stat
+                      label="Max lesté"
+                      value={
+                        pr.maxPoids > 0
+                          ? `+${pr.maxPoids} kg${pr.maxPoidsReps ? ` × ${pr.maxPoidsReps}` : ""}`
+                          : "—"
+                      }
+                      hint={formatDate(pr.maxPoidsDate)}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <Stat
+                      label="Charge max"
+                      value={
+                        pr.maxPoids > 0
+                          ? `${pr.maxPoids} kg${pr.maxPoidsReps ? ` × ${pr.maxPoidsReps}` : ""}`
+                          : "PDC"
+                      }
+                      hint={formatDate(pr.maxPoidsDate)}
+                    />
+                    <Stat
+                      label="1RM estimé"
+                      value={
+                        pr.best1RM > 0 ? `${Math.round(pr.best1RM)} kg` : "—"
+                      }
+                      hint={formatDate(pr.best1RMDate)}
+                    />
+                  </>
+                )}
               </div>
               {pr.notes && (
                 <div className="text-[11px] text-text-muted italic mt-2">

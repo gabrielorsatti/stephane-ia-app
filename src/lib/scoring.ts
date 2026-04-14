@@ -1,18 +1,47 @@
 import type { ExerciseEntry, Session, SetEntry } from "../types";
+import { exerciseType } from "./exercises";
 
-// Volume d'une série : reps × poids (kg). Si poids=0, on considère 1 unité par rep.
-export function setVolume(set: SetEntry): number {
-  return set.reps * (set.poids || 0);
+// Charge effective d'une série. Pour un exercice bodyweight, c'est (PDC + lest);
+// pour un exercice strength, c'est simplement `poids`. Sans PDC fourni, on
+// retombe sur `poids` seul (comportement avant le module PDC).
+export function effectiveLoad(
+  set: SetEntry,
+  opts: { bodyweight?: boolean; userWeight?: number } = {},
+): number {
+  if (opts.bodyweight && opts.userWeight && opts.userWeight > 0) {
+    return opts.userWeight + (set.poids || 0);
+  }
+  return set.poids || 0;
 }
 
-// Volume d'un exercice : somme des séries.
-export function exerciseVolume(ex: ExerciseEntry): number {
-  return ex.sets.reduce((acc, s) => acc + setVolume(s), 0);
+// Volume d'une série : reps × charge effective.
+export function setVolume(
+  set: SetEntry,
+  opts: { bodyweight?: boolean; userWeight?: number } = {},
+): number {
+  return set.reps * effectiveLoad(set, opts);
 }
 
-// Volume total d'une séance (kg).
+// Volume d'un exercice : somme des séries + éventuel volume cardio converti
+// (ici laissé à 0 — le cardio a ses propres métriques, voir lib/cardio.ts).
+export function exerciseVolume(
+  ex: ExerciseEntry,
+  userWeight?: number,
+): number {
+  const bodyweight = exerciseType(ex.nom) === "bodyweight";
+  return ex.sets.reduce(
+    (acc, s) => acc + setVolume(s, { bodyweight, userWeight }),
+    0,
+  );
+}
+
+// Volume total d'une séance (kg). Utilise session.bodyWeight s'il est renseigné
+// pour pondérer correctement les exercices au poids du corps.
 export function sessionVolume(session: Session): number {
-  return session.exercices.reduce((acc, ex) => acc + exerciseVolume(ex), 0);
+  return session.exercices.reduce(
+    (acc, ex) => acc + exerciseVolume(ex, session.bodyWeight),
+    0,
+  );
 }
 
 // Formule d'Epley pour estimer le 1RM à partir d'une série donnée.
@@ -33,8 +62,9 @@ export function sessionIntensityScore(session: Session): number {
   let num = 0;
   let den = 0;
   for (const ex of session.exercices) {
+    const bodyweight = exerciseType(ex.nom) === "bodyweight";
     for (const s of ex.sets) {
-      const v = setVolume(s);
+      const v = setVolume(s, { bodyweight, userWeight: session.bodyWeight });
       num += estimate1RM(s) * v;
       den += v;
     }
@@ -55,8 +85,11 @@ export function sessionScore(session: Session): number {
 // 3 métriques du graphique de progression (volume / intensité travail / PR).
 
 // Volume total d'un exercice sur une séance : somme des poids × reps.
-export function volumeForExercise(ex: ExerciseEntry): number {
-  return exerciseVolume(ex);
+export function volumeForExercise(
+  ex: ExerciseEntry,
+  userWeight?: number,
+): number {
+  return exerciseVolume(ex, userWeight);
 }
 
 // Poids max soulevé sur les séries dont le nombre de reps est dans [min, max]
@@ -107,7 +140,7 @@ export function buildExerciseProgression(
     points.push({
       date: s.date,
       label: s.date.slice(5).replace("-", "/"), // mm/dd
-      volume: volumeForExercise(ex),
+      volume: volumeForExercise(ex, s.bodyWeight),
       intensity: maxPoidsInRepRange(ex, minReps, maxReps),
       pr: maxPoidsAbsolute(ex),
     });
@@ -122,7 +155,8 @@ export function volumeByCategory(
   const map: Record<string, number> = {};
   for (const s of sessions) {
     for (const ex of s.exercices) {
-      map[ex.categorie] = (map[ex.categorie] ?? 0) + exerciseVolume(ex);
+      map[ex.categorie] =
+        (map[ex.categorie] ?? 0) + exerciseVolume(ex, s.bodyWeight);
     }
   }
   return map;

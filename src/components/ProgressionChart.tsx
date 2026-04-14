@@ -12,6 +12,8 @@ import {
 import { useMemo, useState } from "react";
 import type { Session } from "../types";
 import { buildExerciseProgression } from "../lib/scoring";
+import { exerciseType } from "../lib/exercises";
+import { computePace, formatPace } from "../lib/cardio";
 import { cuesFor, objectiveFor } from "../data/programs";
 import { Lightbulb, Target } from "lucide-react";
 
@@ -20,6 +22,7 @@ interface Props {
 }
 
 type Metric = "volume" | "intensity" | "pr";
+type CardioMetric = "distance" | "pace" | "duree";
 
 const METRICS: Array<{
   key: Metric;
@@ -51,6 +54,36 @@ const METRICS: Array<{
   },
 ];
 
+const CARDIO_METRICS: Array<{
+  key: CardioMetric;
+  label: string;
+  sub: string;
+  color: string;
+  unit: string;
+}> = [
+  {
+    key: "distance",
+    label: "Distance",
+    sub: "Kilomètres parcourus par séance",
+    color: "#a7e8c9",
+    unit: "km",
+  },
+  {
+    key: "pace",
+    label: "Allure moyenne",
+    sub: "min/km — plus bas = plus rapide",
+    color: "#a8d0e6",
+    unit: "min/km",
+  },
+  {
+    key: "duree",
+    label: "Temps d'effort",
+    sub: "Durée totale par séance",
+    color: "#c9b8e8",
+    unit: "min",
+  },
+];
+
 // Progression par exercice : 3 métriques sélectionnables (volume / intensité
 // dans la fenêtre 6–12 reps / record absolu). Chaque métrique a sa couleur
 // pastel dédiée.
@@ -63,24 +96,55 @@ export function ProgressionChart({ sessions }: Props) {
 
   const [selected, setSelected] = useState<string>(exercises[0] ?? "");
   const [metric, setMetric] = useState<Metric>("volume");
+  const [cardioMetric, setCardioMetric] = useState<CardioMetric>("distance");
 
   const current = exercises.includes(selected) ? selected : exercises[0] ?? "";
+  const isCardio = current ? exerciseType(current) === "cardio" : false;
 
   const series = useMemo(
-    () => (current ? buildExerciseProgression(sessions, current) : []),
-    [sessions, current],
+    () => (current && !isCardio ? buildExerciseProgression(sessions, current) : []),
+    [sessions, current, isCardio],
   );
 
-  // On filtre les points à 0 pour la métrique courante — un exercice cardio
-  // n'a pas de charge, afficher une ligne plate à 0 n'a pas de sens.
-  const data = useMemo(
-    () => series.filter((p) => p[metric] > 0),
-    [series, metric],
-  );
+  // Série cardio : pour chaque séance contenant l'exercice cardio sélectionné,
+  // on extrait distance / durée / allure calculée. Tri chronologique.
+  const cardioSeries = useMemo(() => {
+    if (!current || !isCardio) return [];
+    const sorted = [...sessions].sort((a, b) => (a.date < b.date ? -1 : 1));
+    const out: Array<{
+      date: string;
+      label: string;
+      distance: number;
+      duree: number;
+      pace: number;
+    }> = [];
+    for (const s of sorted) {
+      const ex = s.exercices.find((e) => e.nom === current);
+      if (!ex?.cardio) continue;
+      const pace = computePace(ex.cardio);
+      out.push({
+        date: s.date,
+        label: s.date.slice(5).replace("-", "/"),
+        distance: ex.cardio.distance ?? 0,
+        duree: ex.cardio.duree ?? 0,
+        pace: pace ?? 0,
+      });
+    }
+    return out;
+  }, [sessions, current, isCardio]);
+
+  const data = useMemo(() => {
+    if (isCardio) {
+      return cardioSeries.filter((p) => p[cardioMetric] > 0);
+    }
+    return series.filter((p) => p[metric] > 0);
+  }, [series, cardioSeries, metric, cardioMetric, isCardio]);
 
   const cues = current ? cuesFor(current) : [];
   const objectif = current ? objectiveFor(current) : undefined;
-  const active = METRICS.find((m) => m.key === metric)!;
+  const active = isCardio
+    ? CARDIO_METRICS.find((m) => m.key === cardioMetric)!
+    : METRICS.find((m) => m.key === metric)!;
 
   return (
     <div className="card flex flex-col">
@@ -101,28 +165,33 @@ export function ProgressionChart({ sessions }: Props) {
         </select>
       </div>
 
-      {/* Sélecteur de métrique */}
+      {/* Sélecteur de métrique — cardio ou muscu selon le type */}
       <div className="grid grid-cols-3 gap-1 mb-3 bg-bg-soft border border-border rounded-lg p-1">
-        {METRICS.map((m) => (
-          <button
-            key={m.key}
-            onClick={() => setMetric(m.key)}
-            className={[
-              "px-2 py-2 rounded-md text-xs font-medium transition-colors text-center",
-              metric === m.key
-                ? "bg-accent text-bg"
-                : "text-text-muted hover:text-text",
-            ].join(" ")}
-          >
-            <div className="flex items-center justify-center gap-1.5">
-              <span
-                className="w-2 h-2 rounded-full"
-                style={{ background: m.color }}
-              />
-              <span>{m.label}</span>
-            </div>
-          </button>
-        ))}
+        {(isCardio ? CARDIO_METRICS : METRICS).map((m) => {
+          const on = isCardio ? cardioMetric === m.key : metric === m.key;
+          return (
+            <button
+              key={m.key}
+              onClick={() =>
+                isCardio
+                  ? setCardioMetric(m.key as CardioMetric)
+                  : setMetric(m.key as Metric)
+              }
+              className={[
+                "px-2 py-2 rounded-md text-xs font-medium transition-colors text-center",
+                on ? "bg-accent text-bg" : "text-text-muted hover:text-text",
+              ].join(" ")}
+            >
+              <div className="flex items-center justify-center gap-1.5">
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ background: m.color }}
+                />
+                <span>{m.label}</span>
+              </div>
+            </button>
+          );
+        })}
       </div>
       <div className="text-[11px] text-text-dim mb-3">{active.sub}</div>
 
@@ -155,11 +224,11 @@ export function ProgressionChart({ sessions }: Props) {
       <div className="h-[280px]">
         {data.length === 0 ? (
           <div className="h-full flex items-center justify-center text-text-dim text-sm text-center px-4">
-            {series.length === 0
+            {(isCardio ? cardioSeries : series).length === 0
               ? "Pas encore de données pour cet exercice."
               : `Aucune série ne correspond à cette métrique (${active.label.toLowerCase()}).`}
           </div>
-        ) : metric === "volume" ? (
+        ) : (isCardio ? cardioMetric === "distance" : metric === "volume") ? (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data}>
               <defs>
@@ -178,11 +247,16 @@ export function ProgressionChart({ sessions }: Props) {
                   borderRadius: 8,
                 }}
                 labelStyle={{ color: "#a8b2bc" }}
-                formatter={(v: number) => [`${v} ${active.unit}`, active.label]}
+                formatter={(v: number) => [
+                  isCardio && active.key === "pace"
+                    ? `${formatPace(v)} min/km`
+                    : `${v} ${active.unit}`,
+                  active.label,
+                ]}
               />
               <Area
                 type="monotone"
-                dataKey={metric}
+                dataKey={active.key}
                 stroke={active.color}
                 strokeWidth={2}
                 fill="url(#progGrad)"
@@ -194,7 +268,13 @@ export function ProgressionChart({ sessions }: Props) {
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="#2a3138" />
               <XAxis dataKey="label" stroke="#8c95a0" fontSize={11} />
-              <YAxis stroke="#8c95a0" fontSize={11} />
+              <YAxis
+                stroke="#8c95a0"
+                fontSize={11}
+                tickFormatter={(v: number) =>
+                  isCardio && active.key === "pace" ? formatPace(v) : String(v)
+                }
+              />
               <Tooltip
                 contentStyle={{
                   background: "#1a1f24",
@@ -202,11 +282,16 @@ export function ProgressionChart({ sessions }: Props) {
                   borderRadius: 8,
                 }}
                 labelStyle={{ color: "#a8b2bc" }}
-                formatter={(v: number) => [`${v} ${active.unit}`, active.label]}
+                formatter={(v: number) => [
+                  isCardio && active.key === "pace"
+                    ? `${formatPace(v)} min/km`
+                    : `${v} ${active.unit}`,
+                  active.label,
+                ]}
               />
               <Line
                 type="monotone"
-                dataKey={metric}
+                dataKey={active.key}
                 stroke={active.color}
                 strokeWidth={2}
                 dot={{ fill: active.color, r: 3 }}

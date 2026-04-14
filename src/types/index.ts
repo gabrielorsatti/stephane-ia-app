@@ -22,7 +22,10 @@ export const ALL_CATEGORIES: Category[] = [
 
 export interface SetEntry {
   reps: number;
-  poids: number; // kg
+  // kg. Pour les exercices au poids du corps, ce champ représente le LEST
+  // (charge ajoutée) : 0 = PDC seul, 20 = tractions +20 kg à la ceinture.
+  // Pour les exercices strength, c'est la charge absolue sur la barre/machine.
+  poids: number;
 }
 
 // Champ optionnel pour le cardio : distance (km), durée (min), dénivelé (m).
@@ -66,5 +69,9 @@ export interface PersonalRecordOverride {
   maxPoidsDate?: string;
   best1RM?: number;
   best1RMDate?: string;
+  // Records spécifiques aux exercices bodyweight : meilleure série sans lest
+  // (maxReps à poids 0) — complète maxPoids qui représente alors le record lesté.
+  maxRepsBodyweight?: number;
+  maxRepsBodyweightDate?: string;
   notes?: string;
 }
