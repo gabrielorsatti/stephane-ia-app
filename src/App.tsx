@@ -1,4 +1,4 @@
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AuthGate } from "./components/AuthGate";
 import { BackupControls } from "./components/BackupControls";
@@ -86,12 +86,6 @@ function AppInner() {
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
-  // Referme le menu mobile à chaque changement d'onglet.
-  useEffect(() => {
-    setMobileNavOpen(false);
-  }, [tab]);
 
   const TABS: Tab[] = [
     "dashboard",
@@ -186,57 +180,9 @@ function AppInner() {
                 <LogOut className="w-4 h-4" />
               </button>
             )}
-            {/* Bouton hamburger : fallback mobile pour onglets secondaires */}
-            <button
-              className="md:hidden btn-ghost !px-2 !py-2"
-              onClick={() => setMobileNavOpen((v) => !v)}
-              aria-label="Menu"
-              aria-expanded={mobileNavOpen}
-            >
-              {mobileNavOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
           </div>
         </div>
-
       </header>
-
-      {/* Panneau mobile : bottom sheet, ancré en bas pour rester accessible au pouce */}
-      {mobileNavOpen && (
-        <>
-          <div
-            className="md:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
-            onClick={() => setMobileNavOpen(false)}
-          />
-          <nav
-            className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-bg-card rounded-t-2xl shadow-2xl"
-            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-          >
-            <div className="flex justify-center pt-2 pb-1">
-              <div className="w-10 h-1 rounded-full bg-border-strong" />
-            </div>
-            <div className="px-4 pb-4 pt-2 flex flex-col gap-2">
-              {TABS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={[
-                    "w-full text-left px-4 py-3 rounded-lg text-sm font-medium capitalize transition-colors",
-                    tab === t
-                      ? "bg-accent text-bg"
-                      : "bg-bg-soft text-text-muted hover:text-text border border-border",
-                  ].join(" ")}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </nav>
-        </>
-      )}
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         {sessions.length === 0 && <Onboarding />}
