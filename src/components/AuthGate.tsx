@@ -1,4 +1,4 @@
-import { Loader2, LogIn, Mail, UploadCloud } from "lucide-react";
+import { Loader2, LogIn, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Logo } from "./Logo";
@@ -10,7 +10,8 @@ interface Props {
 // Garde l'app derrière l'authentification Supabase si elle est configurée.
 // Si Supabase n'est pas configuré, laisse passer (mode solo LocalStorage).
 export function AuthGate({ children }: Props) {
-  const { ready, user, supabaseEnabled, signInWithMagicLink } = useAuth();
+  const { ready, user, supabaseEnabled, signInWithPassword, signUpWithPassword } =
+    useAuth();
 
   if (!supabaseEnabled) return <>{children}</>;
   if (!ready) {
@@ -22,16 +23,26 @@ export function AuthGate({ children }: Props) {
   }
   if (user) return <>{children}</>;
 
-  return <SignInCard onSubmit={signInWithMagicLink} />;
+  return (
+    <SignInCard
+      onSignIn={signInWithPassword}
+      onSignUp={signUpWithPassword}
+    />
+  );
 }
 
+type Mode = "signin" | "signup";
+
 function SignInCard({
-  onSubmit,
+  onSignIn,
+  onSignUp,
 }: {
-  onSubmit: (email: string) => Promise<void>;
+  onSignIn: (email: string, password: string) => Promise<void>;
+  onSignUp: (email: string, password: string) => Promise<void>;
 }) {
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -40,8 +51,11 @@ function SignInCard({
     setError(null);
     setBusy(true);
     try {
-      await onSubmit(email.trim());
-      setSent(true);
+      if (mode === "signin") {
+        await onSignIn(email.trim(), password);
+      } else {
+        await onSignUp(email.trim(), password);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur");
     } finally {
@@ -65,73 +79,106 @@ function SignInCard({
           <div>
             <h1 className="font-semibold text-lg">Personal Gym Tracker</h1>
             <p className="text-xs text-text-muted">
-              Choisis ton profil ou connecte-toi
+              {mode === "signin"
+                ? "Connecte-toi à ton compte"
+                : "Crée ton profil"}
             </p>
           </div>
         </div>
 
-        {sent ? (
-          <div className="text-sm space-y-2">
-            <div className="flex items-center gap-2 text-accent-soft">
-              <Mail className="w-4 h-4" /> Lien envoyé
-            </div>
-            <p className="text-text-muted text-xs">
-              Ouvre l'email que tu viens de recevoir à{" "}
-              <span className="font-mono text-text">{email}</span> et clique
-              sur le lien magique — tu seras redirigé ici connecté.
-            </p>
-            <button
-              className="btn-ghost text-xs"
-              onClick={() => {
-                setSent(false);
-                setEmail("");
-              }}
-            >
-              Utiliser un autre email
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handle} className="space-y-3">
-            <label className="block text-xs text-text-muted">
-              Email
-              <input
-                type="email"
-                required
-                autoFocus
-                className="input mt-1"
-                placeholder="toi@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </label>
-            <button
-              type="submit"
-              className="btn-primary w-full"
-              disabled={busy || !email.trim()}
-            >
-              {busy ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <LogIn className="w-4 h-4" />
-              )}
-              Recevoir le lien magique
-            </button>
-            {error && (
-              <div className="text-xs text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2">
-                {error}
-              </div>
+        <div className="flex gap-1 bg-bg-soft border border-border rounded-lg p-1">
+          <ModeTab
+            label="Connexion"
+            active={mode === "signin"}
+            onClick={() => setMode("signin")}
+          />
+          <ModeTab
+            label="Inscription"
+            active={mode === "signup"}
+            onClick={() => setMode("signup")}
+          />
+        </div>
+
+        <form onSubmit={handle} className="space-y-3">
+          <label className="block text-xs text-text-muted">
+            Email
+            <input
+              type="email"
+              required
+              autoFocus
+              autoComplete="email"
+              className="input mt-1"
+              placeholder="toi@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+          <label className="block text-xs text-text-muted">
+            Mot de passe
+            <input
+              type="password"
+              required
+              minLength={6}
+              autoComplete={
+                mode === "signin" ? "current-password" : "new-password"
+              }
+              className="input mt-1"
+              placeholder="6 caractères minimum"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+          <button
+            type="submit"
+            className="btn-primary w-full"
+            disabled={busy || !email.trim() || password.length < 6}
+          >
+            {busy ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : mode === "signin" ? (
+              <LogIn className="w-4 h-4" />
+            ) : (
+              <UserPlus className="w-4 h-4" />
             )}
-          </form>
-        )}
+            {mode === "signin" ? "Se connecter" : "Créer le compte"}
+          </button>
+          {error && (
+            <div className="text-xs text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-lg px-3 py-2">
+              {error}
+            </div>
+          )}
+        </form>
 
-        <div className="text-[11px] text-text-dim border-t border-border pt-3">
-          <p className="flex items-start gap-2">
-            <UploadCloud className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-            Tes séances sont stockées dans ton compte (isolation Supabase
-            RLS : aucun autre utilisateur ne peut les voir).
-          </p>
-        </div>
+        <p className="text-[11px] text-text-dim border-t border-border pt-3">
+          Tes séances sont stockées dans ton compte Supabase — isolation RLS
+          stricte, aucun autre utilisateur ne peut les voir.
+        </p>
       </div>
     </div>
+  );
+}
+
+function ModeTab({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+        active
+          ? "bg-accent text-bg"
+          : "text-text-muted hover:text-text",
+      ].join(" ")}
+    >
+      {label}
+    </button>
   );
 }

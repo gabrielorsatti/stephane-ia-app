@@ -26,12 +26,24 @@ export function useAuth() {
     };
   }, [client]);
 
-  async function signInWithMagicLink(email: string): Promise<void> {
+  async function signInWithPassword(
+    email: string,
+    password: string,
+  ): Promise<void> {
     if (!client) throw new Error("Supabase non configuré");
-    const { error } = await client.auth.signInWithOtp({
+    const { error } = await client.auth.signInWithPassword({
       email,
-      options: { emailRedirectTo: window.location.origin },
+      password,
     });
+    if (error) throw error;
+  }
+
+  async function signUpWithPassword(
+    email: string,
+    password: string,
+  ): Promise<void> {
+    if (!client) throw new Error("Supabase non configuré");
+    const { error } = await client.auth.signUp({ email, password });
     if (error) throw error;
   }
 
@@ -44,7 +56,8 @@ export function useAuth() {
     ready,
     user,
     supabaseEnabled: !!client,
-    signInWithMagicLink,
+    signInWithPassword,
+    signUpWithPassword,
     signOut,
   };
 }
