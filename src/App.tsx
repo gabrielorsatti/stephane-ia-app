@@ -1,5 +1,6 @@
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AuthGate } from "./components/AuthGate";
 import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { CalendarView } from "./components/CalendarView";
@@ -9,16 +10,20 @@ import { CoachChat } from "./components/CoachChat";
 import { ExerciseCatalog } from "./components/ExerciseCatalog";
 import { HistoryView } from "./components/HistoryView";
 import { Logo } from "./components/Logo";
+import { MobileBottomNav } from "./components/MobileBottomNav";
+import { Onboarding } from "./components/Onboarding";
 import { PersonalRecords } from "./components/PersonalRecords";
 import { ProgramView } from "./components/ProgramView";
 import { ProgressionChart } from "./components/ProgressionChart";
 import { SessionInput } from "./components/SessionInput";
 import { StatsCards } from "./components/StatsCards";
 import { VolumeChart } from "./components/VolumeChart";
+import { useAuth } from "./hooks/useAuth";
 import { useBodyWeight } from "./hooks/useBodyWeight";
 import { usePrograms } from "./hooks/usePrograms";
 import { useRecordOverrides } from "./hooks/useRecordOverrides";
 import { useSessions } from "./hooks/useSessions";
+import { setCloudMode } from "./lib/storage";
 import { sessionToNlp } from "./lib/toNlp";
 import type { Session } from "./types";
 
@@ -31,6 +36,20 @@ type Tab =
   | "coach";
 
 export default function App() {
+  return (
+    <AuthGate>
+      <AppInner />
+    </AuthGate>
+  );
+}
+
+function AppInner() {
+  const auth = useAuth();
+
+  useEffect(() => {
+    setCloudMode(auth.supabaseEnabled && !!auth.user);
+  }, [auth.supabaseEnabled, auth.user]);
+
   const {
     sessions,
     addSession,
@@ -97,8 +116,11 @@ export default function App() {
     : undefined;
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-border bg-bg-soft/60 backdrop-blur sticky top-0 z-20">
+    <div className="min-h-screen pb-20 md:pb-0">
+      <header
+        className="border-b border-border bg-bg-soft/60 backdrop-blur sticky top-0 z-20"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-accent shrink-0">
@@ -137,7 +159,17 @@ export default function App() {
                 </button>
               ))}
             </nav>
-            {/* Bouton hamburger : visible en dessous de md */}
+            {auth.supabaseEnabled && auth.user && (
+              <button
+                className="btn-ghost !px-2 !py-2"
+                onClick={() => void auth.signOut()}
+                title={`Déconnexion (${auth.user.email ?? "compte"})`}
+                aria-label="Déconnexion"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
+            {/* Bouton hamburger : fallback mobile pour onglets secondaires */}
             <button
               className="md:hidden btn-ghost !px-2 !py-2"
               onClick={() => setMobileNavOpen((v) => !v)}
@@ -190,6 +222,7 @@ export default function App() {
       )}
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {sessions.length === 0 && <Onboarding />}
         <SessionInput
           onSave={handleSave}
           prefillText={prefillText}
@@ -264,6 +297,11 @@ export default function App() {
           />
         )}
       </main>
+
+      <MobileBottomNav
+        active={tab}
+        onChange={(t) => setTab(t as Tab)}
+      />
 
       <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-text-dim space-y-1">
         <div>

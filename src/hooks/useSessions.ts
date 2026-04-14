@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { maybeAutoBackup } from "../lib/backup";
-import { localStorageAdapter, makeId } from "../lib/storage";
+import { getAdapter, makeId } from "../lib/storage";
 import type { Session } from "../types";
 
 export function useSessions() {
@@ -8,20 +8,35 @@ export function useSessions() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    localStorageAdapter.getSessions().then((s) => {
-      setSessions(sortByDateDesc(s));
-      setReady(true);
-    });
+    let cancelled = false;
+    function load() {
+      setReady(false);
+      getAdapter()
+        .getSessions()
+        .then((s) => {
+          if (cancelled) return;
+          setSessions(sortByDateDesc(s));
+          setReady(true);
+        })
+        .catch(() => {
+          if (!cancelled) setReady(true);
+        });
+    }
+    load();
+    window.addEventListener("gym-tracker:storage-changed", load);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("gym-tracker:storage-changed", load);
+    };
   }, []);
 
   const persist = useCallback((next: Session[]) => {
     const sorted = sortByDateDesc(next);
     setSessions(sorted);
-    void localStorageAdapter.saveSessions(sorted);
+    const adapter = getAdapter();
+    void adapter.saveSessions(sorted);
     // Miroir défensif + auto-backup quotidien si activé.
-    void localStorageAdapter
-      .getBodyWeights()
-      .then((bw) => maybeAutoBackup(sorted, bw));
+    void adapter.getBodyWeights().then((bw) => maybeAutoBackup(sorted, bw));
   }, []);
 
   const addSession = useCallback(

@@ -1,20 +1,32 @@
 import { useCallback, useEffect, useState } from "react";
-import { localStorageAdapter } from "../lib/storage";
+import { getAdapter } from "../lib/storage";
 import type { BodyWeightEntry } from "../types";
 
 export function useBodyWeight() {
   const [entries, setEntries] = useState<BodyWeightEntry[]>([]);
 
   useEffect(() => {
-    localStorageAdapter.getBodyWeights().then((e) => {
-      setEntries(sortAsc(e));
-    });
+    let cancelled = false;
+    function load() {
+      getAdapter()
+        .getBodyWeights()
+        .then((e) => {
+          if (!cancelled) setEntries(sortAsc(e));
+        })
+        .catch(() => {});
+    }
+    load();
+    window.addEventListener("gym-tracker:storage-changed", load);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("gym-tracker:storage-changed", load);
+    };
   }, []);
 
   const persist = useCallback((next: BodyWeightEntry[]) => {
     const sorted = sortAsc(next);
     setEntries(sorted);
-    void localStorageAdapter.saveBodyWeights(sorted);
+    void getAdapter().saveBodyWeights(sorted);
   }, []);
 
   const addEntry = useCallback(

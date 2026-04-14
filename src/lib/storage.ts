@@ -3,6 +3,8 @@ import type {
   PersonalRecordOverride,
   Session,
 } from "../types";
+import { supabaseAdapter } from "./adapters/supabaseAdapter";
+import { getSupabase } from "./supabase";
 
 // Abstraction de stockage. Actuellement adossée au LocalStorage mais prête
 // à être remplacée par une API SQLite/PostgreSQL : il suffit d'implémenter
@@ -63,4 +65,28 @@ export const localStorageAdapter: StorageAdapter = {
 // Helper : génère un id unique simple.
 export function makeId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// Sélecteur dynamique : si Supabase est configuré ET l'utilisateur connecté,
+// on route vers le cloud. Sinon fallback LocalStorage (mode solo offline).
+// L'appel à getUser() est async, donc on ruse : quand on passe en mode cloud,
+// on pose un flag synchrone mis à jour par les listeners onAuthStateChange.
+let cloudEnabled = false;
+export function setCloudMode(enabled: boolean): void {
+  cloudEnabled = enabled;
+  // Notifie les hooks qu'ils doivent re-fetcher depuis la nouvelle source.
+  window.dispatchEvent(new CustomEvent("gym-tracker:storage-changed"));
+}
+
+export function getAdapter(): StorageAdapter {
+  if (cloudEnabled) {
+    const client = getSupabase();
+    if (client) return supabaseAdapter(client);
+  }
+  return localStorageAdapter;
+}
+
+// Helper test-only : force LocalStorage (utile pour migrer local → cloud).
+export function getLocalAdapter(): StorageAdapter {
+  return localStorageAdapter;
 }

@@ -9,6 +9,11 @@ const FLAG_KEY = "gym-tracker:seeded:v1";
 // si) aucune séance n'est déjà stockée et que le marqueur est absent.
 // Retourne true si un seed a été appliqué.
 export async function seedIfEmpty(): Promise<boolean> {
+  // Ne jamais seeder si on est en mode cloud multi-utilisateurs : chaque
+  // compte doit démarrer vide. Le seed reste réservé au mode solo local.
+  if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+    return false;
+  }
   if (localStorage.getItem(FLAG_KEY)) {
     await ensureHardcodedSeeds();
     return false;
