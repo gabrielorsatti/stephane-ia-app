@@ -1,79 +1,125 @@
-import { Target, Lightbulb, Copy } from "lucide-react";
+import { Target, Lightbulb, Copy, Pencil, Plus } from "lucide-react";
 import type { ProgramExercise, ProgramTemplate } from "../data/programs";
 import { useState } from "react";
 import { usePrograms } from "../hooks/usePrograms";
+import { ProgramEditor } from "./ProgramEditor";
 
 interface Props {
   onFillInput?: (text: string) => void;
 }
 
-// Vue des templates de séances du programme courant.
-// Chaque exercice affiche ses cibles, son objectif et ses cues techniques.
+// Vue des templates de séances. Chaque exercice affiche ses cibles, son
+// objectif et ses cues techniques. L'utilisateur peut créer ses propres
+// programmes ou éditer/supprimer les existants (synchronisé côté cloud
+// via usePrograms).
 export function ProgramView({ onFillInput }: Props) {
-  const { programs } = usePrograms();
+  const { programs, upsertProgram, replaceAll } = usePrograms();
   const [activeId, setActiveId] = useState<string>(programs[0]?.id ?? "");
+  const [editing, setEditing] = useState<ProgramTemplate | null | "new">(null);
   const active =
     programs.find((p) => p.id === activeId) ?? programs[0];
 
-  if (!active) {
-    return (
-      <div className="card text-sm text-text-dim text-center py-8">
-        Aucun programme défini.
-      </div>
-    );
+  function handleSave(p: ProgramTemplate) {
+    upsertProgram(p);
+    setActiveId(p.id);
+    setEditing(null);
+  }
+
+  function handleDelete(id: string) {
+    replaceAll(programs.filter((p) => p.id !== id));
+    setEditing(null);
   }
 
   return (
     <div className="space-y-4">
       <div className="card">
-        <div className="flex items-center gap-2 mb-3">
-          <Target className="w-5 h-5 text-accent" />
-          <h2 className="text-lg font-semibold">Programme actuel</h2>
+        <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Target className="w-5 h-5 text-accent" />
+            <h2 className="text-lg font-semibold">Programmes</h2>
+          </div>
+          <button
+            className="btn-ghost !py-1.5 text-xs"
+            onClick={() => setEditing("new")}
+          >
+            <Plus className="w-4 h-4" /> Nouveau
+          </button>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {programs.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setActiveId(p.id)}
-              className={[
-                "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                p.id === activeId
-                  ? "bg-accent text-bg"
-                  : "bg-bg-soft border border-border text-text-muted hover:text-text",
-              ].join(" ")}
-            >
-              {p.nom}
-            </button>
-          ))}
-        </div>
-        {active.description && (
+        {programs.length === 0 ? (
+          <div className="text-sm text-text-dim py-4 text-center">
+            Aucun programme défini. Clique sur <strong>Nouveau</strong> pour en
+            créer un, ou demande au Coach IA d'en générer un.
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {programs.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setActiveId(p.id)}
+                className={[
+                  "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                  p.id === activeId
+                    ? "bg-accent text-bg"
+                    : "bg-bg-soft border border-border text-text-muted hover:text-text",
+                ].join(" ")}
+              >
+                {p.nom}
+              </button>
+            ))}
+          </div>
+        )}
+        {active?.description && (
           <p className="text-xs text-text-muted mt-3">{active.description}</p>
         )}
       </div>
 
-      <div className="space-y-3">
-        {active.exercises.map((ex, i) => (
-          <ExerciseCard
-            key={i}
-            exercise={ex}
-            onCopy={
-              onFillInput
-                ? () => onFillInput(exerciseToNlp(ex))
-                : undefined
-            }
-          />
-        ))}
-      </div>
+      {active && (
+        <>
+          <div className="flex justify-end">
+            <button
+              className="btn-ghost !py-1.5 text-xs"
+              onClick={() => setEditing(active)}
+            >
+              <Pencil className="w-3.5 h-3.5" /> Éditer ce programme
+            </button>
+          </div>
 
-      {onFillInput && (
-        <div className="flex justify-end">
-          <button
-            className="btn-primary"
-            onClick={() => onFillInput(programToNlp(active))}
-          >
-            <Copy className="w-4 h-4" /> Charger la séance complète
-          </button>
-        </div>
+          <div className="space-y-3">
+            {active.exercises.map((ex, i) => (
+              <ExerciseCard
+                key={i}
+                exercise={ex}
+                onCopy={
+                  onFillInput
+                    ? () => onFillInput(exerciseToNlp(ex))
+                    : undefined
+                }
+              />
+            ))}
+          </div>
+
+          {onFillInput && (
+            <div className="flex justify-end">
+              <button
+                className="btn-primary"
+                onClick={() => onFillInput(programToNlp(active))}
+              >
+                <Copy className="w-4 h-4" /> Charger la séance complète
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {editing && (
+        <ProgramEditor
+          initial={editing === "new" ? undefined : editing}
+          onSave={handleSave}
+          onClose={() => setEditing(null)}
+          onDelete={
+            editing !== "new" ? () => handleDelete(editing.id) : undefined
+          }
+        />
       )}
     </div>
   );

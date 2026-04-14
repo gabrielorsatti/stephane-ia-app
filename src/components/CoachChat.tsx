@@ -57,6 +57,25 @@ Ne propose une modification QUE si les données la justifient (stagnation, objec
 
 const RECOMMENDATION_TRIGGER = `Analyse mes dernières séances et propose une mise à jour intelligente de mon programme pour la semaine à venir. Identifie : exercices en stagnation, objectifs atteints, déséquilibres entre catégories. Réponds avec ton analyse Markdown puis un bloc \`\`\`json conforme au format demandé. Sois conservateur : maximum 5 modifications.`;
 
+// Suggestions rapides affichées sous forme de chips sous la zone d'accueil.
+const SUGGESTIONS: Array<{ label: string; prompt: string }> = [
+  {
+    label: "Créer mon programme",
+    prompt:
+      "Propose-moi un programme hebdomadaire personnalisé basé sur mes préférences et mon historique (objectifs, volume dispo, points faibles). Explique ta logique en Markdown.",
+  },
+  {
+    label: "Analyser ma séance du jour",
+    prompt:
+      "Analyse ma dernière séance enregistrée : volume, intensité, équilibre musculaire, points d'amélioration. Réponse concise en Markdown.",
+  },
+  {
+    label: "Optimiser mes objectifs",
+    prompt:
+      "Compare mes objectifs de programme avec mes dernières performances. Identifie ceux qui sont atteints (à relever), inatteignables (à assouplir) ou obsolètes.",
+  },
+];
+
 interface DisplayMessage {
   role: "user" | "assistant";
   content: string;
@@ -182,7 +201,7 @@ export function CoachChat({
               disabled={loading || !config}
               title="Analyse ton volume et ton intensité des 4 dernières semaines pour ajuster ton programme selon le principe de surcharge progressive (séries, reps, charges)."
             >
-              <Sparkles className="w-4 h-4" /> Mise à jour intelligente
+              <Sparkles className="w-4 h-4" /> Ajuster mes charges
             </button>
           </div>
         </div>
@@ -203,9 +222,21 @@ export function CoachChat({
           </ul>
           <p className="text-text-dim pt-1">
             Exemple : <em>« Mon DC stagne à 80 kg, que faire ? »</em> ou clique
-            sur <strong>Mise à jour intelligente</strong> pour une analyse
-            complète basée sur la surcharge progressive.
+            sur <strong>Ajuster mes charges</strong> pour une analyse complète
+            basée sur la surcharge progressive.
           </p>
+          <div className="flex flex-wrap gap-1.5 pt-2">
+            {SUGGESTIONS.map((s) => (
+              <button
+                key={s.label}
+                onClick={() => void send(s.prompt)}
+                disabled={loading || !config}
+                className="text-[11px] px-2.5 py-1 rounded-full border border-border bg-bg-soft text-text-muted hover:text-text hover:border-accent/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
         {availableModels && (
           <div className="mt-3 text-xs bg-bg-soft border border-border rounded-lg px-3 py-2 space-y-1">

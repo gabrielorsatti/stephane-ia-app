@@ -8,22 +8,21 @@ import {
   YAxis,
 } from "recharts";
 import type { Session } from "../types";
-import { sessionVolume } from "../lib/scoring";
+import { mergeSessionsByDate, sessionVolume } from "../lib/scoring";
 import { format, parseISO } from "date-fns";
 
 interface Props {
   sessions: Session[];
 }
 
-// Courbe de volume total par séance dans le temps.
+// Courbe de volume total par jour calendaire. Les saisies multiples le même
+// jour sont agrégées en un seul point.
 export function VolumeChart({ sessions }: Props) {
-  const data = [...sessions]
-    .sort((a, b) => (a.date < b.date ? -1 : 1))
-    .map((s) => ({
-      date: s.date,
-      label: format(parseISO(s.date), "dd/MM"),
-      volume: Math.round(sessionVolume(s)),
-    }));
+  const data = mergeSessionsByDate(sessions).map((s) => ({
+    date: s.date,
+    label: format(parseISO(s.date), "dd/MM"),
+    volume: Math.round(sessionVolume(s)),
+  }));
 
   return (
     <div className="card h-[320px]">

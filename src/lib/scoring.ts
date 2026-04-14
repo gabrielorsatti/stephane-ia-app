@@ -44,6 +44,31 @@ export function sessionVolume(session: Session): number {
   );
 }
 
+// Fusionne les séances partageant la même date calendaire (YYYY-MM-DD) en une
+// "séance du jour" globale. Évite que plusieurs saisies successives créent
+// des points distincts sur les graphiques — l'abscisse reste le jour.
+// Le bodyWeight retenu est le dernier non-nul trouvé, les exercices sont
+// concaténés dans l'ordre de saisie, les notes jointes par saut de ligne.
+export function mergeSessionsByDate(sessions: Session[]): Session[] {
+  const byDate = new Map<string, Session>();
+  const sorted = [...sessions].sort((a, b) => (a.date < b.date ? -1 : 1));
+  for (const s of sorted) {
+    const existing = byDate.get(s.date);
+    if (!existing) {
+      byDate.set(s.date, { ...s, exercices: [...s.exercices] });
+      continue;
+    }
+    existing.exercices.push(...s.exercices);
+    if (s.bodyWeight != null) existing.bodyWeight = s.bodyWeight;
+    if (s.notes) {
+      existing.notes = existing.notes
+        ? `${existing.notes}\n${s.notes}`
+        : s.notes;
+    }
+  }
+  return [...byDate.values()].sort((a, b) => (a.date < b.date ? -1 : 1));
+}
+
 // Formule d'Epley pour estimer le 1RM à partir d'une série donnée.
 // 1RM = poids × (1 + reps / 30), plafonné à reps <= 20.
 export function estimate1RM(set: SetEntry): number {
@@ -133,16 +158,29 @@ export function buildExerciseProgression(
   const minReps = opts.minReps ?? 6;
   const maxReps = opts.maxReps ?? 12;
   const points: ExerciseProgressionPoint[] = [];
-  const sorted = [...sessions].sort((a, b) => (a.date < b.date ? -1 : 1));
-  for (const s of sorted) {
-    const ex = s.exercices.find((e) => e.nom === exerciseName);
-    if (!ex) continue;
+  // Groupe d'abord par jour pour que plusieurs saisies successives se
+  // consolident en un seul point sur l'axe temporel.
+  const merged = mergeSessionsByDate(sessions);
+  for (const s of merged) {
+    const entries = s.exercices.filter((e) => e.nom === exerciseName);
+    if (entries.length === 0) continue;
+    // Agrège toutes les entrées du même exercice sur le même jour.
+    let volume = 0;
+    let intensity = 0;
+    let pr = 0;
+    for (const ex of entries) {
+      volume += volumeForExercise(ex, s.bodyWeight);
+      const intensityEx = maxPoidsInRepRange(ex, minReps, maxReps);
+      if (intensityEx > intensity) intensity = intensityEx;
+      const prEx = maxPoidsAbsolute(ex);
+      if (prEx > pr) pr = prEx;
+    }
     points.push({
       date: s.date,
-      label: s.date.slice(5).replace("-", "/"), // mm/dd
-      volume: volumeForExercise(ex, s.bodyWeight),
-      intensity: maxPoidsInRepRange(ex, minReps, maxReps),
-      pr: maxPoidsAbsolute(ex),
+      label: s.date.slice(5).replace("-", "/"),
+      volume,
+      intensity,
+      pr,
     });
   }
   return points;

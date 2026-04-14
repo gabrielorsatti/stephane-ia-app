@@ -1,15 +1,12 @@
-import { Sparkles, X } from "lucide-react";
+import { Bot, Sparkles, TrendingUp, X } from "lucide-react";
 import { useState } from "react";
 
-const FLAG = "gym-tracker:onboarded:v1";
+const FLAG = "gym-tracker:onboarded:v2";
 
-interface Props {
-  onDismiss?: () => void;
-}
-
-// Petit guide affiché 1 fois pour expliquer la saisie NLP.
-// Se cache automatiquement après dismiss (flag LocalStorage).
-export function Onboarding({ onDismiss }: Props) {
+// Modal de bienvenue affichée au premier lancement. Stocke un flag
+// LocalStorage (bump v2 pour réinitialiser l'état existant). Fermeture via
+// la croix ou le bouton "C'est parti !".
+export function Onboarding() {
   const [visible, setVisible] = useState(() => !localStorage.getItem(FLAG));
 
   if (!visible) return null;
@@ -17,39 +14,95 @@ export function Onboarding({ onDismiss }: Props) {
   function dismiss() {
     localStorage.setItem(FLAG, "1");
     setVisible(false);
-    onDismiss?.();
   }
 
   return (
-    <div className="card bg-accent-muted/20 border-accent-muted/50 relative">
-      <button
-        className="absolute top-2 right-2 btn-ghost !p-1.5"
-        onClick={dismiss}
-        aria-label="Fermer"
+    <div
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
+      onClick={dismiss}
+    >
+      <div
+        className="bg-bg-card border border-border rounded-t-xl sm:rounded-xl w-full max-w-md max-h-[100dvh] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
       >
-        <X className="w-4 h-4" />
-      </button>
-      <div className="flex items-center gap-2 mb-3">
-        <Sparkles className="w-5 h-5 text-accent" />
-        <h3 className="font-semibold text-sm">Bienvenue 👋</h3>
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-accent" />
+            <h3 className="font-semibold">Bienvenue 👋</h3>
+          </div>
+          <button
+            className="btn-ghost !p-1.5"
+            onClick={dismiss}
+            aria-label="Fermer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-4 space-y-4 text-sm">
+          <p className="text-text-muted">
+            Trois choses à savoir pour commencer :
+          </p>
+
+          <Step
+            icon={<Sparkles className="w-4 h-4" />}
+            title="Saisie en langage naturel"
+          >
+            Tape tes séances ligne par ligne. Exemples :
+            <ul className="font-mono text-xs text-text-muted bg-bg-soft border border-border rounded-lg p-2 mt-2 space-y-0.5">
+              <li>3x12 Développé couché à 80kg</li>
+              <li>4x8 Tractions +20kg</li>
+              <li>Course 5km en 25min</li>
+            </ul>
+          </Step>
+
+          <Step
+            icon={<TrendingUp className="w-4 h-4" />}
+            title="Progression"
+          >
+            L'onglet <strong>Progression</strong> affiche tes graphes par
+            exercice (volume, intensité, records) ou en cardio (distance,
+            allure, durée).
+          </Step>
+
+          <Step icon={<Bot className="w-4 h-4" />} title="Coach IA">
+            Onglet <strong>Coach</strong> : l'IA analyse tes performances,
+            suggère des charges et peut même générer un programme sur mesure.
+          </Step>
+        </div>
+
+        <div className="p-4 border-t border-border">
+          <button className="btn-primary w-full" onClick={dismiss}>
+            C'est parti !
+          </button>
+        </div>
       </div>
-      <p className="text-xs text-text-muted mb-3">
-        Saisis tes séances en langage naturel, une ligne par exercice :
-      </p>
-      <ul className="text-xs space-y-1 font-mono bg-bg-soft border border-border rounded-lg p-3">
-        <li>3x12 Développé couché à 80kg</li>
-        <li>4x10 Squat 100kg</li>
-        <li>Course 5km en 25min</li>
-        <li>Vélo 20km allure 3:00</li>
-      </ul>
-      <p className="text-xs text-text-dim mt-3">
-        Clique sur l'onglet <strong>Coach</strong> pour analyser tes progrès
-        avec l'IA, et <strong>Programme</strong> pour suivre un split
-        prédéfini.
-      </p>
-      <button className="btn-primary mt-3 text-xs" onClick={dismiss}>
-        C'est parti
-      </button>
+    </div>
+  );
+}
+
+function Step({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex gap-3">
+      <div className="w-8 h-8 rounded-lg bg-accent/15 text-accent flex items-center justify-center shrink-0">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-text">{title}</div>
+        <div className="text-xs text-text-muted mt-1">{children}</div>
+      </div>
     </div>
   );
 }

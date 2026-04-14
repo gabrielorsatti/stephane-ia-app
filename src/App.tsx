@@ -186,7 +186,7 @@ function AppInner() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {sessions.length === 0 && <Onboarding />}
+        <Onboarding />
         <SessionInput
           onSave={handleSave}
           prefillText={prefillText}
