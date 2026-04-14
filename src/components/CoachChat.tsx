@@ -83,13 +83,13 @@ export function CoachChat({
   }, [messages, loading]);
 
   async function send(userText: string) {
+    if (!userText.trim()) return;
     if (!config) {
       setError(
-        "Coach IA non configuré : ajoute VITE_LLM_API_KEY dans .env (cf .env.example).",
+        "Coach IA non configuré : ajoute VITE_LLM_API_KEY dans .env puis redémarre `npm run dev` (les variables Vite ne sont lues qu'au démarrage).",
       );
       return;
     }
-    if (!userText.trim()) return;
     setError(null);
     const next: DisplayMessage[] = [
       ...messages,
@@ -153,7 +153,7 @@ export function CoachChat({
           <button
             className="btn-primary !py-1.5 text-xs"
             onClick={smartUpdate}
-            disabled={loading}
+            disabled={loading || !config}
           >
             <Sparkles className="w-4 h-4" /> Mise à jour intelligente
           </button>
@@ -163,6 +163,18 @@ export function CoachChat({
           ou clique sur « Mise à jour intelligente » pour que l'IA analyse tes
           dernières séances et propose des modifications de programme.
         </p>
+        {!config && (
+          <div className="mt-3 text-xs text-amber-200 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 space-y-1">
+            <div className="font-semibold">Clé API manquante</div>
+            <div className="text-text-muted">
+              Crée un fichier <code className="font-mono">.env</code> à la
+              racine avec{" "}
+              <code className="font-mono">VITE_LLM_API_KEY=…</code> puis
+              redémarre <code className="font-mono">npm run dev</code>. Les
+              variables Vite ne sont lues qu'au démarrage.
+            </div>
+          </div>
+        )}
       </div>
 
       <div
@@ -200,16 +212,16 @@ export function CoachChat({
           placeholder={
             config
               ? "Pose ta question au coach…"
-              : "Ajoute VITE_LLM_API_KEY dans .env"
+              : "Ajoute VITE_LLM_API_KEY dans .env puis redémarre le serveur"
           }
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          disabled={loading || !config}
+          disabled={loading}
         />
         <button
           type="submit"
           className="btn-primary"
-          disabled={loading || !input.trim() || !config}
+          disabled={loading || !input.trim()}
         >
           <Send className="w-4 h-4" />
         </button>
