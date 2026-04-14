@@ -47,6 +47,9 @@ jobs:
           # renvoie null et l'app reste en mode LocalStorage.
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_LLM_API_KEY: ${{ secrets.VITE_LLM_API_KEY }}
+          VITE_LLM_BASE_URL: ${{ secrets.VITE_LLM_BASE_URL }}
+          VITE_LLM_MODEL: ${{ secrets.VITE_LLM_MODEL }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
