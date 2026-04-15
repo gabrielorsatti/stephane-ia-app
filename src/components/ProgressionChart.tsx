@@ -15,6 +15,7 @@ import { buildExerciseProgression } from "../lib/scoring";
 import { exerciseType } from "../lib/exercises";
 import { computePace, formatPace } from "../lib/cardio";
 import { cuesFor, objectiveFor } from "../data/programs";
+import { useChartColors } from "../hooks/useChartColors";
 import { Lightbulb, Target } from "lucide-react";
 
 interface Props {
@@ -23,33 +24,34 @@ interface Props {
 
 type Metric = "volume" | "intensity" | "pr";
 type CardioMetric = "distance" | "pace" | "duree";
+type ColorKey = "c1" | "c2" | "c3";
 
 const METRICS: Array<{
   key: Metric;
   label: string;
   sub: string;
-  color: string;
+  colorKey: ColorKey;
   unit: string;
 }> = [
   {
     key: "volume",
     label: "Volume total",
     sub: "Σ (poids × reps) par séance",
-    color: "#a7e8c9",
+    colorKey: "c1",
     unit: "kg",
   },
   {
     key: "intensity",
     label: "Intensité travail",
     sub: "Charge max sur séries 6–12 reps",
-    color: "#a8d0e6",
+    colorKey: "c2",
     unit: "kg",
   },
   {
     key: "pr",
     label: "Record absolu",
     sub: "Poids max soulevé (toutes reps)",
-    color: "#c9b8e8",
+    colorKey: "c3",
     unit: "kg",
   },
 ];
@@ -58,28 +60,28 @@ const CARDIO_METRICS: Array<{
   key: CardioMetric;
   label: string;
   sub: string;
-  color: string;
+  colorKey: ColorKey;
   unit: string;
 }> = [
   {
     key: "distance",
     label: "Distance",
     sub: "Kilomètres parcourus par séance",
-    color: "#a7e8c9",
+    colorKey: "c1",
     unit: "km",
   },
   {
     key: "pace",
     label: "Allure moyenne",
     sub: "min/km — plus bas = plus rapide",
-    color: "#a8d0e6",
+    colorKey: "c2",
     unit: "min/km",
   },
   {
     key: "duree",
     label: "Temps d'effort",
     sub: "Durée totale par séance",
-    color: "#c9b8e8",
+    colorKey: "c3",
     unit: "min",
   },
 ];
@@ -88,6 +90,7 @@ const CARDIO_METRICS: Array<{
 // dans la fenêtre 6–12 reps / record absolu). Chaque métrique a sa couleur
 // pastel dédiée.
 export function ProgressionChart({ sessions }: Props) {
+  const c = useChartColors();
   const exercises = useMemo(() => {
     const set = new Set<string>();
     for (const s of sessions) for (const ex of s.exercices) set.add(ex.nom);
@@ -185,7 +188,7 @@ export function ProgressionChart({ sessions }: Props) {
               <div className="flex items-center justify-center gap-1.5">
                 <span
                   className="w-2 h-2 rounded-full"
-                  style={{ background: m.color }}
+                  style={{ background: c[m.colorKey] }}
                 />
                 <span>{m.label}</span>
               </div>
@@ -233,20 +236,20 @@ export function ProgressionChart({ sessions }: Props) {
             <AreaChart data={data}>
               <defs>
                 <linearGradient id="progGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={active.color} stopOpacity={0.55} />
-                  <stop offset="100%" stopColor={active.color} stopOpacity={0} />
+                  <stop offset="0%" stopColor={c[active.colorKey]} stopOpacity={0.55} />
+                  <stop offset="100%" stopColor={c[active.colorKey]} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2a3138" />
-              <XAxis dataKey="label" stroke="#8c95a0" fontSize={11} />
-              <YAxis stroke="#8c95a0" fontSize={11} />
+              <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
+              <XAxis dataKey="label" stroke={c.axis} fontSize={11} />
+              <YAxis stroke={c.axis} fontSize={11} />
               <Tooltip
                 contentStyle={{
-                  background: "#1a1f24",
-                  border: "1px solid #2a3138",
+                  background: c.bgCard,
+                  border: `1px solid ${c.border}`,
                   borderRadius: 8,
                 }}
-                labelStyle={{ color: "#a8b2bc" }}
+                labelStyle={{ color: c.textMuted }}
                 formatter={(v: number) => [
                   isCardio && active.key === "pace"
                     ? `${formatPace(v)} min/km`
@@ -257,7 +260,7 @@ export function ProgressionChart({ sessions }: Props) {
               <Area
                 type="monotone"
                 dataKey={active.key}
-                stroke={active.color}
+                stroke={c[active.colorKey]}
                 strokeWidth={2}
                 fill="url(#progGrad)"
               />

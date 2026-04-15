@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { StorageAdapter } from "../storage";
-import type { BodyWeightEntry, Session } from "../../types";
+import type { BodyWeightEntry, NutritionLog, Session } from "../../types";
 
 // Adapter Supabase : respecte l'interface StorageAdapter.
 // Exige que l'utilisateur soit authentifié (auth.uid() non null) car la
@@ -94,6 +94,67 @@ export function supabaseAdapter(client: SupabaseClient): StorageAdapter {
           poids: e.poids,
         }));
         const { error } = await client.from("body_weights").insert(rows);
+        if (error) throw error;
+      }
+    },
+
+    async getNutritionLogs() {
+      const uid = await userId();
+      const { data, error } = await client
+        .from("nutrition_logs")
+        .select("id, date, food_text, calories, protein, carbs, fat, created_at")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map(
+        (row): NutritionLog => ({
+          id: row.id,
+          date: row.date,
+          foodText: row.food_text,
+          calories: Number(row.calories ?? 0),
+          protein: Number(row.protein ?? 0),
+          carbs: Number(row.carbs ?? 0),
+          fat: Number(row.fat ?? 0),
+          createdAt: row.created_at,
+        }),
+      );
+    },
+
+    async saveNutritionLogs(logs) {
+      const uid = await userId();
+      // Même stratégie que sessions : delete-before-save sur les id absents,
+      // puis upsert. Ça nous permet de gérer delete + edit + insert en un appel.
+      const { data: current, error: e1 } = await client
+        .from("nutrition_logs")
+        .select("id")
+        .eq("user_id", uid);
+      if (e1) throw e1;
+      const keep = new Set(logs.map((l) => l.id));
+      const toDelete = (current ?? [])
+        .map((r: { id: string }) => r.id)
+        .filter((id) => !keep.has(id));
+      if (toDelete.length > 0) {
+        const { error } = await client
+          .from("nutrition_logs")
+          .delete()
+          .in("id", toDelete);
+        if (error) throw error;
+      }
+      if (logs.length > 0) {
+        const rows = logs.map((l) => ({
+          id: l.id,
+          user_id: uid,
+          date: l.date,
+          food_text: l.foodText,
+          calories: Math.round(l.calories),
+          protein: l.protein,
+          carbs: l.carbs,
+          fat: l.fat,
+          created_at: l.createdAt,
+        }));
+        const { error } = await client
+          .from("nutrition_logs")
+          .upsert(rows, { onConflict: "id" });
         if (error) throw error;
       }
     },

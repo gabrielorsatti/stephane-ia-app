@@ -1,38 +1,44 @@
 /** @type {import('tailwindcss').Config} */
+// Les couleurs pointent vers des CSS variables définies dans src/index.css.
+// Chaque variable contient un triplet RGB (ex: "15 19 22") pour supporter
+// le modifier `/<alpha-value>` de Tailwind (bg-bg-card/50 etc.).
+// Le thème actif est contrôlé par l'attribut data-theme sur <html>.
+const rgb = (name) => `rgb(var(${name}) / <alpha-value>)`;
+
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
         bg: {
-          DEFAULT: "#0f1316",
-          soft: "#161b1f",
-          card: "#1a1f24",
-          elev: "#222931",
+          DEFAULT: rgb("--c-bg"),
+          soft: rgb("--c-bg-soft"),
+          card: rgb("--c-bg-card"),
+          elev: rgb("--c-bg-elev"),
         },
-        border: { DEFAULT: "#2a3138", strong: "#3a434d" },
-        // Accent principal : menthe douce. Les accents secondaires (bleu
-        // poudré, lavande) sont exposés comme palettes dédiées pour les
-        // graphiques multi-séries.
+        border: {
+          DEFAULT: rgb("--c-border"),
+          strong: rgb("--c-border-strong"),
+        },
         accent: {
-          DEFAULT: "#a7e8c9",
-          soft: "#7dd3ae",
-          muted: "#22372f",
+          DEFAULT: rgb("--c-accent"),
+          soft: rgb("--c-accent-soft"),
+          muted: rgb("--c-accent-muted"),
         },
         powder: {
-          DEFAULT: "#a8d0e6",
-          soft: "#7fb5d4",
-          muted: "#1f3340",
+          DEFAULT: rgb("--c-powder"),
+          soft: rgb("--c-powder-soft"),
+          muted: rgb("--c-powder-muted"),
         },
         lavender: {
-          DEFAULT: "#c9b8e8",
-          soft: "#a892d1",
-          muted: "#2e2940",
+          DEFAULT: rgb("--c-lavender"),
+          soft: rgb("--c-lavender-soft"),
+          muted: rgb("--c-lavender-muted"),
         },
         text: {
-          DEFAULT: "#eef1f4",
-          muted: "#a8b2bc",
-          dim: "#6f7881",
+          DEFAULT: rgb("--c-text"),
+          muted: rgb("--c-text-muted"),
+          dim: rgb("--c-text-dim"),
         },
       },
       fontFamily: {

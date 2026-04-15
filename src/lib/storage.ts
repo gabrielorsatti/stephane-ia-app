@@ -1,5 +1,6 @@
 import type {
   BodyWeightEntry,
+  NutritionLog,
   PersonalRecordOverride,
   Session,
 } from "../types";
@@ -15,11 +16,14 @@ export interface StorageAdapter {
   saveSessions(sessions: Session[]): Promise<void>;
   getBodyWeights(): Promise<BodyWeightEntry[]>;
   saveBodyWeights(entries: BodyWeightEntry[]): Promise<void>;
+  getNutritionLogs(): Promise<NutritionLog[]>;
+  saveNutritionLogs(logs: NutritionLog[]): Promise<void>;
 }
 
 const KEY_SESSIONS = "gym-tracker:sessions:v1";
 const KEY_BW = "gym-tracker:bodyweight:v1";
 const KEY_OVERRIDES = "gym-tracker:pr-overrides:v1";
+const KEY_NUTRITION = "gym-tracker:nutrition:v1";
 
 // Les PR overrides restent volontairement découplés de StorageAdapter pour
 // l'instant : ils sont une préférence utilisateur, pas une donnée source.
@@ -59,6 +63,17 @@ export const localStorageAdapter: StorageAdapter = {
   },
   async saveBodyWeights(entries) {
     localStorage.setItem(KEY_BW, JSON.stringify(entries));
+  },
+  async getNutritionLogs() {
+    try {
+      const raw = localStorage.getItem(KEY_NUTRITION);
+      return raw ? (JSON.parse(raw) as NutritionLog[]) : [];
+    } catch {
+      return [];
+    }
+  },
+  async saveNutritionLogs(logs) {
+    localStorage.setItem(KEY_NUTRITION, JSON.stringify(logs));
   },
 };
 

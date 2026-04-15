@@ -1,9 +1,9 @@
 import {
-  BookOpenCheck,
   History,
   LayoutDashboard,
   Sparkles,
   TrendingUp,
+  Utensils,
 } from "lucide-react";
 
 export type MobileTab =
@@ -11,7 +11,7 @@ export type MobileTab =
   | "historique"
   | "coach"
   | "progression"
-  | "programme";
+  | "alimentation";
 
 interface Props {
   active: string;
@@ -25,9 +25,9 @@ export function MobileBottomNav({ active, onChange }: Props) {
     [
       { id: "dashboard", label: "Accueil", icon: <LayoutDashboard className="w-5 h-5" /> },
       { id: "historique", label: "Séances", icon: <History className="w-5 h-5" /> },
+      { id: "alimentation", label: "Repas", icon: <Utensils className="w-5 h-5" /> },
       { id: "coach", label: "Coach", icon: <Sparkles className="w-5 h-5" /> },
       { id: "progression", label: "Progrès", icon: <TrendingUp className="w-5 h-5" /> },
-      { id: "programme", label: "Prog.", icon: <BookOpenCheck className="w-5 h-5" /> },
     ];
 
   return (

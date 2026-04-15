@@ -10,6 +10,7 @@ import {
 import type { Session } from "../types";
 import { mergeSessionsByDate, sessionVolume } from "../lib/scoring";
 import { format, parseISO } from "date-fns";
+import { useChartColors } from "../hooks/useChartColors";
 
 interface Props {
   sessions: Session[];
@@ -18,6 +19,7 @@ interface Props {
 // Courbe de volume total par jour calendaire. Les saisies multiples le même
 // jour sont agrégées en un seul point.
 export function VolumeChart({ sessions }: Props) {
+  const c = useChartColors();
   const data = mergeSessionsByDate(sessions).map((s) => ({
     date: s.date,
     label: format(parseISO(s.date), "dd/MM"),
@@ -34,25 +36,25 @@ export function VolumeChart({ sessions }: Props) {
           <AreaChart data={data}>
             <defs>
               <linearGradient id="volGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#a7e8c9" stopOpacity={0.6} />
-                <stop offset="100%" stopColor="#a7e8c9" stopOpacity={0} />
+                <stop offset="0%" stopColor={c.c1} stopOpacity={0.6} />
+                <stop offset="100%" stopColor={c.c1} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2a3138" />
-            <XAxis dataKey="label" stroke="#8c95a0" fontSize={11} />
-            <YAxis stroke="#8c95a0" fontSize={11} />
+            <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
+            <XAxis dataKey="label" stroke={c.axis} fontSize={11} />
+            <YAxis stroke={c.axis} fontSize={11} />
             <Tooltip
               contentStyle={{
-                background: "#1a1f24",
-                border: "1px solid #2a3138",
+                background: c.bgCard,
+                border: `1px solid ${c.border}`,
                 borderRadius: 8,
               }}
-              labelStyle={{ color: "#a8b2bc" }}
+              labelStyle={{ color: c.textMuted }}
             />
             <Area
               type="monotone"
               dataKey="volume"
-              stroke="#a7e8c9"
+              stroke={c.c1}
               strokeWidth={2}
               fill="url(#volGrad)"
             />

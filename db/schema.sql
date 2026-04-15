@@ -26,12 +26,28 @@ create table if not exists public.body_weights (
 create index if not exists sessions_user_date_idx
   on public.sessions (user_id, date desc);
 
+create table if not exists public.nutrition_logs (
+  id         text primary key,
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  date       date not null,
+  food_text  text not null,
+  calories   integer not null default 0,
+  protein    numeric not null default 0,
+  carbs      numeric not null default 0,
+  fat        numeric not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists nutrition_logs_user_date_idx
+  on public.nutrition_logs (user_id, date desc);
+
 -- ---------------------------------------------------------------
 -- Row Level Security : un utilisateur ne voit que ses propres lignes.
 -- ---------------------------------------------------------------
 
-alter table public.sessions       enable row level security;
-alter table public.body_weights   enable row level security;
+alter table public.sessions        enable row level security;
+alter table public.body_weights    enable row level security;
+alter table public.nutrition_logs  enable row level security;
 
 create policy "sessions: owner read"
   on public.sessions for select
@@ -65,4 +81,21 @@ create policy "body_weights: owner update"
 
 create policy "body_weights: owner delete"
   on public.body_weights for delete
+  using (auth.uid() = user_id);
+
+create policy "nutrition_logs: owner read"
+  on public.nutrition_logs for select
+  using (auth.uid() = user_id);
+
+create policy "nutrition_logs: owner write"
+  on public.nutrition_logs for insert
+  with check (auth.uid() = user_id);
+
+create policy "nutrition_logs: owner update"
+  on public.nutrition_logs for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "nutrition_logs: owner delete"
+  on public.nutrition_logs for delete
   using (auth.uid() = user_id);

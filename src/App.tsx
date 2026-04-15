@@ -1,4 +1,4 @@
-import { LogOut } from "lucide-react";
+import { LogOut, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AuthGate } from "./components/AuthGate";
 import { BackupControls } from "./components/BackupControls";
@@ -14,6 +14,7 @@ import { MobileBottomNav } from "./components/MobileBottomNav";
 import { Onboarding } from "./components/Onboarding";
 import { PersonalRecords } from "./components/PersonalRecords";
 import { ProgramView } from "./components/ProgramView";
+import { NutritionView } from "./components/NutritionView";
 import { ProgressionChart } from "./components/ProgressionChart";
 import { SessionInput } from "./components/SessionInput";
 import { StatsCards } from "./components/StatsCards";
@@ -22,6 +23,7 @@ import { VolumeChart } from "./components/VolumeChart";
 import { useAuth } from "./hooks/useAuth";
 import { useBodyWeight } from "./hooks/useBodyWeight";
 import { usePrograms } from "./hooks/usePrograms";
+import { useTheme } from "./hooks/useTheme";
 import { useRecordOverrides } from "./hooks/useRecordOverrides";
 import { useSessions } from "./hooks/useSessions";
 import { migrateOwnerDataIfNeeded } from "./lib/ownerMigration";
@@ -34,6 +36,7 @@ type Tab =
   | "dashboard"
   | "historique"
   | "progression"
+  | "alimentation"
   | "programme"
   | "exercices"
   | "coach";
@@ -48,6 +51,7 @@ export default function App() {
 
 function AppInner() {
   const auth = useAuth();
+  const { theme, toggle: toggleTheme } = useTheme();
 
   useEffect(() => {
     const cloud = auth.supabaseEnabled && !!auth.user;
@@ -92,6 +96,7 @@ function AppInner() {
     "dashboard",
     "historique",
     "progression",
+    "alimentation",
     "programme",
     "exercices",
     "coach",
@@ -171,6 +176,22 @@ function AppInner() {
                 </button>
               ))}
             </nav>
+            <button
+              className="btn-ghost !px-2 !py-2"
+              onClick={toggleTheme}
+              title={
+                theme === "dark"
+                  ? "Passer au thème rose pastel"
+                  : "Passer au thème sombre"
+              }
+              aria-label="Changer de thème"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-4 h-4" />
+              ) : (
+                <Moon className="w-4 h-4" />
+              )}
+            </button>
             {auth.supabaseEnabled && auth.user && (
               <button
                 className="btn-ghost !px-2 !py-2"
@@ -246,6 +267,8 @@ function AppInner() {
             />
           </div>
         )}
+
+        {tab === "alimentation" && <NutritionView />}
 
         {tab === "programme" && <ProgramView onFillInput={fillFromProgram} />}
 

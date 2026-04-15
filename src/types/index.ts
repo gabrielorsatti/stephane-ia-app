@@ -58,6 +58,19 @@ export interface BodyWeightEntry {
   poids: number;
 }
 
+// Repas/snack enregistré côté nutrition. `foodText` est la saisie libre
+// originale ; les 4 macros sont extraites par l'IA (ou estimées).
+export interface NutritionLog {
+  id: string;
+  date: string; // ISO yyyy-mm-dd
+  foodText: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  createdAt: string; // ISO timestamp — sert au tri intra-journée
+}
+
 // Surcharge manuelle des PR pour un exercice donné. Tous les champs sont
 // optionnels : ceux qui sont renseignés remplacent la valeur calculée à
 // partir des séances, les autres restent déduits automatiquement.

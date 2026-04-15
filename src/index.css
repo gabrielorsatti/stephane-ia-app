@@ -2,6 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Palette par défaut (thème sombre — "Menthe"). Chaque variable est un
+   triplet RGB pour pouvoir combiner avec les alpha-values de Tailwind. */
+:root,
+[data-theme="dark"] {
+  --c-bg: 15 19 22;
+  --c-bg-soft: 22 27 31;
+  --c-bg-card: 26 31 36;
+  --c-bg-elev: 34 41 49;
+  --c-border: 42 49 56;
+  --c-border-strong: 58 67 77;
+  --c-accent: 167 232 201;
+  --c-accent-soft: 125 211 174;
+  --c-accent-muted: 34 55 47;
+  --c-powder: 168 208 230;
+  --c-powder-soft: 127 181 212;
+  --c-powder-muted: 31 51 64;
+  --c-lavender: 201 184 232;
+  --c-lavender-soft: 168 146 209;
+  --c-lavender-muted: 46 41 64;
+  --c-text: 238 241 244;
+  --c-text-muted: 168 178 188;
+  --c-text-dim: 111 120 129;
+  /* Couleurs de graphiques alignées sur les accents actuels. */
+  --c-chart-1: 167 232 201;
+  --c-chart-2: 168 208 230;
+  --c-chart-3: 201 184 232;
+  --c-chart-grid: 42 49 56;
+  --c-chart-axis: 140 149 160;
+  color-scheme: dark;
+}
+
+/* Thème rose pastel épuré. Fond rose poudré légèrement foncé, texte
+   anthracite, accents pour contraste. */
+[data-theme="rose"] {
+  --c-bg: 248 232 232;
+  --c-bg-soft: 243 221 223;
+  --c-bg-card: 253 244 244;
+  --c-bg-elev: 247 226 228;
+  --c-border: 225 197 201;
+  --c-border-strong: 198 164 170;
+  --c-accent: 188 98 125;
+  --c-accent-soft: 162 75 104;
+  --c-accent-muted: 240 206 213;
+  --c-powder: 132 115 160;
+  --c-powder-soft: 105 90 135;
+  --c-powder-muted: 227 219 238;
+  --c-lavender: 160 108 156;
+  --c-lavender-soft: 128 82 124;
+  --c-lavender-muted: 235 217 232;
+  --c-text: 51 42 46;
+  --c-text-muted: 107 82 90;
+  --c-text-dim: 151 122 131;
+  --c-chart-1: 188 98 125;
+  --c-chart-2: 132 115 160;
+  --c-chart-3: 160 108 156;
+  --c-chart-grid: 225 197 201;
+  --c-chart-axis: 107 82 90;
+  color-scheme: light;
+}
+
 @layer base {
   html,
   body,
@@ -10,21 +70,33 @@
   }
   body {
     font-family: "Inter", system-ui, sans-serif;
+    background: rgb(var(--c-bg));
+    color: rgb(var(--c-text));
   }
-  /* Scrollbar */
+  /* Scrollbar — suit le thème actif. */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
   ::-webkit-scrollbar-track {
-    background: #0f1316;
+    background: rgb(var(--c-bg));
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a3138;
+    background: rgb(var(--c-border));
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3a434d;
+    background: rgb(var(--c-border-strong));
+  }
+  /* Ombres douces pour le thème clair (soft UI sur rose pastel). */
+  [data-theme="rose"] .card,
+  [data-theme="rose"] .card-elev {
+    box-shadow:
+      0 1px 2px rgb(var(--c-border-strong) / 0.15),
+      0 4px 12px rgb(var(--c-border-strong) / 0.08);
+  }
+  [data-theme="rose"] .btn-primary {
+    box-shadow: 0 2px 6px rgb(var(--c-accent) / 0.35);
   }
 }
 
