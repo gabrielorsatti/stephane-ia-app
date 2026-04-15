@@ -15,6 +15,7 @@ import { Onboarding } from "./components/Onboarding";
 import { PersonalRecords } from "./components/PersonalRecords";
 import { ProgramView } from "./components/ProgramView";
 import { NutritionView } from "./components/NutritionView";
+import { OccupancyChart } from "./components/OccupancyChart";
 import { ProgressionChart } from "./components/ProgressionChart";
 import { SessionInput } from "./components/SessionInput";
 import { StatsCards } from "./components/StatsCards";
@@ -241,6 +242,7 @@ function AppInner() {
               <CardioStatsCard sessions={sessions} />
               <BodyWeightChart entries={entries} onAdd={addEntry} />
               <CalendarView sessions={sessions} />
+              <OccupancyChart />
             </div>
           </>
         )}
