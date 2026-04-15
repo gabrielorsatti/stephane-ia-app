@@ -3,6 +3,8 @@ import { getAdapter, makeId } from "../lib/storage";
 import type { Gym, LocationType } from "../types";
 
 const KEY_FAVORITE = "gym-tracker:favorite-gym:v1";
+const EVT_GYMS = "gym-tracker:gyms-changed";
+const EVT_FAVORITE = "gym-tracker:favorite-gym-changed";
 
 export function useGyms() {
   const [gyms, setGyms] = useState<Gym[]>([]);
@@ -24,17 +26,28 @@ export function useGyms() {
         })
         .catch(() => {});
     }
+    function onFavorite(e: Event) {
+      const id = (e as CustomEvent<string | null>).detail ?? null;
+      setFavoriteIdState(id);
+    }
     load();
     window.addEventListener("gym-tracker:storage-changed", load);
+    window.addEventListener(EVT_GYMS, load);
+    window.addEventListener(EVT_FAVORITE, onFavorite);
     return () => {
       cancelled = true;
       window.removeEventListener("gym-tracker:storage-changed", load);
+      window.removeEventListener(EVT_GYMS, load);
+      window.removeEventListener(EVT_FAVORITE, onFavorite);
     };
   }, []);
 
   const persist = useCallback((next: Gym[]) => {
     setGyms(next);
     void getAdapter().saveGyms(next);
+    // Notifie les autres instances de useGyms (ex: App + OccupancyChart
+    // vivent dans des arbres séparés et ne partagent pas leur state).
+    window.dispatchEvent(new CustomEvent(EVT_GYMS));
   }, []);
 
   const addGym = useCallback(
@@ -78,6 +91,9 @@ export function useGyms() {
       else localStorage.removeItem(KEY_FAVORITE);
     } catch {}
     setFavoriteIdState(id);
+    window.dispatchEvent(
+      new CustomEvent(EVT_FAVORITE, { detail: id }),
+    );
   }, []);
 
   const favorite = favoriteId ? gyms.find((g) => g.id === favoriteId) : undefined;

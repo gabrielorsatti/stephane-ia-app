@@ -17,7 +17,7 @@ const OPTIONS: Array<{ key: OccupancyLevel; label: string; emoji: string }> = [
 // modèle prédictif pour affiner l'estimation d'affluence propre à la salle.
 export function CrowdCheckPrompt({ gym, onSubmit, onDismiss }: Props) {
   return (
-    <div className="card border-accent/50 bg-accent-muted/10 relative">
+    <div className="card border-accent/50 bg-accent-muted/10 relative z-10 animate-in fade-in">
       <button
         onClick={onDismiss}
         aria-label="Ignorer"

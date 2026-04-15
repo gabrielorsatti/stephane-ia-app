@@ -133,7 +133,13 @@ function AppInner() {
     } else {
       addSession(session);
       // Déclenche le Crowd Check si une salle favorite est définie.
-      if (favoriteGym) setCrowdCheckPending(true);
+      console.log("[CrowdCheck] Séance enregistrée", { favoriteGym });
+      if (favoriteGym) {
+        console.log("[CrowdCheck] Salle favorite détectée → affichage", favoriteGym.name);
+        setCrowdCheckPending(true);
+      } else {
+        console.log("[CrowdCheck] Aucune salle favorite — prompt ignoré");
+      }
     }
   }
 
