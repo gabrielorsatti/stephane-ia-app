@@ -18,6 +18,8 @@ export interface StorageAdapter {
   saveBodyWeights(entries: BodyWeightEntry[]): Promise<void>;
   getNutritionLogs(): Promise<NutritionLog[]>;
   saveNutritionLogs(logs: NutritionLog[]): Promise<void>;
+  getRecordOverrides(): Promise<PersonalRecordOverride[]>;
+  saveRecordOverrides(overrides: PersonalRecordOverride[]): Promise<void>;
 }
 
 const KEY_SESSIONS = "gym-tracker:sessions:v1";
@@ -74,6 +76,12 @@ export const localStorageAdapter: StorageAdapter = {
   },
   async saveNutritionLogs(logs) {
     localStorage.setItem(KEY_NUTRITION, JSON.stringify(logs));
+  },
+  async getRecordOverrides() {
+    return recordOverridesStore.get();
+  },
+  async saveRecordOverrides(overrides) {
+    return recordOverridesStore.save(overrides);
   },
 };
 

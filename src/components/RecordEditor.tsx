@@ -99,12 +99,13 @@ export function RecordEditor({ initial, onSave, onClose, onDelete }: Props) {
             </select>
           </Field>
           <div className="grid grid-cols-2 gap-2">
-            <Field label="Charge max (kg)">
+            <Field label="Intensité de travail (kg)">
               <input
                 className="input"
                 inputMode="decimal"
                 value={maxPoids}
                 onChange={(e) => setMaxPoids(e.target.value)}
+                placeholder="Détectée ou manuelle"
               />
             </Field>
             <Field label="Reps associées">
@@ -116,7 +117,7 @@ export function RecordEditor({ initial, onSave, onClose, onDelete }: Props) {
               />
             </Field>
           </div>
-          <Field label="Date de la charge max">
+          <Field label="Date de l'intensité">
             <input
               type="date"
               className="input"
@@ -125,12 +126,13 @@ export function RecordEditor({ initial, onSave, onClose, onDelete }: Props) {
             />
           </Field>
           <div className="grid grid-cols-2 gap-2">
-            <Field label="1RM (kg)">
+            <Field label="1RM max (kg)">
               <input
                 className="input"
                 inputMode="decimal"
                 value={best1RM}
                 onChange={(e) => setBest1RM(e.target.value)}
+                placeholder="Calculé ou saisi"
               />
             </Field>
             <Field label="Date du 1RM">

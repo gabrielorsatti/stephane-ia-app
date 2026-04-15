@@ -10,7 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { useMemo, useState } from "react";
-import type { Session } from "../types";
+import type { PersonalRecordOverride, Session } from "../types";
 import { buildExerciseProgression } from "../lib/scoring";
 import { exerciseType } from "../lib/exercises";
 import { computePace, formatPace } from "../lib/cardio";
@@ -20,6 +20,7 @@ import { Lightbulb, Target } from "lucide-react";
 
 interface Props {
   sessions: Session[];
+  overrides?: PersonalRecordOverride[];
 }
 
 type Metric = "volume" | "intensity" | "pr";
@@ -89,7 +90,7 @@ const CARDIO_METRICS: Array<{
 // Progression par exercice : 3 métriques sélectionnables (volume / intensité
 // dans la fenêtre 6–12 reps / record absolu). Chaque métrique a sa couleur
 // pastel dédiée.
-export function ProgressionChart({ sessions }: Props) {
+export function ProgressionChart({ sessions, overrides = [] }: Props) {
   const c = useChartColors();
   const exercises = useMemo(() => {
     const set = new Set<string>();
@@ -104,10 +105,44 @@ export function ProgressionChart({ sessions }: Props) {
   const current = exercises.includes(selected) ? selected : exercises[0] ?? "";
   const isCardio = current ? exerciseType(current) === "cardio" : false;
 
-  const series = useMemo(
-    () => (current && !isCardio ? buildExerciseProgression(sessions, current) : []),
-    [sessions, current, isCardio],
-  );
+  const series = useMemo(() => {
+    if (!current || isCardio) return [];
+    const base = buildExerciseProgression(sessions, current);
+    const ov = overrides.find((o) => o.nom === current);
+    if (!ov) return base;
+    // Le PR manuel fait foi : si une date est fournie, on booste le point
+    // correspondant ; sinon on crée un point synthétique en fin de série
+    // pour que l'utilisateur voie immédiatement l'effet de son édition.
+    const next = base.map((p) => ({ ...p }));
+    const pr = ov.maxPoids ?? 0;
+    const intensity =
+      ov.maxPoids != null &&
+      ov.maxPoidsReps != null &&
+      ov.maxPoidsReps >= 6 &&
+      ov.maxPoidsReps <= 12
+        ? ov.maxPoids
+        : 0;
+    if (pr > 0 || intensity > 0) {
+      const date = ov.maxPoidsDate;
+      const idx = date ? next.findIndex((p) => p.date === date) : -1;
+      if (idx >= 0) {
+        next[idx].pr = Math.max(next[idx].pr, pr);
+        next[idx].intensity = Math.max(next[idx].intensity, intensity);
+      } else {
+        const label = date
+          ? date.slice(5).replace("-", "/")
+          : "PR";
+        next.push({
+          date: date ?? "9999-12-31",
+          label,
+          volume: 0,
+          intensity,
+          pr,
+        });
+      }
+    }
+    return next.sort((a, b) => (a.date < b.date ? -1 : 1));
+  }, [sessions, current, isCardio, overrides]);
 
   // Série cardio : pour chaque séance contenant l'exercice cardio sélectionné,
   // on extrait distance / durée / allure calculée. Tri chronologique.

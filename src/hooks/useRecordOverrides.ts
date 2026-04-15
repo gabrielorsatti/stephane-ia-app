@@ -1,17 +1,33 @@
 import { useCallback, useEffect, useState } from "react";
-import { recordOverridesStore } from "../lib/storage";
+import { getAdapter } from "../lib/storage";
 import type { PersonalRecordOverride } from "../types";
 
+// Overrides manuels des records personnels. Persistés via le StorageAdapter
+// actif (LocalStorage en solo, Supabase en mode connecté — RLS par user_id).
 export function useRecordOverrides() {
   const [overrides, setOverrides] = useState<PersonalRecordOverride[]>([]);
 
   useEffect(() => {
-    recordOverridesStore.get().then(setOverrides);
+    let cancelled = false;
+    function load() {
+      getAdapter()
+        .getRecordOverrides()
+        .then((o) => {
+          if (!cancelled) setOverrides(o);
+        })
+        .catch(() => {});
+    }
+    load();
+    window.addEventListener("gym-tracker:storage-changed", load);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("gym-tracker:storage-changed", load);
+    };
   }, []);
 
   const persist = useCallback((next: PersonalRecordOverride[]) => {
     setOverrides(next);
-    void recordOverridesStore.save(next);
+    void getAdapter().saveRecordOverrides(next);
   }, []);
 
   const upsert = useCallback(

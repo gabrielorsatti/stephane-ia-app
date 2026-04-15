@@ -41,13 +41,30 @@ create table if not exists public.nutrition_logs (
 create index if not exists nutrition_logs_user_date_idx
   on public.nutrition_logs (user_id, date desc);
 
+create table if not exists public.record_overrides (
+  user_id                    uuid not null references auth.users(id) on delete cascade,
+  nom                        text not null,
+  categorie                  text,
+  max_poids                  numeric,
+  max_poids_reps             integer,
+  max_poids_date             date,
+  best_1rm                   numeric,
+  best_1rm_date              date,
+  max_reps_bodyweight        integer,
+  max_reps_bodyweight_date   date,
+  notes                      text,
+  updated_at                 timestamptz not null default now(),
+  primary key (user_id, nom)
+);
+
 -- ---------------------------------------------------------------
 -- Row Level Security : un utilisateur ne voit que ses propres lignes.
 -- ---------------------------------------------------------------
 
-alter table public.sessions        enable row level security;
-alter table public.body_weights    enable row level security;
-alter table public.nutrition_logs  enable row level security;
+alter table public.sessions          enable row level security;
+alter table public.body_weights      enable row level security;
+alter table public.nutrition_logs    enable row level security;
+alter table public.record_overrides  enable row level security;
 
 create policy "sessions: owner read"
   on public.sessions for select
@@ -98,4 +115,21 @@ create policy "nutrition_logs: owner update"
 
 create policy "nutrition_logs: owner delete"
   on public.nutrition_logs for delete
+  using (auth.uid() = user_id);
+
+create policy "record_overrides: owner read"
+  on public.record_overrides for select
+  using (auth.uid() = user_id);
+
+create policy "record_overrides: owner write"
+  on public.record_overrides for insert
+  with check (auth.uid() = user_id);
+
+create policy "record_overrides: owner update"
+  on public.record_overrides for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "record_overrides: owner delete"
+  on public.record_overrides for delete
   using (auth.uid() = user_id);

@@ -1,6 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { StorageAdapter } from "../storage";
-import type { BodyWeightEntry, NutritionLog, Session } from "../../types";
+import type {
+  BodyWeightEntry,
+  Category,
+  NutritionLog,
+  PersonalRecordOverride,
+  Session,
+} from "../../types";
 
 // Adapter Supabase : respecte l'interface StorageAdapter.
 // Exige que l'utilisateur soit authentifié (auth.uid() non null) car la
@@ -155,6 +161,60 @@ export function supabaseAdapter(client: SupabaseClient): StorageAdapter {
         const { error } = await client
           .from("nutrition_logs")
           .upsert(rows, { onConflict: "id" });
+        if (error) throw error;
+      }
+    },
+
+    async getRecordOverrides() {
+      const uid = await userId();
+      const { data, error } = await client
+        .from("record_overrides")
+        .select(
+          "nom, categorie, max_poids, max_poids_reps, max_poids_date, best_1rm, best_1rm_date, max_reps_bodyweight, max_reps_bodyweight_date, notes",
+        )
+        .eq("user_id", uid);
+      if (error) throw error;
+      return (data ?? []).map(
+        (row): PersonalRecordOverride => ({
+          nom: row.nom,
+          categorie: (row.categorie ?? undefined) as Category | undefined,
+          maxPoids: row.max_poids ?? undefined,
+          maxPoidsReps: row.max_poids_reps ?? undefined,
+          maxPoidsDate: row.max_poids_date ?? undefined,
+          best1RM: row.best_1rm ?? undefined,
+          best1RMDate: row.best_1rm_date ?? undefined,
+          maxRepsBodyweight: row.max_reps_bodyweight ?? undefined,
+          maxRepsBodyweightDate: row.max_reps_bodyweight_date ?? undefined,
+          notes: row.notes ?? undefined,
+        }),
+      );
+    },
+
+    async saveRecordOverrides(overrides) {
+      const uid = await userId();
+      // Reset complet : delete-all puis insert. La table est petite (un row
+      // par exercice max) donc la simplicité l'emporte sur l'optimisation.
+      const { error: eDel } = await client
+        .from("record_overrides")
+        .delete()
+        .eq("user_id", uid);
+      if (eDel) throw eDel;
+      if (overrides.length > 0) {
+        const rows = overrides.map((o) => ({
+          user_id: uid,
+          nom: o.nom,
+          categorie: o.categorie ?? null,
+          max_poids: o.maxPoids ?? null,
+          max_poids_reps: o.maxPoidsReps ?? null,
+          max_poids_date: o.maxPoidsDate ?? null,
+          best_1rm: o.best1RM ?? null,
+          best_1rm_date: o.best1RMDate ?? null,
+          max_reps_bodyweight: o.maxRepsBodyweight ?? null,
+          max_reps_bodyweight_date: o.maxRepsBodyweightDate ?? null,
+          notes: o.notes ?? null,
+          updated_at: new Date().toISOString(),
+        }));
+        const { error } = await client.from("record_overrides").insert(rows);
         if (error) throw error;
       }
     },

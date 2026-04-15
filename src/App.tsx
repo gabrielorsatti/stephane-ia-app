@@ -262,7 +262,7 @@ function AppInner() {
 
         {tab === "progression" && (
           <div className="space-y-4">
-            <ProgressionChart sessions={sessions} />
+            <ProgressionChart sessions={sessions} overrides={overrides} />
             <PersonalRecords
               sessions={sessions}
               overrides={overrides}
@@ -302,7 +302,7 @@ function AppInner() {
           <span className="font-semibold text-text-muted">Gabriel Orsatti</span>
         </div>
         <div>
-          🚀 Données synchronisées en temps réel via Supabase (PostgreSQL).
+          Données synchronisées en temps réel via Supabase (PostgreSQL).
           Architecture Cloud sécurisée et chiffrée.
         </div>
       </footer>

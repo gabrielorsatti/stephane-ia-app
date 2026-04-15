@@ -9,16 +9,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Loader2, Plus, Sparkles, Trash2, Utensils } from "lucide-react";
+import { Info, Loader2, Plus, Sparkles, Trash2, Utensils } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { NutritionLog } from "../types";
 import { parseNutritionWithAI } from "../lib/nutritionParser";
 import { useChartColors } from "../hooks/useChartColors";
 import { useNutritionLogs } from "../hooks/useNutritionLogs";
-
-// Objectifs par défaut — volontairement en dur v1. Pourront être rendus
-// configurables via un écran "profil" plus tard.
-const GOALS = { calories: 2200, protein: 150, carbs: 250, fat: 70 };
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
@@ -219,6 +215,16 @@ export function NutritionView() {
 
       <DailyDashboard totals={totals} />
 
+      <div className="flex items-start gap-2 text-xs text-text-muted bg-bg-soft border border-border rounded-lg px-3 py-2">
+        <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-accent-soft" />
+        <span>
+          Le suivi calorique est purement informatif. Soyez vigilant :
+          l'obsession du comptage peut mener à des troubles alimentaires (TCA).
+          Écoutez votre corps et privilégiez votre bien-être mental avant les
+          chiffres.
+        </span>
+      </div>
+
       {todayLogs.length > 0 && (
         <div className="card">
           <h3 className="text-sm font-semibold mb-3">
@@ -315,7 +321,7 @@ function DailyDashboard({
   totals: { calories: number; protein: number; carbs: number; fat: number };
 }) {
   const items: Array<{
-    key: keyof typeof GOALS;
+    key: keyof typeof totals;
     label: string;
     unit: string;
     colorVar: string;
@@ -331,31 +337,19 @@ function DailyDashboard({
       <div className="grid grid-cols-2 gap-3">
         {items.map((it) => {
           const value = Math.round(totals[it.key]);
-          const goal = GOALS[it.key];
-          const pct = Math.min(100, Math.round((value / goal) * 100));
           const color = `rgb(var(${it.colorVar}))`;
           return (
             <div
               key={it.key}
-              className="bg-bg-soft border border-border rounded-lg p-3"
+              className="bg-bg-soft border-l-4 border-y border-r border-border rounded-lg p-3"
+              style={{ borderLeftColor: color }}
             >
-              <div className="flex items-baseline justify-between mb-1.5">
-                <span className="text-xs text-text-muted">{it.label}</span>
-                <span className="text-[10px] text-text-dim">
-                  /{goal} {it.unit}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1 mb-1.5">
+              <div className="text-xs text-text-muted mb-1">{it.label}</div>
+              <div className="flex items-baseline gap-1">
                 <span className="text-lg font-semibold" style={{ color }}>
                   {value}
                 </span>
                 <span className="text-[10px] text-text-dim">{it.unit}</span>
-              </div>
-              <div className="h-1.5 bg-bg-elev rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${pct}%`, background: color }}
-                />
               </div>
             </div>
           );
