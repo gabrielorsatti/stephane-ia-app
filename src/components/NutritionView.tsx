@@ -218,10 +218,9 @@ export function NutritionView() {
       <div className="flex items-start gap-2 text-xs text-text-muted bg-bg-soft border border-border rounded-lg px-3 py-2">
         <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-accent-soft" />
         <span>
-          Le suivi calorique est purement informatif. Soyez vigilant :
-          l'obsession du comptage peut mener à des troubles alimentaires (TCA).
-          Écoutez votre corps et privilégiez votre bien-être mental avant les
-          chiffres.
+          Le suivi calorique est purement informatif. Il faut écouter son
+          corps et privilégier son bien-être mental avant les chiffres.
+          Gamberge.
         </span>
       </div>
 
