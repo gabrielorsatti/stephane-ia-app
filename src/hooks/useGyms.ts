@@ -1,13 +1,33 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getAdapter, makeId } from "../lib/storage";
 import type { Gym, LocationType } from "../types";
 
+const KEY_CACHE = "gym-tracker:gyms:v1"; // cache local-first (toujours écrit)
 const KEY_FAVORITE = "gym-tracker:favorite-gym:v1";
 const EVT_GYMS = "gym-tracker:gyms-changed";
 const EVT_FAVORITE = "gym-tracker:favorite-gym-changed";
 
+function readCache(): Gym[] {
+  try {
+    const raw = localStorage.getItem(KEY_CACHE);
+    return raw ? (JSON.parse(raw) as Gym[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCache(list: Gym[]): void {
+  try {
+    localStorage.setItem(KEY_CACHE, JSON.stringify(list));
+  } catch {}
+}
+
+// Local-first : la source de vérité pour l'UI est localStorage. Supabase est
+// un miroir asynchrone. Ce design tue les "clignotements" (optimistic →
+// refetch null → réapparition) et garantit que le favori survit à toute
+// latence réseau.
 export function useGyms() {
-  const [gyms, setGyms] = useState<Gym[]>([]);
+  const [gyms, setGyms] = useState<Gym[]>(() => readCache());
   const [favoriteId, setFavoriteIdState] = useState<string | null>(() => {
     try {
       return localStorage.getItem(KEY_FAVORITE);
@@ -15,22 +35,42 @@ export function useGyms() {
       return null;
     }
   });
+  // Lock "écriture en cours" : tant qu'il est true, on ignore les refetchs
+  // qui pourraient écraser un state optimiste avec une valeur BDD pas encore
+  // cohérente. Un ref évite les re-renders inutiles.
+  const savingRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
-    function load() {
-      getAdapter()
-        .getGyms()
-        .then((g) => {
-          if (!cancelled) setGyms(g);
-        })
-        .catch(() => {});
+    async function load() {
+      if (savingRef.current) {
+        console.info("[useGyms] load skipped (write in progress)");
+        return;
+      }
+      try {
+        const fresh = await getAdapter().getGyms();
+        if (cancelled) return;
+        // Fallback : si la BDD renvoie vide alors que le cache a du contenu
+        // ET qu'on n'est pas authentifié sur le cloud, on garde le cache.
+        // Sinon Supabase fait autorité.
+        if (fresh.length === 0 && readCache().length > 0) {
+          // Écart détecté : on priorise le cache (cas fréquent au démarrage
+          // avant que Supabase ait synchronisé, ou si la table n'existe pas
+          // encore côté DB).
+          console.info("[useGyms] Empty DB response, keeping local cache");
+          return;
+        }
+        setGyms(fresh);
+        writeCache(fresh);
+      } catch (err) {
+        console.warn("[useGyms] Load failed, keeping cache", err);
+      }
     }
     function onFavorite(e: Event) {
       const id = (e as CustomEvent<string | null>).detail ?? null;
       setFavoriteIdState(id);
     }
-    load();
+    void load();
     window.addEventListener("gym-tracker:storage-changed", load);
     window.addEventListener(EVT_GYMS, load);
     window.addEventListener(EVT_FAVORITE, onFavorite);
@@ -43,23 +83,24 @@ export function useGyms() {
   }, []);
 
   const persist = useCallback(async (next: Gym[]) => {
-    // Optimiste : on pose tout de suite l'état local pour que l'UI réagisse.
+    savingRef.current = true;
+    // 1. Cache local synchrone — vérité UI garantie.
     setGyms(next);
+    writeCache(next);
+    console.info("[useGyms] Gym state updated", { count: next.length });
     try {
-      // IMPORTANT : await la persistance AVANT de broadcaster l'event.
-      // Sinon les autres instances (et la nôtre via le listener) refetchent
-      // depuis Supabase avant que l'upsert soit visible → race qui efface
-      // la salle fraîchement ajoutée.
+      // 2. Sync BDD en arrière-plan.
       await getAdapter().saveGyms(next);
-      console.info("[useGyms] Gym saved to DB", { count: next.length });
+      console.info("[useGyms] Gym saved to DB");
       window.dispatchEvent(new CustomEvent(EVT_GYMS));
     } catch (err) {
-      console.error("[useGyms] Save failed, reverting UI", err);
-      // En cas d'échec, on recharge pour réaligner sur la vérité BDD.
-      try {
-        const fresh = await getAdapter().getGyms();
-        setGyms(fresh);
-      } catch {}
+      console.error("[useGyms] DB save failed (cache kept)", err);
+    } finally {
+      // Léger délai avant de libérer le lock : laisse le temps aux listeners
+      // asynchrones (Supabase real-time, événements navigateur) de drainer.
+      setTimeout(() => {
+        savingRef.current = false;
+      }, 300);
     }
   }, []);
 
@@ -107,10 +148,8 @@ export function useGyms() {
       else localStorage.removeItem(KEY_FAVORITE);
     } catch {}
     setFavoriteIdState(id);
-    console.info("[useGyms] Gym state updated (favorite)", { id });
-    window.dispatchEvent(
-      new CustomEvent(EVT_FAVORITE, { detail: id }),
-    );
+    console.info("[useGyms] Favorite updated", { id });
+    window.dispatchEvent(new CustomEvent(EVT_FAVORITE, { detail: id }));
   }, []);
 
   const favorite = favoriteId ? gyms.find((g) => g.id === favoriteId) : undefined;

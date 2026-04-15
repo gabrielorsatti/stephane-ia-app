@@ -33,18 +33,22 @@ export function OccupancyChart() {
   const [showAdd, setShowAdd] = useState(false);
 
   const currentHour = new Date().getHours();
-  const dayOfWeek = new Date().getDay();
+  const todayDow = new Date().getDay();
+  const [dayOfWeek, setDayOfWeek] = useState<number>(todayDow);
   const feedbacks = favorite ? forGym(favorite.id) : [];
+  const isToday = dayOfWeek === todayDow;
 
   const data = useMemo(
     () =>
       buildOccupancyCurve({
-        currentHour,
+        // Si l'utilisateur consulte un autre jour, on n'affiche pas le curseur
+        // "maintenant" (il ne correspondrait à rien sur la courbe projetée).
+        currentHour: isToday ? currentHour : -1,
         dayOfWeek,
         locationType: favorite?.locationType,
         feedbacks,
       }),
-    [currentHour, dayOfWeek, favorite?.locationType, feedbacks],
+    [currentHour, dayOfWeek, favorite?.locationType, feedbacks, isToday],
   );
   const nowValue = data[currentHour].value;
 
@@ -60,7 +64,7 @@ export function OccupancyChart() {
           </h3>
         </div>
         <span className="chip bg-bg-elev text-text-muted">
-          Maintenant · ~{nowValue}%
+          {isToday ? `Maintenant · ~${nowValue}%` : "Projection"}
         </span>
       </div>
 
@@ -105,6 +109,31 @@ export function OccupancyChart() {
           onCancel={gyms.length > 0 ? () => setShowAdd(false) : undefined}
         />
       )}
+
+      <div className="flex gap-1 mb-2">
+        {["D", "L", "M", "M", "J", "V", "S"].map((lbl, i) => {
+          const on = dayOfWeek === i;
+          return (
+            <button
+              key={i}
+              onClick={() => setDayOfWeek(i)}
+              className={[
+                "flex-1 py-1 text-[11px] font-medium rounded-md border transition-colors",
+                on
+                  ? "bg-accent text-bg border-accent"
+                  : i === todayDow
+                    ? "border-accent/40 text-text hover:border-accent"
+                    : "border-border text-text-muted hover:text-text",
+              ].join(" ")}
+              title={
+                i === todayDow ? "Aujourd'hui" : `Projeter au jour ${lbl}`
+              }
+            >
+              {lbl}
+            </button>
+          );
+        })}
+      </div>
 
       <div className="h-[180px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -187,7 +216,7 @@ function AddGymForm({
   onCancel?: () => void;
 }) {
   const [name, setName] = useState("");
-  const [brand, setBrand] = useState("");
+  const [brand, setBrand] = useState<"Basic-Fit" | "Fitness Park" | "">("");
   const [locationType, setLocationType] = useState<LocationType | "">("");
 
   function submit(e: React.FormEvent) {
@@ -196,7 +225,7 @@ function AddGymForm({
     if (!trimmed) return;
     onAdd({
       name: trimmed,
-      brand: brand.trim() || undefined,
+      brand: brand || undefined,
       locationType: locationType || undefined,
     });
     setName("");
@@ -218,13 +247,17 @@ function AddGymForm({
         required
       />
       <div className="grid grid-cols-2 gap-2">
-        <input
-          type="text"
-          placeholder="Enseigne (Basic-Fit…)"
+        <select
           value={brand}
-          onChange={(e) => setBrand(e.target.value)}
+          onChange={(e) =>
+            setBrand(e.target.value as "Basic-Fit" | "Fitness Park" | "")
+          }
           className="input text-sm"
-        />
+        >
+          <option value="">Enseigne…</option>
+          <option value="Basic-Fit">Basic-Fit</option>
+          <option value="Fitness Park">Fitness Park</option>
+        </select>
         <select
           value={locationType}
           onChange={(e) => setLocationType(e.target.value as LocationType | "")}

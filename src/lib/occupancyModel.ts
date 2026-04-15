@@ -12,12 +12,38 @@ import type { LocationType, OccupancyFeedback, OccupancyLevel } from "../types";
 // avec le level per-heure des feedbacks.
 export type CrowdVibe = "calme" | "normal" | "bonde";
 
-const BASE_CURVE: number[] = [
+// Une courbe par "profil de jour". La journée dicte le rythme plus que
+// n'importe quel autre paramètre : un samedi 18h ne ressemble à aucun jeudi.
+const WEEKDAY_CURVE: number[] = [
   0, 0, 0, 0, 0, 0, // 0-5h
   10, 45, 75, 70, 45, 35, // 6-11h
   65, 75, 50, 35, 45, 70, // 12-17h
   85, 80, 65, 45, 25, 10, // 18-23h
 ];
+
+// Samedi : pas d'avant-travail, gros pic milieu de matinée, léger pic
+// après-midi pour les séances rattrapage, soir creux (les gens sortent).
+const SATURDAY_CURVE: number[] = [
+  0, 0, 0, 0, 0, 0, // 0-5h
+  0, 15, 40, 70, 85, 80, // 6-11h (pic 10-11h)
+  65, 55, 50, 55, 60, 55, // 12-17h (pic léger l'aprem)
+  45, 35, 25, 15, 10, 5, // 18-23h (soir calme)
+];
+
+// Dimanche : courbe plate, pic léger matinal, après-midi quasi-vide.
+// Beaucoup de salles ferment plus tôt le dimanche soir.
+const SUNDAY_CURVE: number[] = [
+  0, 0, 0, 0, 0, 0, // 0-5h
+  0, 10, 25, 45, 55, 50, // 6-11h (petit pic 10h)
+  35, 30, 25, 25, 25, 20, // 12-17h
+  15, 10, 5, 0, 0, 0, // 18-23h (fermeture anticipée)
+];
+
+function baseCurveFor(dayOfWeek: number): number[] {
+  if (dayOfWeek === 6) return SATURDAY_CURVE;
+  if (dayOfWeek === 0) return SUNDAY_CURVE;
+  return WEEKDAY_CURVE;
+}
 
 const VIBE_FACTOR: Record<CrowdVibe, number> = {
   calme: 0.65,
@@ -59,8 +85,8 @@ export function buildOccupancyCurve(
   const feedbacks = input.feedbacks ?? [];
   const vibe = input.vibe ?? "normal";
 
-  // 1. Courbe de base modulée par la vibe (si pas de contexte).
-  const base = BASE_CURVE.map((v) => v * VIBE_FACTOR[vibe]);
+  // 1. Courbe de base dépendant du jour, modulée par la vibe (si pas de contexte).
+  const base = baseCurveFor(dayOfWeek).map((v) => v * VIBE_FACTOR[vibe]);
 
   // 2. Ajustement par type de quartier et jour.
   const contextual = base.map((v, h) =>
