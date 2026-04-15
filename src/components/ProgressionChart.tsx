@@ -295,9 +295,9 @@ export function ProgressionChart({ sessions }: Props) {
               <Line
                 type="monotone"
                 dataKey={active.key}
-                stroke={active.color}
+                stroke={c[active.colorKey]}
                 strokeWidth={2}
-                dot={{ fill: active.color, r: 3 }}
+                dot={{ fill: c[active.colorKey], r: 3 }}
               />
             </LineChart>
           </ResponsiveContainer>
