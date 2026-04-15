@@ -41,6 +41,30 @@ create table if not exists public.nutrition_logs (
 create index if not exists nutrition_logs_user_date_idx
   on public.nutrition_logs (user_id, date desc);
 
+create table if not exists public.gyms (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references auth.users(id) on delete cascade,
+  name          text not null,
+  brand         text,
+  location_type text, -- 'city_center' | 'suburban' | 'business_district'
+  created_at    timestamptz not null default now()
+);
+
+create index if not exists gyms_user_idx on public.gyms (user_id);
+
+create table if not exists public.occupancy_feedback (
+  id           uuid primary key default gen_random_uuid(),
+  gym_id       uuid not null references public.gyms(id) on delete cascade,
+  user_id      uuid not null references auth.users(id) on delete cascade,
+  hour         integer not null check (hour between 0 and 23),
+  day_of_week  integer not null check (day_of_week between 0 and 6),
+  level        text not null check (level in ('vide', 'moyen', 'bonde')),
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists occupancy_feedback_gym_idx
+  on public.occupancy_feedback (gym_id, hour, day_of_week);
+
 create table if not exists public.record_overrides (
   user_id                    uuid not null references auth.users(id) on delete cascade,
   nom                        text not null,
@@ -61,10 +85,12 @@ create table if not exists public.record_overrides (
 -- Row Level Security : un utilisateur ne voit que ses propres lignes.
 -- ---------------------------------------------------------------
 
-alter table public.sessions          enable row level security;
-alter table public.body_weights      enable row level security;
-alter table public.nutrition_logs    enable row level security;
-alter table public.record_overrides  enable row level security;
+alter table public.sessions            enable row level security;
+alter table public.body_weights        enable row level security;
+alter table public.nutrition_logs      enable row level security;
+alter table public.record_overrides    enable row level security;
+alter table public.gyms                enable row level security;
+alter table public.occupancy_feedback  enable row level security;
 
 create policy "sessions: owner read"
   on public.sessions for select
@@ -133,3 +159,13 @@ create policy "record_overrides: owner update"
 create policy "record_overrides: owner delete"
   on public.record_overrides for delete
   using (auth.uid() = user_id);
+
+create policy "gyms: owner read"   on public.gyms for select using (auth.uid() = user_id);
+create policy "gyms: owner write"  on public.gyms for insert with check (auth.uid() = user_id);
+create policy "gyms: owner update" on public.gyms for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "gyms: owner delete" on public.gyms for delete using (auth.uid() = user_id);
+
+create policy "occupancy_feedback: owner read"   on public.occupancy_feedback for select using (auth.uid() = user_id);
+create policy "occupancy_feedback: owner write"  on public.occupancy_feedback for insert with check (auth.uid() = user_id);
+create policy "occupancy_feedback: owner update" on public.occupancy_feedback for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "occupancy_feedback: owner delete" on public.occupancy_feedback for delete using (auth.uid() = user_id);

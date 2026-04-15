@@ -1,6 +1,8 @@
 import type {
   BodyWeightEntry,
+  Gym,
   NutritionLog,
+  OccupancyFeedback,
   PersonalRecordOverride,
   Session,
 } from "../types";
@@ -20,12 +22,18 @@ export interface StorageAdapter {
   saveNutritionLogs(logs: NutritionLog[]): Promise<void>;
   getRecordOverrides(): Promise<PersonalRecordOverride[]>;
   saveRecordOverrides(overrides: PersonalRecordOverride[]): Promise<void>;
+  getGyms(): Promise<Gym[]>;
+  saveGyms(gyms: Gym[]): Promise<void>;
+  getOccupancyFeedback(): Promise<OccupancyFeedback[]>;
+  saveOccupancyFeedback(feedback: OccupancyFeedback[]): Promise<void>;
 }
 
 const KEY_SESSIONS = "gym-tracker:sessions:v1";
 const KEY_BW = "gym-tracker:bodyweight:v1";
 const KEY_OVERRIDES = "gym-tracker:pr-overrides:v1";
 const KEY_NUTRITION = "gym-tracker:nutrition:v1";
+const KEY_GYMS = "gym-tracker:gyms:v1";
+const KEY_OCCUPANCY = "gym-tracker:occupancy-feedback:v1";
 
 // Les PR overrides restent volontairement découplés de StorageAdapter pour
 // l'instant : ils sont une préférence utilisateur, pas une donnée source.
@@ -82,6 +90,28 @@ export const localStorageAdapter: StorageAdapter = {
   },
   async saveRecordOverrides(overrides) {
     return recordOverridesStore.save(overrides);
+  },
+  async getGyms() {
+    try {
+      const raw = localStorage.getItem(KEY_GYMS);
+      return raw ? (JSON.parse(raw) as Gym[]) : [];
+    } catch {
+      return [];
+    }
+  },
+  async saveGyms(gyms) {
+    localStorage.setItem(KEY_GYMS, JSON.stringify(gyms));
+  },
+  async getOccupancyFeedback() {
+    try {
+      const raw = localStorage.getItem(KEY_OCCUPANCY);
+      return raw ? (JSON.parse(raw) as OccupancyFeedback[]) : [];
+    } catch {
+      return [];
+    }
+  },
+  async saveOccupancyFeedback(feedback) {
+    localStorage.setItem(KEY_OCCUPANCY, JSON.stringify(feedback));
   },
 };
 

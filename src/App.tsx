@@ -7,6 +7,7 @@ import { CalendarView } from "./components/CalendarView";
 import { CardioStatsCard } from "./components/CardioStatsCard";
 import { CategoryChart } from "./components/CategoryChart";
 import { CoachChat } from "./components/CoachChat";
+import { CrowdCheckPrompt } from "./components/CrowdCheckPrompt";
 import { ExerciseCatalog } from "./components/ExerciseCatalog";
 import { HistoryView } from "./components/HistoryView";
 import { Logo } from "./components/Logo";
@@ -23,6 +24,8 @@ import { UpdateToast } from "./components/UpdateToast";
 import { VolumeChart } from "./components/VolumeChart";
 import { useAuth } from "./hooks/useAuth";
 import { useBodyWeight } from "./hooks/useBodyWeight";
+import { useGyms } from "./hooks/useGyms";
+import { useOccupancyFeedback } from "./hooks/useOccupancyFeedback";
 import { usePrograms } from "./hooks/usePrograms";
 import { useTheme } from "./hooks/useTheme";
 import { useRecordOverrides } from "./hooks/useRecordOverrides";
@@ -88,10 +91,13 @@ function AppInner() {
     remove: removeOverride,
   } = useRecordOverrides();
   const { programs, replaceAll: replaceAllPrograms } = usePrograms();
+  const { favorite: favoriteGym } = useGyms();
+  const { addFeedback } = useOccupancyFeedback();
   const [tab, setTab] = useState<Tab>("dashboard");
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [crowdCheckPending, setCrowdCheckPending] = useState(false);
 
   const TABS: Tab[] = [
     "dashboard",
@@ -126,6 +132,8 @@ function AppInner() {
       setPrefillVersion((v) => v + 1);
     } else {
       addSession(session);
+      // Déclenche le Crowd Check si une salle favorite est définie.
+      if (favoriteGym) setCrowdCheckPending(true);
     }
   }
 
@@ -230,6 +238,23 @@ function AppInner() {
               setPrefillText("");
               setPrefillVersion((v) => v + 1);
             }}
+          />
+        )}
+
+        {tab === "dashboard" && crowdCheckPending && favoriteGym && (
+          <CrowdCheckPrompt
+            gym={favoriteGym}
+            onSubmit={(level) => {
+              const now = new Date();
+              addFeedback({
+                gymId: favoriteGym.id,
+                hour: now.getHours(),
+                dayOfWeek: now.getDay(),
+                level,
+              });
+              setCrowdCheckPending(false);
+            }}
+            onDismiss={() => setCrowdCheckPending(false)}
           />
         )}
 

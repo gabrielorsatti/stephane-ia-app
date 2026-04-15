@@ -58,6 +58,32 @@ export interface BodyWeightEntry {
   poids: number;
 }
 
+export type LocationType = "city_center" | "suburban" | "business_district";
+export const LOCATION_TYPES: LocationType[] = [
+  "city_center",
+  "suburban",
+  "business_district",
+];
+
+export interface Gym {
+  id: string;
+  name: string;
+  brand?: string;
+  locationType?: LocationType;
+  createdAt: string;
+}
+
+export type OccupancyLevel = "vide" | "moyen" | "bonde";
+
+export interface OccupancyFeedback {
+  id: string;
+  gymId: string;
+  hour: number; // 0-23
+  dayOfWeek: number; // 0=dim, 6=sam
+  level: OccupancyLevel;
+  createdAt: string;
+}
+
 // Repas/snack enregistré côté nutrition. `foodText` est la saisie libre
 // originale ; les 4 macros sont extraites par l'IA (ou estimées).
 export interface NutritionLog {

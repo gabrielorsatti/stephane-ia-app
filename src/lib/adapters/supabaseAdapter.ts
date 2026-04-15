@@ -3,7 +3,11 @@ import type { StorageAdapter } from "../storage";
 import type {
   BodyWeightEntry,
   Category,
+  Gym,
+  LocationType,
   NutritionLog,
+  OccupancyFeedback,
+  OccupancyLevel,
   PersonalRecordOverride,
   Session,
 } from "../../types";
@@ -215,6 +219,115 @@ export function supabaseAdapter(client: SupabaseClient): StorageAdapter {
           updated_at: new Date().toISOString(),
         }));
         const { error } = await client.from("record_overrides").insert(rows);
+        if (error) throw error;
+      }
+    },
+
+    async getGyms() {
+      const uid = await userId();
+      const { data, error } = await client
+        .from("gyms")
+        .select("id, name, brand, location_type, created_at")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map(
+        (row): Gym => ({
+          id: row.id,
+          name: row.name,
+          brand: row.brand ?? undefined,
+          locationType: (row.location_type ?? undefined) as
+            | LocationType
+            | undefined,
+          createdAt: row.created_at,
+        }),
+      );
+    },
+
+    async saveGyms(gyms) {
+      const uid = await userId();
+      const { data: current, error: e1 } = await client
+        .from("gyms")
+        .select("id")
+        .eq("user_id", uid);
+      if (e1) throw e1;
+      const keep = new Set(gyms.map((g) => g.id));
+      const toDelete = (current ?? [])
+        .map((r: { id: string }) => r.id)
+        .filter((id) => !keep.has(id));
+      if (toDelete.length > 0) {
+        const { error } = await client.from("gyms").delete().in("id", toDelete);
+        if (error) throw error;
+      }
+      if (gyms.length > 0) {
+        const rows = gyms.map((g) => ({
+          id: g.id,
+          user_id: uid,
+          name: g.name,
+          brand: g.brand ?? null,
+          location_type: g.locationType ?? null,
+          created_at: g.createdAt,
+        }));
+        const { error } = await client
+          .from("gyms")
+          .upsert(rows, { onConflict: "id" });
+        if (error) throw error;
+      }
+    },
+
+    async getOccupancyFeedback() {
+      const uid = await userId();
+      const { data, error } = await client
+        .from("occupancy_feedback")
+        .select("id, gym_id, hour, day_of_week, level, created_at")
+        .eq("user_id", uid)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map(
+        (row): OccupancyFeedback => ({
+          id: row.id,
+          gymId: row.gym_id,
+          hour: row.hour,
+          dayOfWeek: row.day_of_week,
+          level: row.level as OccupancyLevel,
+          createdAt: row.created_at,
+        }),
+      );
+    },
+
+    async saveOccupancyFeedback(feedback) {
+      const uid = await userId();
+      // Append-only côté métier, mais on sync avec la stratégie delete/upsert
+      // pour rester cohérent avec les autres adapters (permet edit/remove).
+      const { data: current, error: e1 } = await client
+        .from("occupancy_feedback")
+        .select("id")
+        .eq("user_id", uid);
+      if (e1) throw e1;
+      const keep = new Set(feedback.map((f) => f.id));
+      const toDelete = (current ?? [])
+        .map((r: { id: string }) => r.id)
+        .filter((id) => !keep.has(id));
+      if (toDelete.length > 0) {
+        const { error } = await client
+          .from("occupancy_feedback")
+          .delete()
+          .in("id", toDelete);
+        if (error) throw error;
+      }
+      if (feedback.length > 0) {
+        const rows = feedback.map((f) => ({
+          id: f.id,
+          user_id: uid,
+          gym_id: f.gymId,
+          hour: f.hour,
+          day_of_week: f.dayOfWeek,
+          level: f.level,
+          created_at: f.createdAt,
+        }));
+        const { error } = await client
+          .from("occupancy_feedback")
+          .upsert(rows, { onConflict: "id" });
         if (error) throw error;
       }
     },
