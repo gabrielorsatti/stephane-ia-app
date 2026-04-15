@@ -42,12 +42,25 @@ export function useGyms() {
     };
   }, []);
 
-  const persist = useCallback((next: Gym[]) => {
+  const persist = useCallback(async (next: Gym[]) => {
+    // Optimiste : on pose tout de suite l'état local pour que l'UI réagisse.
     setGyms(next);
-    void getAdapter().saveGyms(next);
-    // Notifie les autres instances de useGyms (ex: App + OccupancyChart
-    // vivent dans des arbres séparés et ne partagent pas leur state).
-    window.dispatchEvent(new CustomEvent(EVT_GYMS));
+    try {
+      // IMPORTANT : await la persistance AVANT de broadcaster l'event.
+      // Sinon les autres instances (et la nôtre via le listener) refetchent
+      // depuis Supabase avant que l'upsert soit visible → race qui efface
+      // la salle fraîchement ajoutée.
+      await getAdapter().saveGyms(next);
+      console.info("[useGyms] Gym saved to DB", { count: next.length });
+      window.dispatchEvent(new CustomEvent(EVT_GYMS));
+    } catch (err) {
+      console.error("[useGyms] Save failed, reverting UI", err);
+      // En cas d'échec, on recharge pour réaligner sur la vérité BDD.
+      try {
+        const fresh = await getAdapter().getGyms();
+        setGyms(fresh);
+      } catch {}
+    }
   }, []);
 
   const addGym = useCallback(
@@ -59,7 +72,7 @@ export function useGyms() {
         locationType: input.locationType,
         createdAt: new Date().toISOString(),
       };
-      persist([...gyms, gym]);
+      void persist([...gyms, gym]);
       return gym;
     },
     [gyms, persist],
@@ -67,19 +80,22 @@ export function useGyms() {
 
   const updateGym = useCallback(
     (id: string, patch: Partial<Omit<Gym, "id" | "createdAt">>) => {
-      persist(gyms.map((g) => (g.id === id ? { ...g, ...patch } : g)));
+      void persist(gyms.map((g) => (g.id === id ? { ...g, ...patch } : g)));
     },
     [gyms, persist],
   );
 
   const removeGym = useCallback(
     (id: string) => {
-      persist(gyms.filter((g) => g.id !== id));
+      void persist(gyms.filter((g) => g.id !== id));
       if (favoriteId === id) {
         try {
           localStorage.removeItem(KEY_FAVORITE);
         } catch {}
         setFavoriteIdState(null);
+        window.dispatchEvent(
+          new CustomEvent(EVT_FAVORITE, { detail: null }),
+        );
       }
     },
     [gyms, persist, favoriteId],
@@ -91,6 +107,7 @@ export function useGyms() {
       else localStorage.removeItem(KEY_FAVORITE);
     } catch {}
     setFavoriteIdState(id);
+    console.info("[useGyms] Gym state updated (favorite)", { id });
     window.dispatchEvent(
       new CustomEvent(EVT_FAVORITE, { detail: id }),
     );

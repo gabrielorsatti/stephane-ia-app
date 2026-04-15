@@ -27,10 +27,18 @@ export function useOccupancyFeedback() {
     };
   }, []);
 
-  const persist = useCallback((next: OccupancyFeedback[]) => {
+  const persist = useCallback(async (next: OccupancyFeedback[]) => {
     setFeedback(next);
-    void getAdapter().saveOccupancyFeedback(next);
-    window.dispatchEvent(new CustomEvent(EVT));
+    try {
+      await getAdapter().saveOccupancyFeedback(next);
+      window.dispatchEvent(new CustomEvent(EVT));
+    } catch (err) {
+      console.error("[useOccupancyFeedback] Save failed, reverting", err);
+      try {
+        const fresh = await getAdapter().getOccupancyFeedback();
+        setFeedback(fresh);
+      } catch {}
+    }
   }, []);
 
   const addFeedback = useCallback(
@@ -48,14 +56,16 @@ export function useOccupancyFeedback() {
         level: input.level,
         createdAt: new Date().toISOString(),
       };
-      persist([...feedback, entry]);
+      void persist([...feedback, entry]);
       return entry;
     },
     [feedback, persist],
   );
 
   const removeFeedback = useCallback(
-    (id: string) => persist(feedback.filter((f) => f.id !== id)),
+    (id: string) => {
+      void persist(feedback.filter((f) => f.id !== id));
+    },
     [feedback, persist],
   );
 

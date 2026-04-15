@@ -91,7 +91,7 @@ function AppInner() {
     remove: removeOverride,
   } = useRecordOverrides();
   const { programs, replaceAll: replaceAllPrograms } = usePrograms();
-  const { favorite: favoriteGym } = useGyms();
+  const { favorite: favoriteGym, favoriteId } = useGyms();
   const { addFeedback } = useOccupancyFeedback();
   const [tab, setTab] = useState<Tab>("dashboard");
   const [prefillText, setPrefillText] = useState<string | undefined>();
@@ -132,13 +132,20 @@ function AppInner() {
       setPrefillVersion((v) => v + 1);
     } else {
       addSession(session);
-      // Déclenche le Crowd Check si une salle favorite est définie.
-      console.log("[CrowdCheck] Séance enregistrée", { favoriteGym });
-      if (favoriteGym) {
-        console.log("[CrowdCheck] Salle favorite détectée → affichage", favoriteGym.name);
+      console.info("[CrowdCheck] Séance enregistrée", {
+        favoriteId,
+        favoriteGymName: favoriteGym?.name,
+      });
+      // On déclenche dès que favoriteId est posé (même si l'objet gym n'est
+      // pas encore résolu — le prompt attendra que `favoriteGym` soit prêt).
+      if (favoriteId) {
+        console.info(
+          "[CrowdCheck] Attempting to show CrowdCheck for gym:",
+          favoriteId,
+        );
         setCrowdCheckPending(true);
       } else {
-        console.log("[CrowdCheck] Aucune salle favorite — prompt ignoré");
+        console.info("[CrowdCheck] Aucune salle favorite — prompt ignoré");
       }
     }
   }
