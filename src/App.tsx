@@ -208,25 +208,29 @@ function AppInner() {
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <Onboarding />
-        <SessionInput
-          onSave={handleSave}
-          prefillText={prefillText}
-          prefillVersion={prefillVersion}
-          editing={
-            editingSession
-              ? {
-                  date: editingSession.date,
-                  notes: editingSession.notes,
-                  bodyWeight: editingSession.bodyWeight,
-                }
-              : undefined
-          }
-          onCancelEdit={() => {
-            setEditingId(null);
-            setPrefillText("");
-            setPrefillVersion((v) => v + 1);
-          }}
-        />
+        {/* La saisie "Nouvelle séance" n'a de sens que sur le dashboard :
+            ailleurs (Coach, Repas, Historique…) elle surcharge l'écran. */}
+        {tab === "dashboard" && (
+          <SessionInput
+            onSave={handleSave}
+            prefillText={prefillText}
+            prefillVersion={prefillVersion}
+            editing={
+              editingSession
+                ? {
+                    date: editingSession.date,
+                    notes: editingSession.notes,
+                    bodyWeight: editingSession.bodyWeight,
+                  }
+                : undefined
+            }
+            onCancelEdit={() => {
+              setEditingId(null);
+              setPrefillText("");
+              setPrefillVersion((v) => v + 1);
+            }}
+          />
+        )}
 
         {tab === "dashboard" && (
           <>
@@ -298,8 +302,8 @@ function AppInner() {
           <span className="font-semibold text-text-muted">Gabriel Orsatti</span>
         </div>
         <div>
-          Données stockées localement (LocalStorage) · Prêt pour une migration
-          SQLite/PostgreSQL
+          🚀 Données synchronisées en temps réel via Supabase (PostgreSQL).
+          Architecture Cloud sécurisée et chiffrée.
         </div>
       </footer>
     </div>
