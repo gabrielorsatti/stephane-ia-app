@@ -108,6 +108,10 @@ export function useProfile(userId: string | undefined) {
         if (error) {
           if (error.code === "23505")
             throw new Error("Ce pseudo est déjà pris");
+          if (error.code === "42P01")
+            throw new Error(
+              "Table profiles introuvable. Exécute le script SQL dans Supabase (voir db/migration-profiles-friendships.sql).",
+            );
           throw error;
         }
         setProfile({
