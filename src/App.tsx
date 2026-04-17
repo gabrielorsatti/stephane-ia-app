@@ -372,6 +372,7 @@ function AppInner() {
       <MobileBottomNav
         active={tab}
         onChange={(t) => setTab(t as Tab)}
+        isAdmin={isAdmin}
       />
 
       <UpdateToast />

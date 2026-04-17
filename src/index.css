@@ -42,8 +42,8 @@
   --c-bg-elev: 247 226 228;
   --c-border: 225 197 201;
   --c-border-strong: 198 164 170;
-  --c-accent: 188 98 125;
-  --c-accent-soft: 162 75 104;
+  --c-accent: 175 65 100;
+  --c-accent-soft: 148 48 82;
   --c-accent-muted: 240 206 213;
   --c-powder: 132 115 160;
   --c-powder-soft: 105 90 135;
@@ -51,9 +51,9 @@
   --c-lavender: 160 108 156;
   --c-lavender-soft: 128 82 124;
   --c-lavender-muted: 235 217 232;
-  --c-text: 51 42 46;
-  --c-text-muted: 107 82 90;
-  --c-text-dim: 151 122 131;
+  --c-text: 38 30 34;
+  --c-text-muted: 82 60 70;
+  --c-text-dim: 128 100 110;
   --c-chart-1: 188 98 125;
   --c-chart-2: 132 115 160;
   --c-chart-3: 160 108 156;
@@ -102,13 +102,13 @@
 
 @layer components {
   .card {
-    @apply bg-bg-card border border-border rounded-xl p-5;
+    @apply bg-bg-card border border-border rounded-xl p-4 sm:p-5;
   }
   .card-elev {
-    @apply bg-bg-elev border border-border rounded-xl p-5;
+    @apply bg-bg-elev border border-border rounded-xl p-4 sm:p-5;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97] active:opacity-80;
   }
   .btn-primary {
     @apply btn bg-accent hover:bg-accent-soft text-bg;

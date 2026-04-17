@@ -20,7 +20,7 @@ export function getLLMConfig(): LLMConfig | null {
     import.meta.env.VITE_LLM_BASE_URL ?? "https://llm.lab.groupe-genes.fr/openai";
   const model =
     import.meta.env.VITE_LLM_MODEL ??
-    "mistralai/Mistral-Small-3.2-24B-Instruct-2506";
+    "meta-llama/Llama-3.3-70B-Instruct";
   if (!apiKey) return null;
   return { apiKey, baseUrl, model };
 }
