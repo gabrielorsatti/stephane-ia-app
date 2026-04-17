@@ -3,7 +3,7 @@ import {
   LayoutDashboard,
   Sparkles,
   TrendingUp,
-  Utensils,
+  Users,
 } from "lucide-react";
 
 export type MobileTab =
@@ -11,23 +11,21 @@ export type MobileTab =
   | "historique"
   | "coach"
   | "progression"
-  | "alimentation";
+  | "social";
 
 interface Props {
   active: string;
   onChange: (t: MobileTab) => void;
 }
 
-// Bottom navigation fixée au bas de l'écran mobile. Respecte safe-area-inset-bottom
-// pour ne pas être masquée par la barre home de l'iPhone.
 export function MobileBottomNav({ active, onChange }: Props) {
   const items: Array<{ id: MobileTab; label: string; icon: React.ReactNode }> =
     [
       { id: "dashboard", label: "Accueil", icon: <LayoutDashboard className="w-5 h-5" /> },
       { id: "historique", label: "Séances", icon: <History className="w-5 h-5" /> },
-      { id: "alimentation", label: "Repas", icon: <Utensils className="w-5 h-5" /> },
       { id: "coach", label: "Coach", icon: <Sparkles className="w-5 h-5" /> },
       { id: "progression", label: "Progrès", icon: <TrendingUp className="w-5 h-5" /> },
+      { id: "social", label: "Social", icon: <Users className="w-5 h-5" /> },
     ];
 
   return (

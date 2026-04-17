@@ -97,6 +97,38 @@ export interface NutritionLog {
   createdAt: string; // ISO timestamp — sert au tri intra-journée
 }
 
+// ───────── Social / profils ─────────
+
+export interface Profile {
+  id: string; // auth.users.id
+  username: string;
+  avatarUrl?: string;
+  isAdmin: boolean;
+  createdAt: string;
+}
+
+export type FriendshipStatus = "pending" | "accepted";
+
+export interface Friendship {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  status: FriendshipStatus;
+  createdAt: string;
+  // Résolu côté client pour affichage :
+  senderUsername?: string;
+  receiverUsername?: string;
+}
+
+export interface PublicStats {
+  totalSessions: number;
+  totalVolume: number;
+  topExercises: Array<{ nom: string; count: number }>;
+  memberSince: string; // ISO
+}
+
+// ───────── Records ─────────
+
 // Surcharge manuelle des PR pour un exercice donné. Tous les champs sont
 // optionnels : ceux qui sont renseignés remplacent la valeur calculée à
 // partir des séances, les autres restent déduits automatiquement.

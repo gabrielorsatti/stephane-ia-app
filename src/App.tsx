@@ -1,5 +1,6 @@
 import { LogOut, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AdminPanel, ADMIN_UID } from "./components/AdminPanel";
 import { AuthGate } from "./components/AuthGate";
 import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
@@ -14,18 +15,22 @@ import { Logo } from "./components/Logo";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { Onboarding } from "./components/Onboarding";
 import { PersonalRecords } from "./components/PersonalRecords";
+import { ProfileSetup } from "./components/ProfileSetup";
 import { ProgramView } from "./components/ProgramView";
 import { NutritionView } from "./components/NutritionView";
 import { OccupancyChart } from "./components/OccupancyChart";
 import { ProgressionChart } from "./components/ProgressionChart";
 import { SessionInput } from "./components/SessionInput";
+import { SocialView } from "./components/SocialView";
 import { StatsCards } from "./components/StatsCards";
 import { UpdateToast } from "./components/UpdateToast";
 import { VolumeChart } from "./components/VolumeChart";
 import { useAuth } from "./hooks/useAuth";
 import { useBodyWeight } from "./hooks/useBodyWeight";
+import { useFriendships } from "./hooks/useFriendships";
 import { useGyms } from "./hooks/useGyms";
 import { useOccupancyFeedback } from "./hooks/useOccupancyFeedback";
+import { useProfile } from "./hooks/useProfile";
 import { usePrograms } from "./hooks/usePrograms";
 import { useTheme } from "./hooks/useTheme";
 import { useRecordOverrides } from "./hooks/useRecordOverrides";
@@ -43,7 +48,9 @@ type Tab =
   | "alimentation"
   | "programme"
   | "exercices"
-  | "coach";
+  | "coach"
+  | "social"
+  | "admin";
 
 export default function App() {
   return (
@@ -60,8 +67,6 @@ function AppInner() {
   useEffect(() => {
     const cloud = auth.supabaseEnabled && !!auth.user;
     setCloudMode(cloud);
-    // Migration ciblée : seed du compte propriétaire si besoin, puis
-    // re-broadcast pour rafraîchir les graphiques avec les données injectées.
     if (cloud && auth.user) {
       const client = getSupabase();
       if (client) {
@@ -93,6 +98,23 @@ function AppInner() {
   const { programs, replaceAll: replaceAllPrograms } = usePrograms();
   const { favorite: favoriteGym, favoriteId } = useGyms();
   const { addFeedback } = useOccupancyFeedback();
+
+  // Profil et social.
+  const { profile, needsSetup, updateUsername } = useProfile(auth.user?.id);
+  const {
+    accepted,
+    pendingReceived,
+    pendingSent,
+    sendRequest,
+    accept,
+    reject,
+    remove: removeFriend,
+    searchUser,
+  } = useFriendships(auth.user?.id);
+
+  const isAdmin =
+    auth.user?.id === ADMIN_UID || (profile?.isAdmin ?? false);
+
   const [tab, setTab] = useState<Tab>("dashboard");
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
@@ -107,6 +129,8 @@ function AppInner() {
     "programme",
     "exercices",
     "coach",
+    "social",
+    ...(isAdmin ? ["admin" as const] : []),
   ];
 
   function fillFromProgram(text: string) {
@@ -132,20 +156,8 @@ function AppInner() {
       setPrefillVersion((v) => v + 1);
     } else {
       addSession(session);
-      console.info("[CrowdCheck] Séance enregistrée", {
-        favoriteId,
-        favoriteGymName: favoriteGym?.name,
-      });
-      // On déclenche dès que favoriteId est posé (même si l'objet gym n'est
-      // pas encore résolu — le prompt attendra que `favoriteGym` soit prêt).
       if (favoriteId) {
-        console.info(
-          "[CrowdCheck] Attempting to show CrowdCheck for gym:",
-          favoriteId,
-        );
         setCrowdCheckPending(true);
-      } else {
-        console.info("[CrowdCheck] Aucune salle favorite — prompt ignoré");
       }
     }
   }
@@ -153,6 +165,17 @@ function AppInner() {
   const editingSession = editingId
     ? sessions.find((s) => s.id === editingId)
     : undefined;
+
+  // Gate : forcer le choix du pseudo avant toute interaction.
+  if (auth.supabaseEnabled && auth.user && needsSetup) {
+    return (
+      <ProfileSetup
+        onSubmit={async (username) => {
+          await updateUsername(username);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen pb-20 md:pb-0">
@@ -168,7 +191,9 @@ function AppInner() {
             <div className="min-w-0">
               <div className="font-semibold truncate">Personal Gym Tracker</div>
               <div className="text-xs text-text-muted truncate">
-                Suis ta progression sans friction.
+                {profile
+                  ? `@${profile.username}`
+                  : "Suis ta progression sans friction."}
               </div>
             </div>
           </div>
@@ -181,7 +206,6 @@ function AppInner() {
                 replaceBodyWeights(b);
               }}
             />
-            {/* Navigation desktop : visible à partir de md */}
             <nav className="hidden md:flex gap-1 bg-bg-card border border-border rounded-lg p-1">
               {TABS.map((t) => (
                 <button
@@ -230,8 +254,7 @@ function AppInner() {
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         <Onboarding />
-        {/* La saisie "Nouvelle séance" n'a de sens que sur le dashboard :
-            ailleurs (Coach, Repas, Historique…) elle surcharge l'écran. */}
+
         {tab === "dashboard" && (
           <SessionInput
             onSave={handleSave}
@@ -327,6 +350,23 @@ function AppInner() {
             onApplyPrograms={replaceAllPrograms}
           />
         )}
+
+        {tab === "social" && auth.user && profile && (
+          <SocialView
+            userId={auth.user.id}
+            profile={profile}
+            accepted={accepted}
+            pendingReceived={pendingReceived}
+            pendingSent={pendingSent}
+            onSearch={searchUser}
+            onSendRequest={sendRequest}
+            onAccept={accept}
+            onReject={reject}
+            onRemove={removeFriend}
+          />
+        )}
+
+        {tab === "admin" && isAdmin && <AdminPanel />}
       </main>
 
       <MobileBottomNav
