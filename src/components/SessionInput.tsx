@@ -1,16 +1,24 @@
-import { Sparkles, Calendar, Trash2, Plus, X, Save } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  Sparkles,
+  Calendar,
+  Trash2,
+  Plus,
+  X,
+  Save,
+  Bot,
+  Loader2,
+  AlertTriangle,
+  Pencil,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { parseInput } from "../lib/parser";
-import type { ExerciseEntry, Session } from "../types";
+import { aiParseSession, isAIParserAvailable } from "../lib/aiParser";
+import type { ExerciseEntry, Session, SetEntry } from "../types";
 
 interface Props {
   onSave: (session: Omit<Session, "id">) => void;
-  // Texte injecté de l'extérieur (ex: chargement d'un template programme).
-  // Chaque nouvelle valeur remplace la saisie en cours.
   prefillText?: string;
   prefillVersion?: number;
-  // Mode édition : renseigné → le bouton devient "Mettre à jour" et
-  // onSave recevra la date/notes/bw pré-chargées.
   editing?: {
     date: string;
     notes?: string;
@@ -19,8 +27,8 @@ interface Props {
   onCancelEdit?: () => void;
 }
 
-// Champ de saisie NLP : analyse une phrase libre et propose un aperçu
-// structuré des exercices avant sauvegarde.
+type ParseMode = "idle" | "loading" | "done" | "error";
+
 export function SessionInput({
   onSave,
   prefillText,
@@ -29,10 +37,30 @@ export function SessionInput({
   onCancelEdit,
 }: Props) {
   const [text, setText] = useState("");
+  const [notes, setNotes] = useState("");
+  const [bodyWeight, setBodyWeight] = useState<string>("");
+  const [date, setDate] = useState<string>(
+    new Date().toISOString().slice(0, 10),
+  );
+
+  // Résultat du parsing (IA ou regex).
+  const [exercices, setExercices] = useState<ExerciseEntry[]>([]);
+  const [unrecognized, setUnrecognized] = useState<string[]>([]);
+  const [parseMode, setParseMode] = useState<ParseMode>("idle");
+  const [parseError, setParseError] = useState<string>("");
+  const [usedAI, setUsedAI] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Fallback regex en temps réel (prévisualisation légère pendant la saisie).
+  const regexResult = useMemo(() => parseInput(text), [text]);
 
   useEffect(() => {
-    if (prefillText !== undefined) setText(prefillText);
-    // prefillVersion permet de ré-appliquer le même texte plusieurs fois.
+    if (prefillText !== undefined) {
+      setText(prefillText);
+      setExercices([]);
+      setUnrecognized([]);
+      setParseMode("idle");
+    }
   }, [prefillText, prefillVersion]);
 
   useEffect(() => {
@@ -42,28 +70,92 @@ export function SessionInput({
       setBodyWeight(editing.bodyWeight ? String(editing.bodyWeight) : "");
     }
   }, [editing]);
-  const [notes, setNotes] = useState("");
-  const [bodyWeight, setBodyWeight] = useState<string>("");
-  const [date, setDate] = useState<string>(
-    new Date().toISOString().slice(0, 10),
-  );
 
-  const parsed = useMemo(() => parseInput(text), [text]);
+  // Parsing IA.
+  async function handleAIParse() {
+    if (!text.trim()) return;
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
 
-  const canSave = parsed.exercices.length > 0;
+    setParseMode("loading");
+    setParseError("");
+    setUsedAI(true);
+    try {
+      const result = await aiParseSession(text.trim(), ctrl.signal);
+      if (ctrl.signal.aborted) return;
+      setExercices(result.exercices);
+      setUnrecognized([]);
+      setParseMode("done");
+    } catch (err) {
+      if (ctrl.signal.aborted) return;
+      console.error("[AI Parse]", err);
+      setParseError(
+        err instanceof Error ? err.message : "Erreur inconnue",
+      );
+      // Fallback automatique sur regex.
+      setExercices(regexResult.exercices);
+      setUnrecognized(regexResult.unrecognized);
+      setParseMode("error");
+    }
+  }
+
+  // Parsing regex (fallback explicite ou si pas de LLM).
+  function handleRegexParse() {
+    setExercices(regexResult.exercices);
+    setUnrecognized(regexResult.unrecognized);
+    setParseMode("done");
+    setUsedAI(false);
+  }
+
+  // L'ensemble d'exercices affichés : si parseMode=done, on montre le résultat
+  // confirmé. Sinon on montre le regex en temps réel comme hint.
+  const displayExercices = parseMode === "done" || parseMode === "error"
+    ? exercices
+    : regexResult.exercices;
+  const displayUnrecognized = parseMode === "done" || parseMode === "error"
+    ? unrecognized
+    : regexResult.unrecognized;
+
+  const canSave = displayExercices.length > 0 && parseMode !== "loading";
 
   function handleSave() {
     if (!canSave) return;
     onSave({
       date,
-      exercices: parsed.exercices,
+      exercices: displayExercices,
       notes: notes.trim() || undefined,
       bodyWeight: bodyWeight ? parseFloat(bodyWeight) : undefined,
     });
     setText("");
     setNotes("");
     setBodyWeight("");
+    setExercices([]);
+    setUnrecognized([]);
+    setParseMode("idle");
+    setUsedAI(false);
   }
+
+  function handleClear() {
+    abortRef.current?.abort();
+    setText("");
+    setNotes("");
+    setBodyWeight("");
+    setExercices([]);
+    setUnrecognized([]);
+    setParseMode("idle");
+    setUsedAI(false);
+  }
+
+  function removeExercise(idx: number) {
+    setExercices((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  function updateExercise(idx: number, updated: ExerciseEntry) {
+    setExercices((prev) => prev.map((e, i) => (i === idx ? updated : e)));
+  }
+
+  const aiAvailable = isAIParserAvailable();
 
   return (
     <div className="card space-y-4">
@@ -108,28 +200,91 @@ export function SessionInput({
 
       <textarea
         className="input min-h-[110px] font-mono text-sm"
-        placeholder={`Décris ta séance, une ligne par exercice. Ex:
-3 séries de 12 rep de DC à 80kg
-4x10 squat 100kg
-curl 3x12 à 15`}
+        placeholder={`Décris ta séance librement. Ex:\nDéveloppé couché 4x10 à 80kg\n3 séries de squat pyramidal 100/110/120 pour 8 reps\nTractions 5x8 poids de corps\nCourse 5km en 25min`}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => {
+          setText(e.target.value);
+          // Quand l'utilisateur modifie le texte, reset le parsing confirmé.
+          if (parseMode === "done" || parseMode === "error") {
+            setParseMode("idle");
+            setExercices([]);
+            setUnrecognized([]);
+          }
+        }}
       />
 
-      <ParsedPreview exercices={parsed.exercices} unrecognized={parsed.unrecognized} />
+      {/* Boutons d'analyse */}
+      <div className="flex flex-wrap gap-2">
+        {aiAvailable && (
+          <button
+            className="btn-primary text-sm"
+            onClick={handleAIParse}
+            disabled={!text.trim() || parseMode === "loading"}
+          >
+            {parseMode === "loading" ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> Analyse en
+                cours…
+              </>
+            ) : (
+              <>
+                <Bot className="w-4 h-4" /> Analyser avec l'IA
+              </>
+            )}
+          </button>
+        )}
+        <button
+          className="btn-ghost text-sm"
+          onClick={handleRegexParse}
+          disabled={!text.trim() || parseMode === "loading"}
+        >
+          {aiAvailable ? "Analyse rapide (hors-ligne)" : "Analyser"}
+        </button>
+      </div>
+
+      {parseMode === "error" && (
+        <div className="flex items-start gap-2 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div>
+            <div className="font-medium">
+              L'IA n'a pas pu analyser la séance — fallback regex appliqué.
+            </div>
+            <div className="text-text-dim mt-0.5">{parseError}</div>
+          </div>
+        </div>
+      )}
+
+      {parseMode === "loading" && (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-10 bg-bg-soft border border-border rounded-lg animate-pulse"
+            />
+          ))}
+        </div>
+      )}
+
+      {parseMode !== "loading" && (
+        <ExerciceList
+          exercices={displayExercices}
+          unrecognized={displayUnrecognized}
+          confirmed={parseMode === "done" || parseMode === "error"}
+          usedAI={usedAI}
+          onRemove={removeExercise}
+          onUpdate={updateExercise}
+        />
+      )}
 
       <div className="flex justify-end gap-2">
-        <button
-          className="btn-ghost"
-          onClick={() => {
-            setText("");
-            setNotes("");
-            setBodyWeight("");
-          }}
-        >
+        <button className="btn-ghost" onClick={handleClear}>
           <Trash2 className="w-4 h-4" /> Effacer
         </button>
-        <button className="btn-primary" onClick={handleSave} disabled={!canSave}>
+        <button
+          className="btn-primary"
+          onClick={handleSave}
+          disabled={!canSave}
+        >
           {editing ? (
             <>
               <Save className="w-4 h-4" /> Mettre à jour
@@ -145,12 +300,20 @@ curl 3x12 à 15`}
   );
 }
 
-function ParsedPreview({
+function ExerciceList({
   exercices,
   unrecognized,
+  confirmed,
+  usedAI,
+  onRemove,
+  onUpdate,
 }: {
   exercices: ExerciseEntry[];
   unrecognized: string[];
+  confirmed: boolean;
+  usedAI: boolean;
+  onRemove: (idx: number) => void;
+  onUpdate: (idx: number, updated: ExerciseEntry) => void;
 }) {
   if (!exercices.length && !unrecognized.length) {
     return (
@@ -159,22 +322,27 @@ function ParsedPreview({
       </p>
     );
   }
+
   return (
     <div className="space-y-2">
-      {exercices.map((ex, i) => (
-        <div
-          key={i}
-          className="flex flex-wrap items-center gap-2 text-sm bg-bg-soft border border-border rounded-lg px-3 py-2"
-        >
-          <span className="font-medium">{ex.nom}</span>
-          <span className="chip bg-accent-muted/40 text-accent-soft">
-            {ex.categorie}
-          </span>
-          <span className="text-text-muted">
-            {ex.sets.length} × {ex.sets[0].reps} reps
-            {ex.sets[0].poids > 0 ? ` @ ${ex.sets[0].poids} kg` : " (PDC)"}
+      {confirmed && usedAI && exercices.length > 0 && (
+        <div className="flex items-center gap-2 text-xs text-accent">
+          <Bot className="w-3.5 h-3.5" />
+          <span>
+            {exercices.length} exercice{exercices.length > 1 ? "s" : ""}{" "}
+            reconnu{exercices.length > 1 ? "s" : ""} par l'IA — vérifie
+            avant d'enregistrer.
           </span>
         </div>
+      )}
+      {exercices.map((ex, i) => (
+        <ExerciseRow
+          key={i}
+          exercise={ex}
+          confirmed={confirmed}
+          onRemove={() => onRemove(i)}
+          onUpdate={(updated) => onUpdate(i, updated)}
+        />
       ))}
       {unrecognized.map((seg, i) => (
         <div
@@ -186,4 +354,186 @@ function ParsedPreview({
       ))}
     </div>
   );
+}
+
+function ExerciseRow({
+  exercise,
+  confirmed,
+  onRemove,
+  onUpdate,
+}: {
+  exercise: ExerciseEntry;
+  confirmed: boolean;
+  onRemove: () => void;
+  onUpdate: (updated: ExerciseEntry) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+
+  const setsLabel = exercise.sets.length > 0
+    ? formatSets(exercise.sets)
+    : exercise.cardio
+      ? formatCardio(exercise.cardio)
+      : "—";
+
+  if (editing) {
+    return (
+      <InlineEditor
+        exercise={exercise}
+        onSave={(updated) => {
+          onUpdate(updated);
+          setEditing(false);
+        }}
+        onCancel={() => setEditing(false)}
+      />
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 text-sm bg-bg-soft border border-border rounded-lg px-3 py-2">
+      <div className="flex-1 flex flex-wrap items-center gap-2 min-w-0">
+        <span className="font-medium">{exercise.nom}</span>
+        <span className="chip bg-accent-muted/40 text-accent-soft">
+          {exercise.categorie}
+        </span>
+        <span className="text-text-muted">{setsLabel}</span>
+      </div>
+      {confirmed && (
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            className="text-text-dim hover:text-text p-1"
+            onClick={() => setEditing(true)}
+            title="Modifier"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button
+            className="text-text-dim hover:text-rose-400 p-1"
+            onClick={onRemove}
+            title="Retirer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InlineEditor({
+  exercise,
+  onSave,
+  onCancel,
+}: {
+  exercise: ExerciseEntry;
+  onSave: (updated: ExerciseEntry) => void;
+  onCancel: () => void;
+}) {
+  const [nom, setNom] = useState(exercise.nom);
+  const [sets, setSets] = useState(
+    exercise.sets.map((s) => ({ reps: String(s.reps), poids: String(s.poids) })),
+  );
+
+  function addSet() {
+    const last = sets[sets.length - 1];
+    setSets([...sets, { reps: last?.reps ?? "10", poids: last?.poids ?? "0" }]);
+  }
+
+  function removeSet(idx: number) {
+    setSets(sets.filter((_, i) => i !== idx));
+  }
+
+  function updateSet(idx: number, field: "reps" | "poids", val: string) {
+    setSets(sets.map((s, i) => (i === idx ? { ...s, [field]: val } : s)));
+  }
+
+  function handleSave() {
+    onSave({
+      ...exercise,
+      nom: nom.trim() || exercise.nom,
+      sets: sets.map((s) => ({
+        reps: parseInt(s.reps, 10) || 0,
+        poids: parseFloat(s.poids) || 0,
+      })),
+    });
+  }
+
+  return (
+    <div className="bg-bg-soft border border-accent/40 rounded-lg px-3 py-2 space-y-2">
+      <input
+        type="text"
+        className="input text-sm w-full"
+        value={nom}
+        onChange={(e) => setNom(e.target.value)}
+        placeholder="Nom de l'exercice"
+      />
+      <div className="space-y-1">
+        {sets.map((s, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <span className="text-[11px] text-text-dim w-6">#{i + 1}</span>
+            <input
+              type="number"
+              className="input text-xs w-16 text-center"
+              value={s.reps}
+              onChange={(e) => updateSet(i, "reps", e.target.value)}
+              placeholder="reps"
+            />
+            <span className="text-text-dim text-xs">×</span>
+            <input
+              type="number"
+              className="input text-xs w-20 text-center"
+              value={s.poids}
+              onChange={(e) => updateSet(i, "poids", e.target.value)}
+              placeholder="kg"
+            />
+            <span className="text-text-dim text-[11px]">kg</span>
+            {sets.length > 1 && (
+              <button
+                className="text-text-dim hover:text-rose-400 p-0.5"
+                onClick={() => removeSet(i)}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <button className="btn-ghost text-xs" onClick={addSet}>
+          <Plus className="w-3 h-3" /> Série
+        </button>
+        <div className="flex-1" />
+        <button className="btn-ghost text-xs" onClick={onCancel}>
+          Annuler
+        </button>
+        <button className="btn-primary text-xs" onClick={handleSave}>
+          OK
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function formatSets(sets: SetEntry[]): string {
+  if (sets.length === 0) return "—";
+  const allSame =
+    sets.every((s) => s.reps === sets[0].reps && s.poids === sets[0].poids);
+  if (allSame) {
+    const s = sets[0];
+    return `${sets.length} × ${s.reps} reps${s.poids > 0 ? ` @ ${s.poids} kg` : " (PDC)"}`;
+  }
+  return sets
+    .map(
+      (s) => `${s.reps}r${s.poids > 0 ? `@${s.poids}` : ""}`,
+    )
+    .join(" / ");
+}
+
+function formatCardio(
+  cardio: NonNullable<ExerciseEntry["cardio"]>,
+): string {
+  const parts: string[] = [];
+  if (cardio.distance) parts.push(`${cardio.distance} km`);
+  if (cardio.duree) parts.push(`${cardio.duree} min`);
+  if (cardio.denivele) parts.push(`+${cardio.denivele} m`);
+  return parts.join(" · ") || "—";
 }
