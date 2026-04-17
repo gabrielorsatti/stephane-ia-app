@@ -100,7 +100,7 @@ function AppInner() {
   const { addFeedback } = useOccupancyFeedback();
 
   // Profil et social.
-  const { profile, needsSetup, updateUsername } = useProfile(auth.user?.id);
+  const { profile, needsSetup, ensureProfile } = useProfile(auth.user?.id);
   const {
     accepted,
     pendingReceived,
@@ -171,7 +171,7 @@ function AppInner() {
     return (
       <ProfileSetup
         onSubmit={async (username) => {
-          await updateUsername(username);
+          await ensureProfile(username);
         }}
       />
     );

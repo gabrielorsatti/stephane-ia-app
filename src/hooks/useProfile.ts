@@ -83,8 +83,45 @@ export function useProfile(userId: string | undefined) {
     [userId],
   );
 
+  // Deux cas déclenchent le setup :
+  // 1. Le profil n'existe pas du tout (row absente — utilisateur pré-trigger)
+  // 2. Le pseudo est toujours le placeholder "user_XXXXX"
   const needsSetup =
-    !loading && profile !== null && profile.username.startsWith("user_");
+    !loading &&
+    (profile === null || profile.username.startsWith("user_"));
 
-  return { profile, loading, needsSetup, updateUsername, updateAvatar };
+  // Si le profil n'existe pas, on doit d'abord le créer côté client avant
+  // de pouvoir le mettre à jour. createIfMissing gère ce cas edge.
+  const ensureProfile = useCallback(
+    async (username: string) => {
+      if (!userId) return;
+      const client = getSupabase();
+      if (!client) return;
+      const trimmed = username.trim().toLowerCase();
+      if (!trimmed) throw new Error("Le pseudo ne peut pas être vide");
+      if (profile === null) {
+        // Profil absent — insert (la policy owner insert l'autorise).
+        const { error } = await client.from("profiles").insert({
+          id: userId,
+          username: trimmed,
+        });
+        if (error) {
+          if (error.code === "23505")
+            throw new Error("Ce pseudo est déjà pris");
+          throw error;
+        }
+        setProfile({
+          id: userId,
+          username: trimmed,
+          isAdmin: false,
+          createdAt: new Date().toISOString(),
+        });
+      } else {
+        await updateUsername(trimmed);
+      }
+    },
+    [userId, profile, updateUsername],
+  );
+
+  return { profile, loading, needsSetup, updateUsername, updateAvatar, ensureProfile };
 }

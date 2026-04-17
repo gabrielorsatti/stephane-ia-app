@@ -118,6 +118,10 @@ export function useFriendships(userId: string | undefined) {
         console.warn("[useFriendships] search failed", error);
         return [];
       }
+      console.info("[useFriendships] search results", {
+        query: trimmed,
+        count: data?.length ?? 0,
+      });
       return (data ?? []).map(
         (r): Profile => ({
           id: r.id,
