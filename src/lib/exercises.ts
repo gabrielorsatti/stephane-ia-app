@@ -436,6 +436,28 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     categorie: "Jambes",
     aliases: ["mollets assis", "seated calf", "seated calf raise"],
   },
+  {
+    canonical: "Sissy squat",
+    categorie: "Jambes",
+    aliases: ["sissy squat", "sissy squats"],
+    type: "bodyweight",
+  },
+  {
+    canonical: "Jefferson squat",
+    categorie: "Jambes",
+    aliases: ["jefferson squat", "jefferson squats", "jefferson"],
+  },
+  {
+    canonical: "Reverse nordic",
+    categorie: "Jambes",
+    aliases: [
+      "reverse nordic",
+      "reverse nordics",
+      "nordic inverse",
+      "reverse nordic curl",
+    ],
+    type: "bodyweight",
+  },
 
   // ────────── Épaules (deltoïdes) ──────────
   {
@@ -595,6 +617,21 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     canonical: "Curl concentration",
     categorie: "Bras",
     aliases: ["curl concentration", "concentration curl"],
+  },
+  {
+    canonical: "Spider curl",
+    categorie: "Bras",
+    aliases: ["spider curl", "spider curls", "curl spider"],
+  },
+  {
+    canonical: "Zottman curl",
+    categorie: "Bras",
+    aliases: [
+      "zottman curl",
+      "zottman curls",
+      "curl zottman",
+      "zottman",
+    ],
   },
   {
     canonical: "Pushdown",

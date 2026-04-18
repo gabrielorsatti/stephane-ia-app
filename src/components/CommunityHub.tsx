@@ -1,12 +1,14 @@
-import { Shield } from "lucide-react";
+import { Settings, Shield } from "lucide-react";
 import { useState } from "react";
-import type { Friendship, Profile } from "../types";
+import type { Theme } from "../hooks/useTheme";
+import type { BodyWeightEntry, Friendship, Profile, Session } from "../types";
 import { AdminPanel } from "./AdminPanel";
 import { HubHeader } from "./HubHeader";
 import { NavCard } from "./NavCard";
+import { SettingsHub } from "./SettingsHub";
 import { SocialView } from "./SocialView";
 
-type View = "main" | "admin";
+type View = "main" | "admin" | "settings";
 
 interface Props {
   userId: string;
@@ -20,6 +22,13 @@ interface Props {
   onAccept: (friendshipId: string) => Promise<void>;
   onReject: (friendshipId: string) => Promise<void>;
   onRemove: (friendshipId: string) => Promise<void>;
+  theme: Theme;
+  onToggleTheme: () => void;
+  onUpdateUsername: (username: string) => Promise<void>;
+  onSignOut?: () => void;
+  sessions: Session[];
+  bodyWeights: BodyWeightEntry[];
+  onImport: (sessions: Session[], bodyWeights: BodyWeightEntry[]) => void;
 }
 
 export function CommunityHub({
@@ -34,6 +43,13 @@ export function CommunityHub({
   onAccept,
   onReject,
   onRemove,
+  theme,
+  onToggleTheme,
+  onUpdateUsername,
+  onSignOut,
+  sessions,
+  bodyWeights,
+  onImport,
 }: Props) {
   const [view, setView] = useState<View>("main");
 
@@ -42,6 +58,24 @@ export function CommunityHub({
       <>
         <HubHeader title="Retour à Communauté" onBack={() => setView("main")} />
         <AdminPanel />
+      </>
+    );
+  }
+
+  if (view === "settings") {
+    return (
+      <>
+        <HubHeader title="Retour à Communauté" onBack={() => setView("main")} />
+        <SettingsHub
+          profile={profile}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          onUpdateUsername={onUpdateUsername}
+          onSignOut={onSignOut}
+          sessions={sessions}
+          bodyWeights={bodyWeights}
+          onImport={onImport}
+        />
       </>
     );
   }
@@ -60,14 +94,22 @@ export function CommunityHub({
         onReject={onReject}
         onRemove={onRemove}
       />
-      {isAdmin && (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <NavCard
-          icon={Shield}
-          label="Administration"
-          description="Gestion des utilisateurs"
-          onClick={() => setView("admin")}
+          icon={Settings}
+          label="Réglages"
+          description="Thème, profil, données, à propos"
+          onClick={() => setView("settings")}
         />
-      )}
+        {isAdmin && (
+          <NavCard
+            icon={Shield}
+            label="Administration"
+            description="Gestion des utilisateurs"
+            onClick={() => setView("admin")}
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -1,8 +1,6 @@
-import { LogOut, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ADMIN_UID } from "./components/AdminPanel";
 import { AuthGate } from "./components/AuthGate";
-import { BackupControls } from "./components/BackupControls";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { CalendarView } from "./components/CalendarView";
 import { CardioStatsCard } from "./components/CardioStatsCard";
@@ -83,7 +81,8 @@ function AppInner() {
   const { favorite: favoriteGym, favoriteId } = useGyms();
   const { addFeedback } = useOccupancyFeedback();
 
-  const { profile, needsSetup, ensureProfile } = useProfile(auth.user?.id);
+  const { profile, needsSetup, ensureProfile, updateUsername } =
+    useProfile(auth.user?.id);
   const {
     accepted,
     pendingReceived,
@@ -124,7 +123,7 @@ function AppInner() {
         className="border-b border-border bg-bg-soft/60 backdrop-blur sticky top-0 z-20"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-accent shrink-0">
               <Logo size={22} />
@@ -137,42 +136,6 @@ function AppInner() {
                   : "Suis ta progression sans friction."}
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <BackupControls
-              sessions={sessions}
-              bodyWeights={entries}
-              onImport={(s, b) => {
-                replaceSessions(s);
-                replaceBodyWeights(b);
-              }}
-            />
-            <button
-              className="btn-ghost !px-2 !py-2"
-              onClick={toggleTheme}
-              title={
-                theme === "dark"
-                  ? "Passer au thème rose pastel"
-                  : "Passer au thème sombre"
-              }
-              aria-label="Changer de thème"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-4 h-4" />
-              ) : (
-                <Moon className="w-4 h-4" />
-              )}
-            </button>
-            {auth.supabaseEnabled && auth.user && (
-              <button
-                className="btn-ghost !px-2 !py-2"
-                onClick={() => void auth.signOut()}
-                title={`Déconnexion (${auth.user.email ?? "compte"})`}
-                aria-label="Déconnexion"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            )}
           </div>
         </div>
       </header>
@@ -255,6 +218,20 @@ function AppInner() {
               onAccept={accept}
               onReject={reject}
               onRemove={removeFriend}
+              theme={theme}
+              onToggleTheme={toggleTheme}
+              onUpdateUsername={updateUsername}
+              onSignOut={
+                auth.supabaseEnabled && auth.user
+                  ? () => void auth.signOut()
+                  : undefined
+              }
+              sessions={sessions}
+              bodyWeights={entries}
+              onImport={(s, b) => {
+                replaceSessions(s);
+                replaceBodyWeights(b);
+              }}
             />
           )}
         </main>
