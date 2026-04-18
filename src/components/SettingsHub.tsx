@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import { HubHeader } from "./HubHeader";
 import {
   buildBackup,
   downloadBackup,
@@ -32,6 +33,7 @@ interface Props {
   sessions: Session[];
   bodyWeights: BodyWeightEntry[];
   onImport: (sessions: Session[], bodyWeights: BodyWeightEntry[]) => void;
+  onBack?: () => void;
 }
 
 export function SettingsHub({
@@ -43,6 +45,7 @@ export function SettingsHub({
   sessions,
   bodyWeights,
   onImport,
+  onBack,
 }: Props) {
   const [editingUsername, setEditingUsername] = useState(false);
   const [username, setUsername] = useState(profile?.username ?? "");
@@ -97,6 +100,7 @@ export function SettingsHub({
 
   return (
     <div className="space-y-4 max-w-lg mx-auto">
+      {onBack && <HubHeader title="Retour" onBack={onBack} />}
       {/* Profil */}
       <Section title="Profil">
         <Row

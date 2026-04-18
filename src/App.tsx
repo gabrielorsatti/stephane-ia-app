@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { Settings } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ADMIN_UID } from "./components/AdminPanel";
 import { AuthGate } from "./components/AuthGate";
 import { BodyWeightChart } from "./components/BodyWeightChart";
@@ -16,6 +17,7 @@ import { NutritionHub } from "./components/NutritionHub";
 import { OccupancyChart } from "./components/OccupancyChart";
 import { Onboarding } from "./components/Onboarding";
 import { ProfileSetup } from "./components/ProfileSetup";
+import { SettingsHub } from "./components/SettingsHub";
 import { Sidebar } from "./components/Sidebar";
 import { StatsCards } from "./components/StatsCards";
 import { TrainingHub } from "./components/TrainingHub";
@@ -99,7 +101,20 @@ function AppInner() {
     auth.user?.id === ADMIN_UID || (profile?.isAdmin ?? false);
 
   const [hub, setHub] = useState<Hub>("home");
+  const prevHubRef = useRef<Hub>("home");
   const [crowdCheckPending, setCrowdCheckPending] = useState(false);
+
+  const navigate = useCallback(
+    (next: Hub) => {
+      if (next !== "settings") prevHubRef.current = next;
+      setHub(next);
+    },
+    [],
+  );
+
+  function goBackFromSettings() {
+    setHub(prevHubRef.current);
+  }
 
   function handleAddSession(session: Omit<import("./types").Session, "id">) {
     addSession(session);
@@ -124,7 +139,7 @@ function AppInner() {
         className="border-b border-border bg-bg-soft/60 backdrop-blur sticky top-0 z-20"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-2">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-accent shrink-0">
               <Logo size={22} />
@@ -138,11 +153,24 @@ function AppInner() {
               </div>
             </div>
           </div>
+
+          <button
+            onClick={() => navigate("settings")}
+            className={[
+              "md:hidden w-11 h-11 flex items-center justify-center rounded-xl transition-colors active:scale-95 shrink-0",
+              hub === "settings"
+                ? "bg-accent/15 text-accent"
+                : "text-text-muted hover:text-text hover:bg-bg-elev",
+            ].join(" ")}
+            aria-label="Réglages"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
         </div>
       </header>
 
       <div className="flex">
-        <Sidebar active={hub} onChange={setHub} />
+        <Sidebar active={hub} onChange={navigate} />
 
         <main className="flex-1 max-w-5xl mx-auto px-4 py-6 space-y-6 min-w-0">
           <Onboarding />
@@ -226,6 +254,14 @@ function AppInner() {
                 onAccept={accept}
                 onReject={reject}
                 onRemove={removeFriend}
+              />
+            </FadeIn>
+          )}
+
+          {hub === "settings" && (
+            <FadeIn id="settings">
+              <SettingsHub
+                profile={profile}
                 theme={theme}
                 onToggleTheme={toggleTheme}
                 onUpdateUsername={updateUsername}
@@ -240,13 +276,14 @@ function AppInner() {
                   replaceSessions(s);
                   replaceBodyWeights(b);
                 }}
+                onBack={goBackFromSettings}
               />
             </FadeIn>
           )}
         </main>
       </div>
 
-      <MobileBottomNav active={hub} onChange={setHub} />
+      <MobileBottomNav active={hub} onChange={navigate} />
 
       <UpdateToast />
 
