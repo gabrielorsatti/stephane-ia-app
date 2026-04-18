@@ -7,6 +7,7 @@ import { HubHeader } from "./HubHeader";
 import { NavCard } from "./NavCard";
 import { SettingsHub } from "./SettingsHub";
 import { SocialView } from "./SocialView";
+import { SlideBack, SlideIn } from "./Transition";
 
 type View = "main" | "admin" | "settings";
 
@@ -52,20 +53,33 @@ export function CommunityHub({
   onImport,
 }: Props) {
   const [view, setView] = useState<View>("main");
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
+
+  function goTo(v: View) {
+    setDirection("forward");
+    setView(v);
+  }
+
+  function goBack() {
+    setDirection("back");
+    setView("main");
+  }
+
+  const Wrap = direction === "forward" ? SlideIn : SlideBack;
 
   if (view === "admin" && isAdmin) {
     return (
-      <>
-        <HubHeader title="Retour à Communauté" onBack={() => setView("main")} />
+      <Wrap id="community-admin">
+        <HubHeader title="Retour à Communauté" onBack={goBack} />
         <AdminPanel />
-      </>
+      </Wrap>
     );
   }
 
   if (view === "settings") {
     return (
-      <>
-        <HubHeader title="Retour à Communauté" onBack={() => setView("main")} />
+      <Wrap id="community-settings">
+        <HubHeader title="Retour à Communauté" onBack={goBack} />
         <SettingsHub
           profile={profile}
           theme={theme}
@@ -76,40 +90,42 @@ export function CommunityHub({
           bodyWeights={bodyWeights}
           onImport={onImport}
         />
-      </>
+      </Wrap>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <SocialView
-        userId={userId}
-        profile={profile}
-        accepted={accepted}
-        pendingReceived={pendingReceived}
-        pendingSent={pendingSent}
-        onSearch={onSearch}
-        onSendRequest={onSendRequest}
-        onAccept={onAccept}
-        onReject={onReject}
-        onRemove={onRemove}
-      />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <NavCard
-          icon={Settings}
-          label="Réglages"
-          description="Thème, profil, données, à propos"
-          onClick={() => setView("settings")}
+    <Wrap id="community-main">
+      <div className="space-y-4">
+        <SocialView
+          userId={userId}
+          profile={profile}
+          accepted={accepted}
+          pendingReceived={pendingReceived}
+          pendingSent={pendingSent}
+          onSearch={onSearch}
+          onSendRequest={onSendRequest}
+          onAccept={onAccept}
+          onReject={onReject}
+          onRemove={onRemove}
         />
-        {isAdmin && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <NavCard
-            icon={Shield}
-            label="Administration"
-            description="Gestion des utilisateurs"
-            onClick={() => setView("admin")}
+            icon={Settings}
+            label="Réglages"
+            description="Thème, profil, données, à propos"
+            onClick={() => goTo("settings")}
           />
-        )}
+          {isAdmin && (
+            <NavCard
+              icon={Shield}
+              label="Administration"
+              description="Gestion des utilisateurs"
+              onClick={() => goTo("admin")}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </Wrap>
   );
 }

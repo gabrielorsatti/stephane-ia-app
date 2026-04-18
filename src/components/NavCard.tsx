@@ -12,7 +12,7 @@ export function NavCard({ icon: Icon, label, description, onClick }: Props) {
   return (
     <button
       onClick={onClick}
-      className="card flex items-center gap-3 text-left hover:border-accent/40 transition-colors group w-full"
+      className="card flex items-center gap-3 text-left hover:border-accent/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 group w-full no-theme-transition"
     >
       <div className="w-10 h-10 rounded-lg bg-accent-muted flex items-center justify-center shrink-0">
         <Icon className="w-5 h-5 text-accent" />

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ADMIN_UID } from "./components/AdminPanel";
 import { AuthGate } from "./components/AuthGate";
 import { BodyWeightChart } from "./components/BodyWeightChart";
+import { FadeIn } from "./components/Transition";
 import { CalendarView } from "./components/CalendarView";
 import { CardioStatsCard } from "./components/CardioStatsCard";
 import { CategoryChart } from "./components/CategoryChart";
@@ -147,7 +148,7 @@ function AppInner() {
           <Onboarding />
 
           {hub === "home" && (
-            <>
+            <FadeIn id="home">
               {crowdCheckPending && favoriteGym && (
                 <CrowdCheckPrompt
                   gym={favoriteGym}
@@ -165,7 +166,7 @@ function AppInner() {
                 />
               )}
               <StatsCards sessions={sessions} bodyWeight={latest?.poids} />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
                 <VolumeChart sessions={sessions} />
                 <CategoryChart sessions={sessions} />
                 <CardioStatsCard sessions={sessions} />
@@ -173,66 +174,74 @@ function AppInner() {
                 <CalendarView sessions={sessions} />
                 <OccupancyChart />
               </div>
-            </>
+            </FadeIn>
           )}
 
           {hub === "training" && (
-            <TrainingHub
-              sessions={sessions}
-              addSession={handleAddSession}
-              updateSession={updateSession}
-              removeSession={removeSession}
-              overrides={overrides}
-              upsertOverride={upsertOverride}
-              removeOverride={removeOverride}
-            />
+            <FadeIn id="training">
+              <TrainingHub
+                sessions={sessions}
+                addSession={handleAddSession}
+                updateSession={updateSession}
+                removeSession={removeSession}
+                overrides={overrides}
+                upsertOverride={upsertOverride}
+                removeOverride={removeOverride}
+              />
+            </FadeIn>
           )}
 
           {hub === "nutrition" && (
-            <NutritionHub
-              bodyWeightEntries={entries}
-              onAddBodyWeight={addEntry}
-            />
+            <FadeIn id="nutrition">
+              <NutritionHub
+                bodyWeightEntries={entries}
+                onAddBodyWeight={addEntry}
+              />
+            </FadeIn>
           )}
 
           {hub === "coach" && (
-            <CoachChat
-              sessions={sessions}
-              bodyWeights={entries}
-              overrides={overrides}
-              programs={programs}
-              onApplyPrograms={replaceAllPrograms}
-            />
+            <FadeIn id="coach">
+              <CoachChat
+                sessions={sessions}
+                bodyWeights={entries}
+                overrides={overrides}
+                programs={programs}
+                onApplyPrograms={replaceAllPrograms}
+              />
+            </FadeIn>
           )}
 
           {hub === "community" && auth.user && profile && (
-            <CommunityHub
-              userId={auth.user.id}
-              profile={profile}
-              isAdmin={isAdmin}
-              accepted={accepted}
-              pendingReceived={pendingReceived}
-              pendingSent={pendingSent}
-              onSearch={searchUser}
-              onSendRequest={sendRequest}
-              onAccept={accept}
-              onReject={reject}
-              onRemove={removeFriend}
-              theme={theme}
-              onToggleTheme={toggleTheme}
-              onUpdateUsername={updateUsername}
-              onSignOut={
-                auth.supabaseEnabled && auth.user
-                  ? () => void auth.signOut()
-                  : undefined
-              }
-              sessions={sessions}
-              bodyWeights={entries}
-              onImport={(s, b) => {
-                replaceSessions(s);
-                replaceBodyWeights(b);
-              }}
-            />
+            <FadeIn id="community">
+              <CommunityHub
+                userId={auth.user.id}
+                profile={profile}
+                isAdmin={isAdmin}
+                accepted={accepted}
+                pendingReceived={pendingReceived}
+                pendingSent={pendingSent}
+                onSearch={searchUser}
+                onSendRequest={sendRequest}
+                onAccept={accept}
+                onReject={reject}
+                onRemove={removeFriend}
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                onUpdateUsername={updateUsername}
+                onSignOut={
+                  auth.supabaseEnabled && auth.user
+                    ? () => void auth.signOut()
+                    : undefined
+                }
+                sessions={sessions}
+                bodyWeights={entries}
+                onImport={(s, b) => {
+                  replaceSessions(s);
+                  replaceBodyWeights(b);
+                }}
+              />
+            </FadeIn>
           )}
         </main>
       </div>

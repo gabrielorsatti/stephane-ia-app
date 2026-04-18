@@ -18,6 +18,7 @@ import { PersonalRecords } from "./PersonalRecords";
 import { ProgressionChart } from "./ProgressionChart";
 import { ProgramView } from "./ProgramView";
 import { SessionInput } from "./SessionInput";
+import { SlideBack, SlideIn } from "./Transition";
 
 type View = "main" | "history" | "exercises" | "programs" | "progression";
 
@@ -41,6 +42,7 @@ export function TrainingHub({
   removeOverride,
 }: Props) {
   const [view, setView] = useState<View>("main");
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -49,10 +51,21 @@ export function TrainingHub({
     ? sessions.find((s) => s.id === editingId)
     : undefined;
 
+  function goTo(v: View) {
+    setDirection("forward");
+    setView(v);
+  }
+
+  function goBack() {
+    setDirection("back");
+    setView("main");
+  }
+
   function startEdit(session: Session) {
     setPrefillText(sessionToNlp(session));
     setPrefillVersion((v) => v + 1);
     setEditingId(session.id);
+    setDirection("back");
     setView("main");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -72,44 +85,47 @@ export function TrainingHub({
     setPrefillText(text);
     setPrefillVersion((v) => v + 1);
     setEditingId(null);
+    setDirection("back");
     setView("main");
   }
 
+  const Wrap = direction === "forward" ? SlideIn : SlideBack;
+
   if (view === "history") {
     return (
-      <>
-        <HubHeader title="Retour à Training" onBack={() => setView("main")} />
+      <Wrap id="training-history">
+        <HubHeader title="Retour à Training" onBack={goBack} />
         <HistoryView
           sessions={sessions}
           onRemove={removeSession}
           onEdit={startEdit}
         />
-      </>
+      </Wrap>
     );
   }
 
   if (view === "exercises") {
     return (
-      <>
-        <HubHeader title="Retour à Training" onBack={() => setView("main")} />
+      <Wrap id="training-exercises">
+        <HubHeader title="Retour à Training" onBack={goBack} />
         <ExerciseCatalog />
-      </>
+      </Wrap>
     );
   }
 
   if (view === "programs") {
     return (
-      <>
-        <HubHeader title="Retour à Training" onBack={() => setView("main")} />
+      <Wrap id="training-programs">
+        <HubHeader title="Retour à Training" onBack={goBack} />
         <ProgramView onFillInput={fillFromProgram} />
-      </>
+      </Wrap>
     );
   }
 
   if (view === "progression") {
     return (
-      <>
-        <HubHeader title="Retour à Training" onBack={() => setView("main")} />
+      <Wrap id="training-progression">
+        <HubHeader title="Retour à Training" onBack={goBack} />
         <div className="space-y-4">
           <ProgressionChart sessions={sessions} overrides={overrides} />
           <PersonalRecords
@@ -119,58 +135,60 @@ export function TrainingHub({
             onRemoveOverride={removeOverride}
           />
         </div>
-      </>
+      </Wrap>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <SessionInput
-        onSave={handleSave}
-        prefillText={prefillText}
-        prefillVersion={prefillVersion}
-        editing={
-          editingSession
-            ? {
-                date: editingSession.date,
-                notes: editingSession.notes,
-                bodyWeight: editingSession.bodyWeight,
-              }
-            : undefined
-        }
-        onCancelEdit={() => {
-          setEditingId(null);
-          setPrefillText("");
-          setPrefillVersion((v) => v + 1);
-        }}
-      />
+    <Wrap id="training-main">
+      <div className="space-y-4">
+        <SessionInput
+          onSave={handleSave}
+          prefillText={prefillText}
+          prefillVersion={prefillVersion}
+          editing={
+            editingSession
+              ? {
+                  date: editingSession.date,
+                  notes: editingSession.notes,
+                  bodyWeight: editingSession.bodyWeight,
+                }
+              : undefined
+          }
+          onCancelEdit={() => {
+            setEditingId(null);
+            setPrefillText("");
+            setPrefillVersion((v) => v + 1);
+          }}
+        />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <NavCard
-          icon={History}
-          label="Historique"
-          description="Toutes tes séances passées"
-          onClick={() => setView("history")}
-        />
-        <NavCard
-          icon={BookOpen}
-          label="Programmes"
-          description="Tes templates de séances"
-          onClick={() => setView("programs")}
-        />
-        <NavCard
-          icon={Dumbbell}
-          label="Exercices"
-          description="Catalogue complet"
-          onClick={() => setView("exercises")}
-        />
-        <NavCard
-          icon={TrendingUp}
-          label="Progression"
-          description="Courbes et records personnels"
-          onClick={() => setView("progression")}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <NavCard
+            icon={History}
+            label="Historique"
+            description="Toutes tes séances passées"
+            onClick={() => goTo("history")}
+          />
+          <NavCard
+            icon={BookOpen}
+            label="Programmes"
+            description="Tes templates de séances"
+            onClick={() => goTo("programs")}
+          />
+          <NavCard
+            icon={Dumbbell}
+            label="Exercices"
+            description="Catalogue complet"
+            onClick={() => goTo("exercises")}
+          />
+          <NavCard
+            icon={TrendingUp}
+            label="Progression"
+            description="Courbes et records personnels"
+            onClick={() => goTo("progression")}
+          />
+        </div>
       </div>
-    </div>
+    </Wrap>
   );
 }

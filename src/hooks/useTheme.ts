@@ -55,6 +55,13 @@ export function useTheme() {
     localStorage.setItem(KEY, theme);
   }, [theme]);
 
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      document.documentElement.setAttribute("data-theme-ready", "");
+    });
+    return () => cancelAnimationFrame(id);
+  }, []);
+
   const toggle = useCallback(() => {
     setTheme((t) => (t === "dark" ? "rose" : "dark"));
   }, []);
