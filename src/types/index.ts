@@ -51,6 +51,8 @@ export interface Session {
   exercices: ExerciseEntry[];
   notes?: string;
   bodyWeight?: number;
+  createdAt?: string; // ISO timestamp — used for smart session merging
+  coachCommentary?: string;
 }
 
 export interface BodyWeightEntry {

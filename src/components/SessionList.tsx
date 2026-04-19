@@ -1,6 +1,6 @@
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Dumbbell, Pencil, Trash2 } from "lucide-react";
+import { Brain, Dumbbell, Pencil, Trash2 } from "lucide-react";
 import type { Session } from "../types";
 import { sessionScore, sessionVolume } from "../lib/scoring";
 import { EmptyState } from "./EmptyState";
@@ -101,6 +101,17 @@ function SessionCard({
       </div>
       {session.notes && (
         <div className="text-xs text-text-muted italic">« {session.notes} »</div>
+      )}
+      {session.coachCommentary && (
+        <div className="bg-accent-muted/20 border border-accent-muted rounded-xl px-3 py-2.5 space-y-1">
+          <div className="flex items-center gap-1.5 text-accent-soft text-[11px] font-semibold uppercase tracking-wide">
+            <Brain className="w-3.5 h-3.5" />
+            L'avis du Coach
+          </div>
+          <p className="text-xs text-text-muted italic leading-relaxed">
+            {session.coachCommentary}
+          </p>
+        </div>
       )}
     </div>
   );

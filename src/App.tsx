@@ -124,10 +124,11 @@ function AppInner() {
   }
 
   function handleAddSession(session: Omit<import("./types").Session, "id">) {
-    addSession(session);
+    const result = addSession(session);
     if (favoriteId) {
       setCrowdCheckPending(true);
     }
+    return result;
   }
 
   if (auth.supabaseEnabled && auth.user && profileLoading) {
@@ -227,6 +228,8 @@ function AppInner() {
                   overrides={overrides}
                   upsertOverride={upsertOverride}
                   removeOverride={removeOverride}
+                  programs={programs}
+                  userId={auth.user?.id}
                 />
               </FadeIn>
             )}

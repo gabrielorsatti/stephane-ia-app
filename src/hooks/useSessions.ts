@@ -3,6 +3,14 @@ import { maybeAutoBackup } from "../lib/backup";
 import { getAdapter, makeId } from "../lib/storage";
 import type { Session } from "../types";
 
+const MERGE_WINDOW_MS = 3 * 60 * 60 * 1000; // 3 hours
+
+function getSessionCreatedAt(s: Session): number {
+  if (s.createdAt) return new Date(s.createdAt).getTime();
+  const ts = parseInt(s.id, 10);
+  return isNaN(ts) ? 0 : ts;
+}
+
 export function useSessions() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [ready, setReady] = useState(false);
@@ -35,13 +43,34 @@ export function useSessions() {
     setSessions(sorted);
     const adapter = getAdapter();
     void adapter.saveSessions(sorted);
-    // Miroir défensif + auto-backup quotidien si activé.
     void adapter.getBodyWeights().then((bw) => maybeAutoBackup(sorted, bw));
   }, []);
 
   const addSession = useCallback(
-    (session: Omit<Session, "id">) => {
-      persist([...sessions, { ...session, id: makeId() }]);
+    (session: Omit<Session, "id">): { id: string; merged: boolean } => {
+      const now = Date.now();
+      const candidate = sessions.find(
+        (s) =>
+          s.date === session.date &&
+          now - getSessionCreatedAt(s) < MERGE_WINDOW_MS,
+      );
+
+      if (candidate) {
+        const merged: Session = {
+          ...candidate,
+          exercices: [...candidate.exercices, ...session.exercices],
+          notes: [candidate.notes, session.notes].filter(Boolean).join(" · ") || undefined,
+          bodyWeight: session.bodyWeight ?? candidate.bodyWeight,
+          coachCommentary: undefined,
+        };
+        persist(sessions.map((s) => (s.id === candidate.id ? merged : s)));
+        return { id: candidate.id, merged: true };
+      }
+
+      const id = makeId();
+      const now_iso = new Date().toISOString();
+      persist([...sessions, { ...session, id, createdAt: now_iso }]);
+      return { id, merged: false };
     },
     [persist, sessions],
   );

@@ -27,7 +27,7 @@ export function supabaseAdapter(client: SupabaseClient): StorageAdapter {
       const uid = await userId();
       const { data, error } = await client
         .from("sessions")
-        .select("id, date, exercices, notes, body_weight")
+        .select("id, date, exercices, notes, body_weight, created_at, coach_commentary")
         .eq("user_id", uid)
         .order("date", { ascending: false });
       if (error) throw error;
@@ -38,6 +38,8 @@ export function supabaseAdapter(client: SupabaseClient): StorageAdapter {
           exercices: row.exercices,
           notes: row.notes ?? undefined,
           bodyWeight: row.body_weight ?? undefined,
+          createdAt: row.created_at ?? undefined,
+          coachCommentary: row.coach_commentary ?? undefined,
         }),
       );
     },
@@ -69,6 +71,8 @@ export function supabaseAdapter(client: SupabaseClient): StorageAdapter {
           exercices: s.exercices,
           notes: s.notes ?? null,
           body_weight: s.bodyWeight ?? null,
+          created_at: s.createdAt ?? new Date().toISOString(),
+          coach_commentary: s.coachCommentary ?? null,
           updated_at: new Date().toISOString(),
         }));
         const { error } = await client

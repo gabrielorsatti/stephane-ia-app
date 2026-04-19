@@ -5,10 +5,12 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
+import type { ProgramTemplate } from "../data/programs";
 import type {
   PersonalRecordOverride,
   Session,
 } from "../types";
+import { generateSessionCommentary } from "../lib/sessionCommentary";
 import { sessionToNlp } from "../lib/toNlp";
 import { ExerciseCatalog } from "./ExerciseCatalog";
 import { HistoryView } from "./HistoryView";
@@ -24,12 +26,14 @@ type View = "main" | "history" | "exercises" | "programs" | "progression";
 
 interface Props {
   sessions: Session[];
-  addSession: (s: Omit<Session, "id">) => void;
-  updateSession: (id: string, s: Omit<Session, "id">) => void;
+  addSession: (s: Omit<Session, "id">) => { id: string; merged: boolean };
+  updateSession: (id: string, patch: Partial<Session>) => void;
   removeSession: (id: string) => void;
   overrides: PersonalRecordOverride[];
   upsertOverride: (o: PersonalRecordOverride) => void;
   removeOverride: (exercise: string) => void;
+  programs: ProgramTemplate[];
+  userId?: string;
 }
 
 export function TrainingHub({
@@ -40,6 +44,8 @@ export function TrainingHub({
   overrides,
   upsertOverride,
   removeOverride,
+  programs,
+  userId,
 }: Props) {
   const [view, setView] = useState<View>("main");
   const [direction, setDirection] = useState<"forward" | "back">("forward");
@@ -76,9 +82,16 @@ export function TrainingHub({
       setEditingId(null);
       setPrefillText("");
       setPrefillVersion((v) => v + 1);
+      void requestCommentary(editingId, { ...session, id: editingId });
     } else {
-      addSession(session);
+      const { id } = addSession(session);
+      void requestCommentary(id, { ...session, id });
     }
+  }
+
+  async function requestCommentary(sessionId: string, session: Session) {
+    const commentary = await generateSessionCommentary(session, programs, userId);
+    if (commentary) updateSession(sessionId, { coachCommentary: commentary });
   }
 
   function fillFromProgram(text: string) {
