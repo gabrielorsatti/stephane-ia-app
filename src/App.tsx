@@ -19,6 +19,7 @@ import { Onboarding } from "./components/Onboarding";
 import { ProfileSetup } from "./components/ProfileSetup";
 import { SettingsHub } from "./components/SettingsHub";
 import { Sidebar } from "./components/Sidebar";
+import { SplashScreen } from "./components/SplashScreen";
 import { StatsCards } from "./components/StatsCards";
 import { TrainingHub } from "./components/TrainingHub";
 import { UpdateToast } from "./components/UpdateToast";
@@ -84,7 +85,7 @@ function AppInner() {
   const { favorite: favoriteGym, favoriteId } = useGyms();
   const { addFeedback } = useOccupancyFeedback();
 
-  const { profile, needsSetup, ensureProfile, updateUsername } =
+  const { profile, loading: profileLoading, needsSetup, ensureProfile, updateUsername } =
     useProfile(auth.user?.id);
   const {
     accepted,
@@ -121,6 +122,10 @@ function AppInner() {
     if (favoriteId) {
       setCrowdCheckPending(true);
     }
+  }
+
+  if (auth.supabaseEnabled && auth.user && profileLoading) {
+    return <SplashScreen />;
   }
 
   if (auth.supabaseEnabled && auth.user && needsSetup) {

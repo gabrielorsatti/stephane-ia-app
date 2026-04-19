@@ -2,12 +2,11 @@ import type { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { getSupabase } from "../lib/supabase";
 
-// Expose l'état d'authentification Supabase (ou null si non configuré).
-// Retourne { ready, user, supabaseEnabled } + méthodes sign-in/sign-out.
 export function useAuth() {
   const client = getSupabase();
   const [user, setUser] = useState<User | null>(null);
-  const [ready, setReady] = useState(!client); // si pas de client, on est prêt tout de suite
+  const [ready, setReady] = useState(!client);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
     if (!client) return;
@@ -17,8 +16,11 @@ export function useAuth() {
       setUser(data.user ?? null);
       setReady(true);
     });
-    const { data: sub } = client.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = client.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (event === "PASSWORD_RECOVERY") {
+        setIsPasswordRecovery(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -47,6 +49,23 @@ export function useAuth() {
     if (error) throw error;
   }
 
+  async function resetPasswordForEmail(email: string): Promise<void> {
+    if (!client) throw new Error("Supabase non configuré");
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    if (error) throw error;
+  }
+
+  async function updatePassword(newPassword: string): Promise<void> {
+    if (!client) throw new Error("Supabase non configuré");
+    const { error } = await client.auth.updateUser({
+      password: newPassword,
+    });
+    if (error) throw error;
+    setIsPasswordRecovery(false);
+  }
+
   async function signOut(): Promise<void> {
     if (!client) return;
     await client.auth.signOut();
@@ -56,8 +75,11 @@ export function useAuth() {
     ready,
     user,
     supabaseEnabled: !!client,
+    isPasswordRecovery,
     signInWithPassword,
     signUpWithPassword,
+    resetPasswordForEmail,
+    updatePassword,
     signOut,
   };
 }
