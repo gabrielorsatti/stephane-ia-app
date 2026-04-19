@@ -54,7 +54,7 @@ export function TrainingHub({
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [publishSessionId, setPublishSessionId] = useState<string | null>(null);
+  const [publishSnapshot, setPublishSnapshot] = useState<{ id: string; session: Session } | null>(null);
 
   const editingSession = editingId
     ? sessions.find((s) => s.id === editingId)
@@ -62,6 +62,7 @@ export function TrainingHub({
 
   const MERGE_WINDOW_MS = 3 * 60 * 60 * 1000;
   const activeSession = useMemo(() => {
+    if (publishSnapshot) return undefined;
     const now = Date.now();
     const today = new Date().toISOString().slice(0, 10);
     return sessions.find((s) => {
@@ -69,11 +70,7 @@ export function TrainingHub({
       const created = s.createdAt ? new Date(s.createdAt).getTime() : parseInt(s.id, 10);
       return !isNaN(created) && now - created < MERGE_WINDOW_MS && !s.isPublished;
     });
-  }, [sessions]);
-
-  const publishSession = publishSessionId
-    ? sessions.find((s) => s.id === publishSessionId)
-    : undefined;
+  }, [sessions, publishSnapshot]);
 
   function goTo(v: View) {
     setDirection("forward");
@@ -114,21 +111,21 @@ export function TrainingHub({
 
   function finishSession() {
     if (!activeSession) return;
-    setPublishSessionId(activeSession.id);
+    setPublishSnapshot({ id: activeSession.id, session: { ...activeSession } });
   }
 
   function handlePublish(userComment: string) {
-    if (!publishSessionId) return;
-    updateSession(publishSessionId, {
+    if (!publishSnapshot) return;
+    updateSession(publishSnapshot.id, {
       isPublished: true,
       userComment: userComment || undefined,
       publishedAt: new Date().toISOString(),
     });
-    setPublishSessionId(null);
+    setPublishSnapshot(null);
   }
 
   function handleKeepPrivate() {
-    setPublishSessionId(null);
+    setPublishSnapshot(null);
   }
 
   function fillFromProgram(text: string) {
@@ -249,12 +246,12 @@ export function TrainingHub({
         </div>
       </div>
 
-      {publishSession && (
+      {publishSnapshot && (
         <PublishModal
-          session={publishSession}
+          session={publishSnapshot.session}
           onPublish={handlePublish}
           onKeepPrivate={handleKeepPrivate}
-          onClose={() => setPublishSessionId(null)}
+          onClose={() => setPublishSnapshot(null)}
         />
       )}
     </Wrap>
