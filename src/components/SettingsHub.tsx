@@ -1,4 +1,5 @@
 import {
+  Camera,
   Check,
   Download,
   ExternalLink,
@@ -24,6 +25,7 @@ import {
   setAutoBackupEnabled,
 } from "../lib/backup";
 import type { Theme } from "../hooks/useTheme";
+import { getSupabase } from "../lib/supabase";
 import type { BodyWeightEntry, Profile, Session } from "../types";
 
 interface Props {
@@ -31,6 +33,8 @@ interface Props {
   theme: Theme;
   onToggleTheme: () => void;
   onUpdateUsername: (username: string) => Promise<void>;
+  onUpdateAvatar?: (url: string) => Promise<void>;
+  userId?: string;
   onSignOut?: () => void;
   sessions: Session[];
   bodyWeights: BodyWeightEntry[];
@@ -43,6 +47,8 @@ export function SettingsHub({
   theme,
   onToggleTheme,
   onUpdateUsername,
+  onUpdateAvatar,
+  userId,
   onSignOut,
   sessions,
   bodyWeights,
@@ -54,7 +60,9 @@ export function SettingsHub({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [auto, setAuto] = useState(isAutoBackupEnabled());
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const avatarRef = useRef<HTMLInputElement>(null);
 
   async function saveUsername() {
     if (!username.trim()) return;
@@ -97,6 +105,35 @@ export function SettingsHub({
       alert(`Import impossible : ${(err as Error).message}`);
     } finally {
       if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !userId || !onUpdateAvatar) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setError("L'image ne doit pas dépasser 2 Mo.");
+      return;
+    }
+    const client = getSupabase();
+    if (!client) return;
+    setAvatarUploading(true);
+    setError("");
+    try {
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${userId}/avatar.${ext}`;
+      const { error: uploadErr } = await client.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (uploadErr) throw uploadErr;
+      const { data: urlData } = client.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      await onUpdateAvatar(publicUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur upload");
+    } finally {
+      setAvatarUploading(false);
+      if (avatarRef.current) avatarRef.current.value = "";
     }
   }
 
@@ -152,6 +189,37 @@ export function SettingsHub({
             )
           }
         />
+        {onUpdateAvatar && (
+          <Row
+            icon={<Camera className="w-5 h-5" />}
+            label="Photo de profil"
+            action={
+              <div className="flex items-center gap-2">
+                {profile?.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-sm">
+                    {profile?.username?.[0]?.toUpperCase() ?? "?"}
+                  </div>
+                )}
+                <button
+                  onClick={() => avatarRef.current?.click()}
+                  disabled={avatarUploading}
+                  className="text-sm text-accent hover:text-accent-soft"
+                >
+                  {avatarUploading ? "Upload…" : "Modifier"}
+                </button>
+                <input
+                  ref={avatarRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                />
+              </div>
+            }
+          />
+        )}
         {error && (
           <div className="text-xs text-rose-300 px-4 pb-2">{error}</div>
         )}

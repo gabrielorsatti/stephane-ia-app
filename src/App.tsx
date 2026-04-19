@@ -92,7 +92,7 @@ function AppInner() {
   const { favorite: favoriteGym, favoriteId } = useGyms();
   const { addFeedback } = useOccupancyFeedback();
 
-  const { profile, loading: profileLoading, needsSetup, ensureProfile, updateUsername } =
+  const { profile, loading: profileLoading, needsSetup, ensureProfile, updateUsername, updateAvatar } =
     useProfile(auth.user?.id);
   const {
     accepted,
@@ -285,6 +285,8 @@ function AppInner() {
                 theme={theme}
                 onToggleTheme={toggleTheme}
                 onUpdateUsername={updateUsername}
+                onUpdateAvatar={updateAvatar}
+                userId={auth.user?.id}
                 onSignOut={
                   auth.supabaseEnabled && auth.user
                     ? () => void auth.signOut()

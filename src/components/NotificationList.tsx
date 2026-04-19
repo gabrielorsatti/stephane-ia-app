@@ -48,12 +48,21 @@ export function NotificationList({ notifications, onMarkAllRead }: Props) {
               n.isRead ? "bg-bg-soft/50" : "bg-accent-muted/20 border border-accent-muted/40",
             ].join(" ")}
           >
-            <div className="mt-0.5 shrink-0">
-              {n.type === "like" ? (
-                <Zap className="w-4 h-4 text-amber-400" />
+            <div className="relative shrink-0 mt-0.5">
+              {n.actorAvatarUrl ? (
+                <img src={n.actorAvatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
               ) : (
-                <MessageCircle className="w-4 h-4 text-accent" />
+                <div className="w-8 h-8 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-sm">
+                  {(n.actorUsername ?? "?")[0].toUpperCase()}
+                </div>
               )}
+              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-bg-card flex items-center justify-center">
+                {n.type === "like" ? (
+                  <Zap className="w-3 h-3 text-amber-400" />
+                ) : (
+                  <MessageCircle className="w-3 h-3 text-accent" />
+                )}
+              </div>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-text">

@@ -70,7 +70,7 @@ function FeedCard({
   onToggleLike: (sessionId: string, liked: boolean) => Promise<void>;
   onAddComment: (sessionId: string, content: string) => Promise<void>;
 }) {
-  const { session, authorUsername } = post;
+  const { session, authorUsername, authorAvatarUrl } = post;
   const [liked, setLiked] = useState(post.likedByMe);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [showComments, setShowComments] = useState(false);
@@ -121,9 +121,13 @@ function FeedCard({
     <div className="card space-y-3 animate-fadeIn" style={style}>
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-lg shrink-0">
-          {authorUsername[0].toUpperCase()}
-        </div>
+        {authorAvatarUrl ? (
+          <img src={authorAvatarUrl} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-lg shrink-0">
+            {authorUsername[0].toUpperCase()}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold">@{authorUsername}</div>
           <div className="text-[11px] text-text-dim">{timeAgo}</div>

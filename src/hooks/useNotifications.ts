@@ -20,21 +20,22 @@ export function useNotifications(userId: string | undefined) {
     if (!data) return;
 
     const actorIds = [...new Set(data.map((n) => n.actor_id))];
-    const profileMap = new Map<string, string>();
+    const profileMap = new Map<string, { username: string; avatarUrl?: string }>();
 
     if (actorIds.length > 0) {
       const { data: profiles } = await client
         .from("profiles")
-        .select("id, username")
+        .select("id, username, avatar_url")
         .in("id", actorIds);
-      for (const p of profiles ?? []) profileMap.set(p.id, p.username);
+      for (const p of profiles ?? []) profileMap.set(p.id, { username: p.username, avatarUrl: p.avatar_url ?? undefined });
     }
 
     const mapped: AppNotification[] = data.map((n) => ({
       id: n.id,
       userId: n.user_id,
       actorId: n.actor_id,
-      actorUsername: profileMap.get(n.actor_id) ?? "?",
+      actorUsername: profileMap.get(n.actor_id)?.username ?? "?",
+      actorAvatarUrl: profileMap.get(n.actor_id)?.avatarUrl,
       type: n.type as AppNotification["type"],
       sessionId: n.session_id,
       isRead: n.is_read,

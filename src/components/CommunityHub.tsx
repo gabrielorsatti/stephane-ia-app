@@ -111,9 +111,13 @@ export function CommunityHub({
         {/* Profile card with friend count */}
         <div className="card">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-lg">
-              {profile.username[0].toUpperCase()}
-            </div>
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-lg">
+                {profile.username[0].toUpperCase()}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <div className="font-semibold">@{profile.username}</div>
               <div className="text-xs text-text-muted">
@@ -129,7 +133,7 @@ export function CommunityHub({
         </div>
 
         {/* Tab bar: Feed / Friends / Admin */}
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <NavCard
             icon={Users}
             label={`Amis (${accepted.length})`}
@@ -144,7 +148,7 @@ export function CommunityHub({
               onClick={() => goTo("notifications")}
             />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 right-2 sm:-right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}

@@ -36,7 +36,7 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
 
     const [profilesRes, likesRes, myLikesRes, commentsRes] = await Promise.all([
       authorIds.length > 0
-        ? client.from("profiles").select("id, username").in("id", authorIds)
+        ? client.from("profiles").select("id, username, avatar_url").in("id", authorIds)
         : { data: [] },
       sessionIds.length > 0
         ? client.from("likes").select("session_id").in("session_id", sessionIds)
@@ -49,8 +49,8 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
         : { data: [] },
     ]);
 
-    const profileMap = new Map<string, string>();
-    for (const p of profilesRes.data ?? []) profileMap.set(p.id, p.username);
+    const profileMap = new Map<string, { username: string; avatarUrl?: string }>();
+    for (const p of profilesRes.data ?? []) profileMap.set(p.id, { username: p.username, avatarUrl: p.avatar_url ?? undefined });
 
     const likeCounts = new Map<string, number>();
     for (const l of likesRes.data ?? []) {
@@ -66,7 +66,7 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
       list.push({
         id: c.id,
         userId: c.user_id,
-        username: profileMap.get(c.user_id) ?? "?",
+        username: profileMap.get(c.user_id)?.username ?? "?",
         content: c.content,
         createdAt: c.created_at,
       });
@@ -76,9 +76,9 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
     // Resolve comment author usernames not already in profileMap
     const commentAuthorIds = [...new Set((commentsRes.data ?? []).map((c) => c.user_id))].filter((id) => !profileMap.has(id));
     if (commentAuthorIds.length > 0) {
-      const { data: extra } = await client.from("profiles").select("id, username").in("id", commentAuthorIds);
+      const { data: extra } = await client.from("profiles").select("id, username, avatar_url").in("id", commentAuthorIds);
       for (const p of extra ?? []) {
-        profileMap.set(p.id, p.username);
+        profileMap.set(p.id, { username: p.username, avatarUrl: p.avatar_url ?? undefined });
         for (const list of commentsBySession.values()) {
           for (const c of list) {
             if (c.userId === p.id) c.username = p.username;
@@ -100,7 +100,8 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
         publishedAt: row.published_at ?? undefined,
       } satisfies Session,
       authorId: row.user_id,
-      authorUsername: profileMap.get(row.user_id) ?? "?",
+      authorUsername: profileMap.get(row.user_id)?.username ?? "?",
+      authorAvatarUrl: profileMap.get(row.user_id)?.avatarUrl,
       likeCount: likeCounts.get(row.id) ?? 0,
       likedByMe: myLikes.has(row.id),
       comments: commentsBySession.get(row.id) ?? [],

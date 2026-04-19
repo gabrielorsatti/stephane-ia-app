@@ -62,6 +62,7 @@ export interface FeedPost {
   session: Session;
   authorId: string;
   authorUsername: string;
+  authorAvatarUrl?: string;
   likeCount: number;
   likedByMe: boolean;
   comments: FeedComment[];
@@ -151,6 +152,7 @@ export interface AppNotification {
   userId: string;
   actorId: string;
   actorUsername?: string;
+  actorAvatarUrl?: string;
   type: NotificationType;
   sessionId: string;
   isRead: boolean;
