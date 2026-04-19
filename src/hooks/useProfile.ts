@@ -12,6 +12,14 @@ export function useProfile(userId: string | undefined) {
       return;
     }
     let cancelled = false;
+
+    const timeout = setTimeout(() => {
+      if (!cancelled && loading) {
+        console.warn("[useProfile] timeout — forcing loaded");
+        setLoading(false);
+      }
+    }, 5000);
+
     async function load() {
       const client = getSupabase();
       if (!client) {
@@ -43,6 +51,7 @@ export function useProfile(userId: string | undefined) {
     void load();
     return () => {
       cancelled = true;
+      clearTimeout(timeout);
     };
   }, [userId]);
 

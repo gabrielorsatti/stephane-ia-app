@@ -11,6 +11,14 @@ export function useAuth() {
   useEffect(() => {
     if (!client) return;
     let cancelled = false;
+
+    const timeout = setTimeout(() => {
+      if (!cancelled && !ready) {
+        console.warn("[useAuth] Supabase timeout — forcing ready");
+        setReady(true);
+      }
+    }, 5000);
+
     client.auth.getUser().then(({ data }) => {
       if (cancelled) return;
       setUser(data.user ?? null);
@@ -24,6 +32,7 @@ export function useAuth() {
     });
     return () => {
       cancelled = true;
+      clearTimeout(timeout);
       sub.subscription.unsubscribe();
     };
   }, [client]);
