@@ -1,6 +1,3 @@
-// Petit client compatible OpenAI pour l'endpoint Llama 3.3 du Groupe GENES.
-// Aucune dépendance — un simple fetch suffit (l'API expose /chat/completions).
-
 export type ChatRole = "system" | "user" | "assistant";
 
 export interface ChatMessage {
@@ -12,6 +9,22 @@ export interface LLMConfig {
   apiKey: string;
   baseUrl: string;
   model: string;
+}
+
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  model: string;
+}
+
+export interface ChatCompletionResult {
+  content: string;
+  usage: TokenUsage;
+}
+
+// ~1 token ≈ 4 characters (conservative estimate for non-English text).
+export function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
 }
 
 export function getLLMConfig(): LLMConfig | null {
@@ -31,12 +44,18 @@ export interface ChatCompletionOptions {
   signal?: AbortSignal;
 }
 
-// Effectue un appel /chat/completions et retourne le texte de la 1ère réponse.
-// Lève une Error en cas d'échec HTTP ou de payload inattendu.
 export async function chatCompletion(
   messages: ChatMessage[],
   opts: ChatCompletionOptions = {},
 ): Promise<string> {
+  const result = await chatCompletionWithUsage(messages, opts);
+  return result.content;
+}
+
+export async function chatCompletionWithUsage(
+  messages: ChatMessage[],
+  opts: ChatCompletionOptions = {},
+): Promise<ChatCompletionResult> {
   const cfg = getLLMConfig();
   if (!cfg) {
     throw new Error(
@@ -62,14 +81,12 @@ export async function chatCompletion(
       signal: opts.signal,
     });
   } catch (e) {
-    console.error("[LLM] fetch failed", e);
     throw new Error(
-      `Réseau/CORS/SSL : impossible de joindre ${url} (${e instanceof Error ? e.message : "?"}). Vérifie que tu es sur le réseau GENES et que le certificat est accepté par ton navigateur.`,
+      `Réseau/CORS/SSL : impossible de joindre ${url} (${e instanceof Error ? e.message : "?"}).`,
     );
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    console.error("[LLM] HTTP error", res.status, text);
     throw new Error(`LLM HTTP ${res.status} — ${text.slice(0, 300)}`);
   }
   const json = await res.json();
@@ -79,10 +96,19 @@ export async function chatCompletion(
       `Réponse LLM inattendue : ${JSON.stringify(json).slice(0, 200)}`,
     );
   }
-  return content;
+
+  const apiUsage = json?.usage;
+  const inputTokens = apiUsage?.prompt_tokens
+    ?? estimateTokens(messages.map((m) => m.content).join(""));
+  const outputTokens = apiUsage?.completion_tokens
+    ?? estimateTokens(content);
+
+  return {
+    content,
+    usage: { inputTokens, outputTokens, model: cfg.model },
+  };
 }
 
-// Liste les modèles disponibles sur l'endpoint (utile pour debug 403/404 model not found).
 export async function listModels(): Promise<string[]> {
   const cfg = getLLMConfig();
   if (!cfg) throw new Error("LLM non configuré.");

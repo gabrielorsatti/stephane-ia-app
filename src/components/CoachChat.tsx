@@ -5,7 +5,7 @@ import remarkGfm from "remark-gfm";
 import type { ProgramTemplate } from "../data/programs";
 import { buildCoachContext } from "../lib/coachContext";
 import {
-  chatCompletion,
+  chatCompletionWithUsage,
   getLLMConfig,
   type ChatMessage,
 } from "../lib/llm";
@@ -13,6 +13,7 @@ import {
   extractRecommendation,
   type ProgramRecommendation,
 } from "../lib/recommendations";
+import { logUsage } from "../lib/usageLogger";
 import type {
   BodyWeightEntry,
   PersonalRecordOverride,
@@ -26,6 +27,7 @@ interface Props {
   overrides: PersonalRecordOverride[];
   programs: ProgramTemplate[];
   onApplyPrograms: (next: ProgramTemplate[]) => void;
+  userId?: string;
 }
 
 const SYSTEM_PROMPT = `Tu es un coach de musculation expert et bienveillant. Tu réponds toujours en français, de manière concise et concrète.
@@ -87,6 +89,7 @@ export function CoachChat({
   overrides,
   programs,
   onApplyPrograms,
+  userId,
 }: Props) {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState("");
@@ -136,13 +139,14 @@ export function CoachChat({
           content: m.content,
         })) as ChatMessage[],
       ];
-      const reply = await chatCompletion(llmMessages, { temperature: 0.4 });
-      const recommendation = extractRecommendation(reply) ?? undefined;
+      const result = await chatCompletionWithUsage(llmMessages, { temperature: 0.4 });
+      const recommendation = extractRecommendation(result.content) ?? undefined;
       setMessages([
         ...next,
-        { role: "assistant", content: reply, recommendation },
+        { role: "assistant", content: result.content, recommendation },
       ]);
       if (recommendation) setActiveRec(recommendation);
+      if (userId) void logUsage(userId, result.usage);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erreur inconnue";
       setError(msg);

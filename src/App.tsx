@@ -248,6 +248,7 @@ function AppInner() {
                   overrides={overrides}
                   programs={programs}
                   onApplyPrograms={replaceAllPrograms}
+                  userId={auth.user?.id}
                 />
               </FadeIn>
             )}
