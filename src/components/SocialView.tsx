@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import type { Friendship, Profile } from "../types";
 import { FriendProfile } from "./FriendProfile";
+import { UserBadge } from "./UserBadge";
 
 interface Props {
   userId: string;
@@ -93,11 +94,8 @@ export function SocialView({
       {/* Mon profil */}
       <div className="card">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-lg">
-            {profile.username[0].toUpperCase()}
-          </div>
+          <UserBadge username={profile.username} avatarUrl={profile.avatarUrl} size="lg" />
           <div>
-            <div className="font-semibold">@{profile.username}</div>
             <div className="text-xs text-text-muted">
               Membre depuis{" "}
               {new Date(profile.createdAt).toLocaleDateString("fr-FR", {
@@ -146,7 +144,7 @@ export function SocialView({
                   key={r.id}
                   className="flex items-center justify-between bg-bg-soft border border-border rounded-lg px-3 py-2"
                 >
-                  <span className="text-sm font-medium">@{r.username}</span>
+                  <UserBadge username={r.username} avatarUrl={r.avatarUrl} size="md" />
                   {existing ? (
                     <span className="text-xs text-text-muted capitalize">
                       {existing.status === "accepted"
@@ -189,9 +187,7 @@ export function SocialView({
                 key={f.id}
                 className="flex items-center justify-between bg-bg-soft border border-border rounded-lg px-3 py-2"
               >
-                <span className="text-sm">
-                  @{f.senderUsername ?? "?"}
-                </span>
+                <UserBadge username={f.senderUsername ?? "?"} avatarUrl={f.senderAvatarUrl} size="md" />
                 <div className="flex gap-1">
                   <button
                     className="btn-ghost text-xs text-green-400"
@@ -229,9 +225,7 @@ export function SocialView({
                 key={f.id}
                 className="flex items-center justify-between bg-bg-soft border border-border rounded-lg px-3 py-2"
               >
-                <span className="text-sm text-text-muted">
-                  @{f.receiverUsername ?? "?"}
-                </span>
+                <UserBadge username={f.receiverUsername ?? "?"} avatarUrl={f.receiverAvatarUrl} size="md" />
                 <span className="text-[11px] text-text-dim">En attente</span>
               </div>
             ))}
@@ -262,17 +256,20 @@ export function SocialView({
               const friendName = isSender
                 ? f.receiverUsername
                 : f.senderUsername;
+              const friendAvatar = isSender
+                ? f.receiverAvatarUrl
+                : f.senderAvatarUrl;
               return (
                 <div
                   key={f.id}
                   className="flex items-center justify-between bg-bg-soft border border-border rounded-lg px-3 py-2"
                 >
-                  <button
-                    className="text-sm font-medium hover:text-accent transition-colors"
+                  <UserBadge
+                    username={friendName ?? "?"}
+                    avatarUrl={friendAvatar}
+                    size="md"
                     onClick={() => setViewingFriend(friendId)}
-                  >
-                    @{friendName ?? "?"}
-                  </button>
+                  />
                   <button
                     className="btn-ghost text-xs text-text-dim hover:text-rose-400"
                     disabled={actionLoading === f.id}

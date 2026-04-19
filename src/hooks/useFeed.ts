@@ -67,6 +67,7 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
         id: c.id,
         userId: c.user_id,
         username: profileMap.get(c.user_id)?.username ?? "?",
+        avatarUrl: profileMap.get(c.user_id)?.avatarUrl,
         content: c.content,
         createdAt: c.created_at,
       });

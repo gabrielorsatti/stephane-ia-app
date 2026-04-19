@@ -11,6 +11,7 @@ import { NavCard } from "./NavCard";
 import { NotificationList } from "./NotificationList";
 import { SocialView } from "./SocialView";
 import { SlideBack, SlideIn } from "./Transition";
+import { UserBadge } from "./UserBadge";
 
 type View = "main" | "friends" | "admin" | "notifications";
 
@@ -111,15 +112,8 @@ export function CommunityHub({
         {/* Profile card with friend count */}
         <div className="card">
           <div className="flex items-center gap-3">
-            {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-lg">
-                {profile.username[0].toUpperCase()}
-              </div>
-            )}
+            <UserBadge username={profile.username} avatarUrl={profile.avatarUrl} size="lg" />
             <div className="flex-1 min-w-0">
-              <div className="font-semibold">@{profile.username}</div>
               <div className="text-xs text-text-muted">
                 {accepted.length} ami{accepted.length !== 1 ? "s" : ""}
                 {pendingReceived.length > 0 && (

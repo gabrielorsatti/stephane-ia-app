@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { getSupabase } from "../lib/supabase";
 import { useProfile } from "../hooks/useProfile";
 import { usePublicStats } from "../hooks/usePublicStats";
+import { UserBadge } from "./UserBadge";
 
 interface Props {
   userId: string;
@@ -56,11 +57,8 @@ export function FriendProfile({ userId }: Props) {
     <div className="space-y-4">
       <div className="card">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-xl">
-            {profile.username[0].toUpperCase()}
-          </div>
+          <UserBadge username={profile.username} avatarUrl={profile.avatarUrl} size="lg" />
           <div>
-            <div className="font-semibold text-lg">@{profile.username}</div>
             <div className="text-xs text-text-muted">
               Membre depuis {memberMonths} mois
             </div>

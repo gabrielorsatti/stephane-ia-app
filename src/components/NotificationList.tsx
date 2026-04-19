@@ -3,6 +3,7 @@ import { fr } from "date-fns/locale";
 import { Bell, MessageCircle, Zap } from "lucide-react";
 import type { AppNotification } from "../types";
 import { EmptyState } from "./EmptyState";
+import { UserBadge } from "./UserBadge";
 
 interface Props {
   notifications: AppNotification[];
@@ -49,14 +50,8 @@ export function NotificationList({ notifications, onMarkAllRead }: Props) {
             ].join(" ")}
           >
             <div className="relative shrink-0 mt-0.5">
-              {n.actorAvatarUrl ? (
-                <img src={n.actorAvatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-sm">
-                  {(n.actorUsername ?? "?")[0].toUpperCase()}
-                </div>
-              )}
-              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-bg-card flex items-center justify-center">
+              <UserBadge username={n.actorUsername ?? "?"} avatarUrl={n.actorAvatarUrl} size="md" />
+              <div className="absolute -bottom-0.5 right-0 w-4 h-4 rounded-full bg-bg-card flex items-center justify-center">
                 {n.type === "like" ? (
                   <Zap className="w-3 h-3 text-amber-400" />
                 ) : (
@@ -66,7 +61,6 @@ export function NotificationList({ notifications, onMarkAllRead }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs text-text">
-                <span className="font-semibold">@{n.actorUsername}</span>{" "}
                 {n.type === "like"
                   ? "a aimé ta séance"
                   : "a commenté ta séance"}

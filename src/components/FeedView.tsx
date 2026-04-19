@@ -6,6 +6,7 @@ import type { FeedComment, FeedPost } from "../types";
 import { groupExercises } from "../lib/groupExercises";
 import { sessionVolume } from "../lib/scoring";
 import { EmptyState } from "./EmptyState";
+import { UserBadge } from "./UserBadge";
 
 interface Props {
   posts: FeedPost[];
@@ -121,15 +122,8 @@ function FeedCard({
     <div className="card space-y-3 animate-fadeIn" style={style}>
       {/* Header */}
       <div className="flex items-center gap-3">
-        {authorAvatarUrl ? (
-          <img src={authorAvatarUrl} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-lg shrink-0">
-            {authorUsername[0].toUpperCase()}
-          </div>
-        )}
+        <UserBadge username={authorUsername} avatarUrl={authorAvatarUrl} size="lg" />
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold">@{authorUsername}</div>
           <div className="text-[11px] text-text-dim">{timeAgo}</div>
         </div>
         <div className="flex items-center gap-1 text-text-muted">
@@ -192,9 +186,9 @@ function FeedCard({
       {showComments && (
         <div className="space-y-2 pt-1">
           {localComments.map((c) => (
-            <div key={c.id} className="flex gap-2 text-xs">
-              <span className="font-semibold text-text shrink-0">@{c.username}</span>
-              <span className="text-text-muted">{c.content}</span>
+            <div key={c.id} className="flex items-start gap-2 text-xs">
+              <UserBadge username={c.username} avatarUrl={c.avatarUrl} size="sm" />
+              <span className="text-text-muted pt-0.5">{c.content}</span>
             </div>
           ))}
           <form

@@ -1,10 +1,12 @@
 import { Activity, DollarSign, Shield, Users, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getSupabase } from "../lib/supabase";
+import { UserBadge } from "./UserBadge";
 
 interface AdminUser {
   id: string;
   username: string;
+  avatarUrl?: string;
   createdAt: string;
   friendCount: number;
 }
@@ -12,6 +14,7 @@ interface AdminUser {
 interface UsageRow {
   userId: string;
   username: string;
+  avatarUrl?: string;
   requestCount: number;
   totalInputTokens: number;
   totalOutputTokens: number;
@@ -41,7 +44,7 @@ export function AdminPanel() {
     async function loadUsers() {
       const { data, error } = await client!
         .from("profiles")
-        .select("id, username, created_at")
+        .select("id, username, avatar_url, created_at")
         .order("created_at", { ascending: false });
       if (error) console.warn("[AdminPanel]", error);
 
@@ -60,6 +63,7 @@ export function AdminPanel() {
         (data ?? []).map((r) => ({
           id: r.id,
           username: r.username,
+          avatarUrl: r.avatar_url ?? undefined,
           createdAt: r.created_at,
           friendCount: friendCounts.get(r.id) ?? 0,
         })),
@@ -78,10 +82,10 @@ export function AdminPanel() {
       }
       const { data: profiles } = await client!
         .from("profiles")
-        .select("id, username");
+        .select("id, username, avatar_url");
 
-      const profileMap = new Map<string, string>();
-      for (const p of profiles ?? []) profileMap.set(p.id, p.username);
+      const profileMap = new Map<string, { username: string; avatarUrl?: string }>();
+      for (const p of profiles ?? []) profileMap.set(p.id, { username: p.username, avatarUrl: p.avatar_url ?? undefined });
 
       const agg = new Map<string, UsageRow>();
       for (const log of logs ?? []) {
@@ -95,7 +99,8 @@ export function AdminPanel() {
         } else {
           agg.set(uid, {
             userId: uid,
-            username: profileMap.get(uid) ?? uid.slice(0, 8),
+            username: profileMap.get(uid)?.username ?? uid.slice(0, 8),
+            avatarUrl: profileMap.get(uid)?.avatarUrl,
             requestCount: 1,
             totalInputTokens: log.input_tokens,
             totalOutputTokens: log.output_tokens,
@@ -147,13 +152,8 @@ export function AdminPanel() {
                 className="flex items-center justify-between bg-bg-soft border border-border rounded-lg px-3 py-2"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-sm shrink-0">
-                    {u.username[0].toUpperCase()}
-                  </div>
+                  <UserBadge username={u.username} avatarUrl={u.avatarUrl} size="md" />
                   <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">
-                      @{u.username}
-                    </div>
                     <div className="text-[11px] text-text-dim font-mono truncate">
                       {u.id}
                     </div>
@@ -244,7 +244,7 @@ export function AdminPanel() {
                           className={`border-b border-border/50 ${warn ? "text-rose-400" : ""}`}
                         >
                           <td className="py-1.5 pr-2 font-medium">
-                            @{r.username}
+                            <UserBadge username={r.username} avatarUrl={r.avatarUrl} size="sm" />
                           </td>
                           <td className="py-1.5 pr-2 text-right">
                             {r.requestCount}

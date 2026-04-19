@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "../lib/supabase";
 import type { Friendship, FriendshipStatus, Profile } from "../types";
 
-function extractUsername(val: unknown): string | undefined {
-  if (Array.isArray(val) && val.length > 0) return val[0]?.username;
-  if (val && typeof val === "object" && "username" in val)
-    return (val as { username: string }).username;
+function extractField(val: unknown, field: string): string | undefined {
+  if (Array.isArray(val) && val.length > 0) return val[0]?.[field] ?? undefined;
+  if (val && typeof val === "object" && field in val)
+    return (val as Record<string, string>)[field] ?? undefined;
   return undefined;
 }
 
@@ -24,8 +24,8 @@ export function useFriendships(userId: string | undefined) {
       .from("friendships")
       .select(
         `id, sender_id, receiver_id, status, created_at,
-         sender:profiles!friendships_sender_id_fkey(username),
-         receiver:profiles!friendships_receiver_id_fkey(username)`,
+         sender:profiles!friendships_sender_id_fkey(username, avatar_url),
+         receiver:profiles!friendships_receiver_id_fkey(username, avatar_url)`,
       )
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
     if (error) {
@@ -41,8 +41,10 @@ export function useFriendships(userId: string | undefined) {
           receiverId: r.receiver_id,
           status: r.status as FriendshipStatus,
           createdAt: r.created_at,
-          senderUsername: extractUsername(r.sender),
-          receiverUsername: extractUsername(r.receiver),
+          senderUsername: extractField(r.sender, "username"),
+          receiverUsername: extractField(r.receiver, "username"),
+          senderAvatarUrl: extractField(r.sender, "avatar_url"),
+          receiverAvatarUrl: extractField(r.receiver, "avatar_url"),
         }),
       ),
     );

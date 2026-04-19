@@ -72,6 +72,7 @@ export interface FeedComment {
   id: string;
   userId: string;
   username: string;
+  avatarUrl?: string;
   content: string;
   createdAt: string;
 }
@@ -138,9 +139,10 @@ export interface Friendship {
   receiverId: string;
   status: FriendshipStatus;
   createdAt: string;
-  // Résolu côté client pour affichage :
   senderUsername?: string;
   receiverUsername?: string;
+  senderAvatarUrl?: string;
+  receiverAvatarUrl?: string;
 }
 
 // ───────── Notifications ─────────
