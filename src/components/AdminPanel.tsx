@@ -6,6 +6,7 @@ interface AdminUser {
   id: string;
   username: string;
   createdAt: string;
+  friendCount: number;
 }
 
 interface UsageRow {
@@ -43,11 +44,24 @@ export function AdminPanel() {
         .select("id, username, created_at")
         .order("created_at", { ascending: false });
       if (error) console.warn("[AdminPanel]", error);
+
+      const { data: friendships } = await client!
+        .from("friendships")
+        .select("sender_id, receiver_id")
+        .eq("status", "accepted");
+
+      const friendCounts = new Map<string, number>();
+      for (const f of friendships ?? []) {
+        friendCounts.set(f.sender_id, (friendCounts.get(f.sender_id) ?? 0) + 1);
+        friendCounts.set(f.receiver_id, (friendCounts.get(f.receiver_id) ?? 0) + 1);
+      }
+
       setUsers(
         (data ?? []).map((r) => ({
           id: r.id,
           username: r.username,
           createdAt: r.created_at,
+          friendCount: friendCounts.get(r.id) ?? 0,
         })),
       );
       setLoading(false);
@@ -145,8 +159,13 @@ export function AdminPanel() {
                     </div>
                   </div>
                 </div>
-                <div className="text-xs text-text-muted shrink-0 ml-2">
-                  {new Date(u.createdAt).toLocaleDateString("fr-FR")}
+                <div className="flex items-center gap-3 shrink-0 ml-2">
+                  <span className="text-[11px] text-text-dim">
+                    {u.friendCount} ami{u.friendCount !== 1 ? "s" : ""}
+                  </span>
+                  <span className="text-xs text-text-muted">
+                    {new Date(u.createdAt).toLocaleDateString("fr-FR")}
+                  </span>
                 </div>
               </div>
             ))}

@@ -1,10 +1,11 @@
 import {
   BookOpen,
+  CheckCircle2,
   Dumbbell,
   History,
   TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ProgramTemplate } from "../data/programs";
 import type {
   PersonalRecordOverride,
@@ -19,6 +20,7 @@ import { NavCard } from "./NavCard";
 import { PersonalRecords } from "./PersonalRecords";
 import { ProgressionChart } from "./ProgressionChart";
 import { ProgramView } from "./ProgramView";
+import { PublishModal } from "./PublishModal";
 import { SessionInput } from "./SessionInput";
 import { SlideBack, SlideIn } from "./Transition";
 
@@ -52,9 +54,25 @@ export function TrainingHub({
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [publishSessionId, setPublishSessionId] = useState<string | null>(null);
 
   const editingSession = editingId
     ? sessions.find((s) => s.id === editingId)
+    : undefined;
+
+  const MERGE_WINDOW_MS = 3 * 60 * 60 * 1000;
+  const activeSession = useMemo(() => {
+    const now = Date.now();
+    const today = new Date().toISOString().slice(0, 10);
+    return sessions.find((s) => {
+      if (s.date !== today) return false;
+      const created = s.createdAt ? new Date(s.createdAt).getTime() : parseInt(s.id, 10);
+      return !isNaN(created) && now - created < MERGE_WINDOW_MS && !s.isPublished;
+    });
+  }, [sessions]);
+
+  const publishSession = publishSessionId
+    ? sessions.find((s) => s.id === publishSessionId)
     : undefined;
 
   function goTo(v: View) {
@@ -92,6 +110,25 @@ export function TrainingHub({
   async function requestCommentary(sessionId: string, session: Session) {
     const commentary = await generateSessionCommentary(session, programs, userId);
     if (commentary) updateSession(sessionId, { coachCommentary: commentary });
+  }
+
+  function finishSession() {
+    if (!activeSession) return;
+    setPublishSessionId(activeSession.id);
+  }
+
+  function handlePublish(userComment: string) {
+    if (!publishSessionId) return;
+    updateSession(publishSessionId, {
+      isPublished: true,
+      userComment: userComment || undefined,
+      publishedAt: new Date().toISOString(),
+    });
+    setPublishSessionId(null);
+  }
+
+  function handleKeepPrivate() {
+    setPublishSessionId(null);
   }
 
   function fillFromProgram(text: string) {
@@ -175,6 +212,15 @@ export function TrainingHub({
           }}
         />
 
+        {activeSession && (
+          <button
+            className="w-full btn-primary !py-3 text-base font-semibold"
+            onClick={finishSession}
+          >
+            <CheckCircle2 className="w-5 h-5" /> Terminer ma séance
+          </button>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <NavCard
             icon={History}
@@ -202,6 +248,15 @@ export function TrainingHub({
           />
         </div>
       </div>
+
+      {publishSession && (
+        <PublishModal
+          session={publishSession}
+          onPublish={handlePublish}
+          onKeepPrivate={handleKeepPrivate}
+          onClose={() => setPublishSessionId(null)}
+        />
+      )}
     </Wrap>
   );
 }

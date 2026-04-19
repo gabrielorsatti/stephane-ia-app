@@ -1,13 +1,15 @@
-import { Shield } from "lucide-react";
-import { useState } from "react";
+import { Rss, Shield, Users } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useFeed } from "../hooks/useFeed";
 import type { Friendship, Profile } from "../types";
 import { AdminPanel } from "./AdminPanel";
+import { FeedView } from "./FeedView";
 import { HubHeader } from "./HubHeader";
 import { NavCard } from "./NavCard";
 import { SocialView } from "./SocialView";
 import { SlideBack, SlideIn } from "./Transition";
 
-type View = "main" | "admin";
+type View = "main" | "friends" | "admin";
 
 interface Props {
   userId: string;
@@ -39,6 +41,12 @@ export function CommunityHub({
   const [view, setView] = useState<View>("main");
   const [direction, setDirection] = useState<"forward" | "back">("forward");
 
+  const friendIds = useMemo(
+    () => accepted.map((f) => (f.senderId === userId ? f.receiverId : f.senderId)),
+    [accepted, userId],
+  );
+  const { posts, loading: feedLoading } = useFeed(userId, friendIds);
+
   function goTo(v: View) {
     setDirection("forward");
     setView(v);
@@ -51,18 +59,10 @@ export function CommunityHub({
 
   const Wrap = direction === "forward" ? SlideIn : SlideBack;
 
-  if (view === "admin" && isAdmin) {
+  if (view === "friends") {
     return (
-      <Wrap id="community-admin">
-        <HubHeader title="Retour à Communauté" onBack={goBack} />
-        <AdminPanel />
-      </Wrap>
-    );
-  }
-
-  return (
-    <Wrap id="community-main">
-      <div className="space-y-4">
+      <Wrap id="community-friends">
+        <HubHeader title="Retour au flux" onBack={goBack} />
         <SocialView
           userId={userId}
           profile={profile}
@@ -75,14 +75,66 @@ export function CommunityHub({
           onReject={onReject}
           onRemove={onRemove}
         />
-        {isAdmin && (
+      </Wrap>
+    );
+  }
+
+  if (view === "admin" && isAdmin) {
+    return (
+      <Wrap id="community-admin">
+        <HubHeader title="Retour au flux" onBack={goBack} />
+        <AdminPanel />
+      </Wrap>
+    );
+  }
+
+  return (
+    <Wrap id="community-main">
+      <div className="space-y-4">
+        {/* Profile card with friend count */}
+        <div className="card">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center font-bold text-lg">
+              {profile.username[0].toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold">@{profile.username}</div>
+              <div className="text-xs text-text-muted">
+                {accepted.length} ami{accepted.length !== 1 ? "s" : ""}
+                {pendingReceived.length > 0 && (
+                  <span className="text-amber-400 ml-1.5">
+                    · {pendingReceived.length} demande{pendingReceived.length > 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab bar: Feed / Friends / Admin */}
+        <div className="flex gap-2">
           <NavCard
-            icon={Shield}
-            label="Administration"
-            description="Gestion des utilisateurs"
-            onClick={() => goTo("admin")}
+            icon={Users}
+            label={`Amis (${accepted.length})`}
+            description="Gérer tes amis et demandes"
+            onClick={() => goTo("friends")}
           />
-        )}
+          {isAdmin && (
+            <NavCard
+              icon={Shield}
+              label="Administration"
+              description="Gestion des utilisateurs"
+              onClick={() => goTo("admin")}
+            />
+          )}
+        </div>
+
+        {/* Feed */}
+        <div className="flex items-center gap-2 mb-1">
+          <Rss className="w-4 h-4 text-accent" />
+          <h3 className="text-sm font-semibold">Flux d'activité</h3>
+        </div>
+        <FeedView posts={posts} loading={feedLoading} />
       </div>
     </Wrap>
   );

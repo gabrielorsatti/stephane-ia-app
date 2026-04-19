@@ -1,4 +1,6 @@
-import { Activity, Calendar, Dumbbell, Trophy } from "lucide-react";
+import { Activity, Calendar, Dumbbell, Trophy, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getSupabase } from "../lib/supabase";
 import { useProfile } from "../hooks/useProfile";
 import { usePublicStats } from "../hooks/usePublicStats";
 
@@ -6,9 +8,25 @@ interface Props {
   userId: string;
 }
 
+function useFriendCount(userId: string): number {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const client = getSupabase();
+    if (!client) return;
+    void client
+      .from("friendships")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "accepted")
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+      .then(({ count: c }) => setCount(c ?? 0));
+  }, [userId]);
+  return count;
+}
+
 export function FriendProfile({ userId }: Props) {
   const { profile, loading: pLoading } = useProfile(userId);
   const { stats, loading: sLoading } = usePublicStats(userId);
+  const friendCount = useFriendCount(userId);
 
   if (pLoading || sLoading) {
     return (
@@ -49,7 +67,7 @@ export function FriendProfile({ userId }: Props) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <StatCard
             icon={<Calendar className="w-4 h-4" />}
             label="Séances"
@@ -59,6 +77,11 @@ export function FriendProfile({ userId }: Props) {
             icon={<Dumbbell className="w-4 h-4" />}
             label="Volume total"
             value={formatVolume(stats.totalVolume)}
+          />
+          <StatCard
+            icon={<Users className="w-4 h-4" />}
+            label="Amis"
+            value={String(friendCount)}
           />
         </div>
       </div>

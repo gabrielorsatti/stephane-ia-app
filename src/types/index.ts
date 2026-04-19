@@ -53,6 +53,15 @@ export interface Session {
   bodyWeight?: number;
   createdAt?: string; // ISO timestamp — used for smart session merging
   coachCommentary?: string;
+  isPublished?: boolean;
+  userComment?: string;
+  publishedAt?: string; // ISO timestamp
+}
+
+export interface FeedPost {
+  session: Session;
+  authorId: string;
+  authorUsername: string;
 }
 
 export interface BodyWeightEntry {
