@@ -11,6 +11,19 @@ export function useSocialInteractions(userId: string | undefined) {
         await client.from("likes").delete().match({ session_id: sessionId, user_id: userId });
       } else {
         await client.from("likes").insert({ session_id: sessionId, user_id: userId });
+        const { data: session } = await client
+          .from("sessions")
+          .select("user_id")
+          .eq("id", sessionId)
+          .single();
+        if (session && session.user_id !== userId) {
+          await client.from("notifications").insert({
+            user_id: session.user_id,
+            actor_id: userId,
+            type: "like",
+            session_id: sessionId,
+          });
+        }
       }
     },
     [userId],
@@ -26,6 +39,19 @@ export function useSocialInteractions(userId: string | undefined) {
         user_id: userId,
         content: content.trim(),
       });
+      const { data: session } = await client
+        .from("sessions")
+        .select("user_id")
+        .eq("id", sessionId)
+        .single();
+      if (session && session.user_id !== userId) {
+        await client.from("notifications").insert({
+          user_id: session.user_id,
+          actor_id: userId,
+          type: "comment",
+          session_id: sessionId,
+        });
+      }
     },
     [userId],
   );

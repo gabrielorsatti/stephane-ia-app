@@ -1,16 +1,18 @@
-import { Rss, Shield, Users } from "lucide-react";
+import { Bell, Rss, Shield, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFeed } from "../hooks/useFeed";
+import { useNotifications } from "../hooks/useNotifications";
 import { useSocialInteractions } from "../hooks/useSocialInteractions";
 import type { Friendship, Profile } from "../types";
 import { AdminPanel } from "./AdminPanel";
 import { FeedView } from "./FeedView";
 import { HubHeader } from "./HubHeader";
 import { NavCard } from "./NavCard";
+import { NotificationList } from "./NotificationList";
 import { SocialView } from "./SocialView";
 import { SlideBack, SlideIn } from "./Transition";
 
-type View = "main" | "friends" | "admin";
+type View = "main" | "friends" | "admin" | "notifications";
 
 interface Props {
   userId: string;
@@ -48,6 +50,7 @@ export function CommunityHub({
   );
   const { posts, loading: feedLoading } = useFeed(userId, friendIds);
   const { toggleLike, addComment } = useSocialInteractions(userId);
+  const { notifications, unreadCount, markAllRead } = useNotifications(userId);
 
   function goTo(v: View) {
     setDirection("forward");
@@ -60,6 +63,18 @@ export function CommunityHub({
   }
 
   const Wrap = direction === "forward" ? SlideIn : SlideBack;
+
+  if (view === "notifications") {
+    return (
+      <Wrap id="community-notifications">
+        <HubHeader title="Retour au flux" onBack={goBack} />
+        <NotificationList
+          notifications={notifications}
+          onMarkAllRead={() => void markAllRead()}
+        />
+      </Wrap>
+    );
+  }
 
   if (view === "friends") {
     return (
@@ -121,6 +136,19 @@ export function CommunityHub({
             description="Gérer tes amis et demandes"
             onClick={() => goTo("friends")}
           />
+          <div className="relative">
+            <NavCard
+              icon={Bell}
+              label="Notifications"
+              description="Réactions à tes séances"
+              onClick={() => goTo("notifications")}
+            />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </div>
           {isAdmin && (
             <NavCard
               icon={Shield}

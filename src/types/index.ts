@@ -142,6 +142,21 @@ export interface Friendship {
   receiverUsername?: string;
 }
 
+// ───────── Notifications ─────────
+
+export type NotificationType = "like" | "comment";
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  actorId: string;
+  actorUsername?: string;
+  type: NotificationType;
+  sessionId: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 export interface PublicStats {
   totalSessions: number;
   totalVolume: number;

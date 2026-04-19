@@ -31,6 +31,7 @@ const CommunityHub = lazy(() => import("./components/CommunityHub").then(m => ({
 import { useAuth } from "./hooks/useAuth";
 import { useBodyWeight } from "./hooks/useBodyWeight";
 import { useFriendships } from "./hooks/useFriendships";
+import { useNotifications } from "./hooks/useNotifications";
 import { useGyms } from "./hooks/useGyms";
 import { useOccupancyFeedback } from "./hooks/useOccupancyFeedback";
 import { useProfile } from "./hooks/useProfile";
@@ -103,6 +104,8 @@ function AppInner() {
     remove: removeFriend,
     searchUser,
   } = useFriendships(auth.user?.id);
+
+  const { unreadCount: notifCount } = useNotifications(auth.user?.id);
 
   const isAdmin =
     auth.user?.id === ADMIN_UID || (profile?.isAdmin ?? false);
@@ -182,7 +185,7 @@ function AppInner() {
       </header>
 
       <div className="flex">
-        <Sidebar active={hub} onChange={navigate} />
+        <Sidebar active={hub} onChange={navigate} notifCount={notifCount} />
 
         <main className="flex-1 max-w-5xl mx-auto px-4 py-6 space-y-6 min-w-0">
           <Onboarding />
@@ -300,7 +303,7 @@ function AppInner() {
         </main>
       </div>
 
-      <MobileBottomNav active={hub} onChange={navigate} />
+      <MobileBottomNav active={hub} onChange={navigate} notifCount={notifCount} />
 
       <OfflineBadge />
       <UpdateToast />

@@ -8,18 +8,19 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
 
   const load = useCallback(async () => {
     const client = getSupabase();
-    if (!client || !userId || friendIds.length === 0) {
+    if (!client || !userId) {
       setPosts([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
+    const allAuthors = [...new Set([userId, ...friendIds])];
     const { data, error } = await client
       .from("sessions")
       .select("id, user_id, date, exercices, notes, body_weight, created_at, is_published, user_comment, published_at")
       .eq("is_published", true)
-      .in("user_id", friendIds)
+      .in("user_id", allAuthors)
       .order("published_at", { ascending: false })
       .limit(30);
 

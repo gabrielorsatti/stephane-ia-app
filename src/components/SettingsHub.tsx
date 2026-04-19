@@ -331,11 +331,11 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between gap-3 px-4 py-3">
-      <div className="flex items-center gap-3 text-text-muted">
-        {icon}
-        <span className="text-sm text-text">{label}</span>
+      <div className="flex items-center gap-3 text-text-muted min-w-0 shrink">
+        <span className="shrink-0">{icon}</span>
+        <span className="text-sm text-text truncate">{label}</span>
       </div>
-      <div className="shrink-0">{action}</div>
+      <div className="shrink-0 max-w-[55%]">{action}</div>
     </div>
   );
 }
