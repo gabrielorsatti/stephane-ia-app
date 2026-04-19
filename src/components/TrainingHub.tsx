@@ -28,7 +28,7 @@ type View = "main" | "history" | "exercises" | "programs" | "progression";
 
 interface Props {
   sessions: Session[];
-  addSession: (s: Omit<Session, "id">) => { id: string; merged: boolean };
+  addSession: (s: Omit<Session, "id">) => { id: string; merged: boolean; session: Session };
   updateSession: (id: string, patch: Partial<Session>) => void;
   removeSession: (id: string) => void;
   overrides: PersonalRecordOverride[];
@@ -99,8 +99,8 @@ export function TrainingHub({
       setPrefillVersion((v) => v + 1);
       void requestCommentary(editingId, { ...session, id: editingId });
     } else {
-      const { id } = addSession(session);
-      void requestCommentary(id, { ...session, id });
+      const result = addSession(session);
+      void requestCommentary(result.id, result.session);
     }
   }
 

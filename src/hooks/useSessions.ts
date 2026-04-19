@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { maybeAutoBackup } from "../lib/backup";
 import { getAdapter, makeId } from "../lib/storage";
 import type { Session } from "../types";
@@ -14,6 +14,7 @@ function getSessionCreatedAt(s: Session): number {
 export function useSessions() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [ready, setReady] = useState(false);
+  const ref = useRef(sessions);
 
   useEffect(() => {
     let cancelled = false;
@@ -23,7 +24,9 @@ export function useSessions() {
         .getSessions()
         .then((s) => {
           if (cancelled) return;
-          setSessions(sortByDateDesc(s));
+          const sorted = sortByDateDesc(s);
+          ref.current = sorted;
+          setSessions(sorted);
           setReady(true);
         })
         .catch(() => {
@@ -40,6 +43,7 @@ export function useSessions() {
 
   const persist = useCallback((next: Session[]) => {
     const sorted = sortByDateDesc(next);
+    ref.current = sorted;
     setSessions(sorted);
     const adapter = getAdapter();
     void adapter.saveSessions(sorted);
@@ -47,9 +51,10 @@ export function useSessions() {
   }, []);
 
   const addSession = useCallback(
-    (session: Omit<Session, "id">): { id: string; merged: boolean } => {
+    (session: Omit<Session, "id">): { id: string; merged: boolean; session: Session } => {
+      const current = ref.current;
       const now = Date.now();
-      const candidate = sessions.find(
+      const candidate = current.find(
         (s) =>
           s.date === session.date &&
           now - getSessionCreatedAt(s) < MERGE_WINDOW_MS,
@@ -63,32 +68,32 @@ export function useSessions() {
           bodyWeight: session.bodyWeight ?? candidate.bodyWeight,
           coachCommentary: undefined,
         };
-        persist(sessions.map((s) => (s.id === candidate.id ? merged : s)));
-        return { id: candidate.id, merged: true };
+        persist(current.map((s) => (s.id === candidate.id ? merged : s)));
+        return { id: candidate.id, merged: true, session: merged };
       }
 
       const id = makeId();
-      const now_iso = new Date().toISOString();
-      persist([...sessions, { ...session, id, createdAt: now_iso }]);
-      return { id, merged: false };
+      const created: Session = { ...session, id, createdAt: new Date().toISOString() };
+      persist([...current, created]);
+      return { id, merged: false, session: created };
     },
-    [persist, sessions],
+    [persist],
   );
 
   const updateSession = useCallback(
     (id: string, patch: Partial<Session>) => {
       persist(
-        sessions.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+        ref.current.map((s) => (s.id === id ? { ...s, ...patch } : s)),
       );
     },
-    [persist, sessions],
+    [persist],
   );
 
   const removeSession = useCallback(
     (id: string) => {
-      persist(sessions.filter((s) => s.id !== id));
+      persist(ref.current.filter((s) => s.id !== id));
     },
-    [persist, sessions],
+    [persist],
   );
 
   const replaceAll = useCallback(
