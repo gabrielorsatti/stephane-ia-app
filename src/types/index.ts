@@ -62,6 +62,17 @@ export interface FeedPost {
   session: Session;
   authorId: string;
   authorUsername: string;
+  likeCount: number;
+  likedByMe: boolean;
+  comments: FeedComment[];
+}
+
+export interface FeedComment {
+  id: string;
+  userId: string;
+  username: string;
+  content: string;
+  createdAt: string;
 }
 
 export interface BodyWeightEntry {

@@ -69,8 +69,8 @@ export function Onboarding() {
             allure, durée).
           </Step>
 
-          <Step icon={<Bot className="w-4 h-4" />} title="Coach IA">
-            Onglet <strong>Coach</strong> : l'IA analyse tes performances,
+          <Step icon={<Bot className="w-4 h-4" />} title="Stéphane">
+            Onglet <strong>Coach</strong> : Stéphane analyse tes performances,
             suggère des charges et peut même générer un programme sur mesure.
           </Step>
         </div>

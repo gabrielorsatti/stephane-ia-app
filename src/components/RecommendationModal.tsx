@@ -57,7 +57,7 @@ export function RecommendationModal({
       >
         <div className="flex items-center justify-between p-4 border-b border-border sticky top-0 bg-bg-card">
           <h3 className="font-semibold text-sm">
-            Recommandations du Coach IA
+            Recommandations de Stéphane
           </h3>
           <button
             className="btn-ghost !p-1.5"

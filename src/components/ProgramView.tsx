@@ -48,7 +48,7 @@ export function ProgramView({ onFillInput }: Props) {
         {programs.length === 0 ? (
           <div className="text-sm text-text-dim py-4 text-center">
             Aucun programme défini. Clique sur <strong>Nouveau</strong> pour en
-            créer un, ou demande au Coach IA d'en générer un.
+            créer un, ou demande à Stéphane d'en générer un.
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">

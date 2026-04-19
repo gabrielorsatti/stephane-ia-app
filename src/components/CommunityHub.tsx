@@ -1,6 +1,7 @@
 import { Rss, Shield, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useFeed } from "../hooks/useFeed";
+import { useSocialInteractions } from "../hooks/useSocialInteractions";
 import type { Friendship, Profile } from "../types";
 import { AdminPanel } from "./AdminPanel";
 import { FeedView } from "./FeedView";
@@ -46,6 +47,7 @@ export function CommunityHub({
     [accepted, userId],
   );
   const { posts, loading: feedLoading } = useFeed(userId, friendIds);
+  const { toggleLike, addComment } = useSocialInteractions(userId);
 
   function goTo(v: View) {
     setDirection("forward");
@@ -134,7 +136,12 @@ export function CommunityHub({
           <Rss className="w-4 h-4 text-accent" />
           <h3 className="text-sm font-semibold">Flux d'activité</h3>
         </div>
-        <FeedView posts={posts} loading={feedLoading} />
+        <FeedView
+          posts={posts}
+          loading={feedLoading}
+          onToggleLike={toggleLike}
+          onAddComment={addComment}
+        />
       </div>
     </Wrap>
   );

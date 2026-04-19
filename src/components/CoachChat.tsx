@@ -112,7 +112,7 @@ export function CoachChat({
     if (!userText.trim()) return;
     if (!config) {
       setError(
-        "Coach IA non configuré : ajoute VITE_LLM_API_KEY dans .env puis redémarre `npm run dev` (les variables Vite ne sont lues qu'au démarrage).",
+        "Stéphane n'est pas configuré : ajoute VITE_LLM_API_KEY dans .env puis redémarre `npm run dev` (les variables Vite ne sont lues qu'au démarrage).",
       );
       return;
     }
@@ -170,12 +170,10 @@ export function CoachChat({
         <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-accent" />
-            <h3 className="text-sm font-semibold">Coach IA</h3>
-            {config && (
-              <span className="text-[10px] text-text-dim font-mono">
-                {config.model}
-              </span>
-            )}
+            <div>
+              <h3 className="text-sm font-semibold">Stéphane</h3>
+              <p className="text-[10px] text-text-dim">Votre coach personnel propulsé par l'IA</p>
+            </div>
           </div>
           <div className="flex gap-2 flex-wrap">
             <button
