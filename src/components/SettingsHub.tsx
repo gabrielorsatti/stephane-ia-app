@@ -2,7 +2,9 @@ import {
   Check,
   Download,
   ExternalLink,
+  FileText,
   Info,
+  Lock,
   LogOut,
   Moon,
   Pencil,
@@ -255,6 +257,28 @@ export function SettingsHub({
             >
               GitHub
             </a>
+          }
+        />
+      </Section>
+
+      {/* Légal */}
+      <Section title="Légal">
+        <Row
+          icon={<Lock className="w-5 h-5" />}
+          label="Confidentialité"
+          action={
+            <span className="text-xs text-text-dim max-w-[200px] text-right">
+              Données chiffrées, isolation RLS par utilisateur.
+            </span>
+          }
+        />
+        <Row
+          icon={<FileText className="w-5 h-5" />}
+          label="Données personnelles"
+          action={
+            <span className="text-xs text-text-dim max-w-[200px] text-right">
+              Aucune donnée n'est partagée ni vendue à des tiers.
+            </span>
           }
         />
       </Section>

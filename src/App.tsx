@@ -1,29 +1,33 @@
 import { Settings } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { ADMIN_UID } from "./components/AdminPanel";
 import { AuthGate } from "./components/AuthGate";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { OfflineBadge } from "./components/OfflineBadge";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { FadeIn } from "./components/Transition";
 import { CalendarView } from "./components/CalendarView";
 import { CardioStatsCard } from "./components/CardioStatsCard";
 import { CategoryChart } from "./components/CategoryChart";
-import { CoachChat } from "./components/CoachChat";
-import { CommunityHub } from "./components/CommunityHub";
 import { CrowdCheckPrompt } from "./components/CrowdCheckPrompt";
 import type { Hub } from "./components/hubTypes";
 import { Logo } from "./components/Logo";
 import { MobileBottomNav } from "./components/MobileBottomNav";
-import { NutritionHub } from "./components/NutritionHub";
 import { OccupancyChart } from "./components/OccupancyChart";
 import { Onboarding } from "./components/Onboarding";
 import { ProfileSetup } from "./components/ProfileSetup";
 import { SettingsHub } from "./components/SettingsHub";
 import { Sidebar } from "./components/Sidebar";
+import { SkeletonCard } from "./components/Skeleton";
 import { SplashScreen } from "./components/SplashScreen";
 import { StatsCards } from "./components/StatsCards";
-import { TrainingHub } from "./components/TrainingHub";
 import { UpdateToast } from "./components/UpdateToast";
 import { VolumeChart } from "./components/VolumeChart";
+
+const TrainingHub = lazy(() => import("./components/TrainingHub").then(m => ({ default: m.TrainingHub })));
+const NutritionHub = lazy(() => import("./components/NutritionHub").then(m => ({ default: m.NutritionHub })));
+const CoachChat = lazy(() => import("./components/CoachChat").then(m => ({ default: m.CoachChat })));
+const CommunityHub = lazy(() => import("./components/CommunityHub").then(m => ({ default: m.CommunityHub })));
 import { useAuth } from "./hooks/useAuth";
 import { useBodyWeight } from "./hooks/useBodyWeight";
 import { useFriendships } from "./hooks/useFriendships";
@@ -40,9 +44,11 @@ import { getSupabase } from "./lib/supabase";
 
 export default function App() {
   return (
-    <AuthGate>
-      <AppInner />
-    </AuthGate>
+    <ErrorBoundary>
+      <AuthGate>
+        <AppInner />
+      </AuthGate>
+    </ErrorBoundary>
   );
 }
 
@@ -210,58 +216,60 @@ function AppInner() {
             </FadeIn>
           )}
 
-          {hub === "training" && (
-            <FadeIn id="training">
-              <TrainingHub
-                sessions={sessions}
-                addSession={handleAddSession}
-                updateSession={updateSession}
-                removeSession={removeSession}
-                overrides={overrides}
-                upsertOverride={upsertOverride}
-                removeOverride={removeOverride}
-              />
-            </FadeIn>
-          )}
+          <Suspense fallback={<SkeletonCard />}>
+            {hub === "training" && (
+              <FadeIn id="training">
+                <TrainingHub
+                  sessions={sessions}
+                  addSession={handleAddSession}
+                  updateSession={updateSession}
+                  removeSession={removeSession}
+                  overrides={overrides}
+                  upsertOverride={upsertOverride}
+                  removeOverride={removeOverride}
+                />
+              </FadeIn>
+            )}
 
-          {hub === "nutrition" && (
-            <FadeIn id="nutrition">
-              <NutritionHub
-                bodyWeightEntries={entries}
-                onAddBodyWeight={addEntry}
-              />
-            </FadeIn>
-          )}
+            {hub === "nutrition" && (
+              <FadeIn id="nutrition">
+                <NutritionHub
+                  bodyWeightEntries={entries}
+                  onAddBodyWeight={addEntry}
+                />
+              </FadeIn>
+            )}
 
-          {hub === "coach" && (
-            <FadeIn id="coach">
-              <CoachChat
-                sessions={sessions}
-                bodyWeights={entries}
-                overrides={overrides}
-                programs={programs}
-                onApplyPrograms={replaceAllPrograms}
-              />
-            </FadeIn>
-          )}
+            {hub === "coach" && (
+              <FadeIn id="coach">
+                <CoachChat
+                  sessions={sessions}
+                  bodyWeights={entries}
+                  overrides={overrides}
+                  programs={programs}
+                  onApplyPrograms={replaceAllPrograms}
+                />
+              </FadeIn>
+            )}
 
-          {hub === "community" && auth.user && profile && (
-            <FadeIn id="community">
-              <CommunityHub
-                userId={auth.user.id}
-                profile={profile}
-                isAdmin={isAdmin}
-                accepted={accepted}
-                pendingReceived={pendingReceived}
-                pendingSent={pendingSent}
-                onSearch={searchUser}
-                onSendRequest={sendRequest}
-                onAccept={accept}
-                onReject={reject}
-                onRemove={removeFriend}
-              />
-            </FadeIn>
-          )}
+            {hub === "community" && auth.user && profile && (
+              <FadeIn id="community">
+                <CommunityHub
+                  userId={auth.user.id}
+                  profile={profile}
+                  isAdmin={isAdmin}
+                  accepted={accepted}
+                  pendingReceived={pendingReceived}
+                  pendingSent={pendingSent}
+                  onSearch={searchUser}
+                  onSendRequest={sendRequest}
+                  onAccept={accept}
+                  onReject={reject}
+                  onRemove={removeFriend}
+                />
+              </FadeIn>
+            )}
+          </Suspense>
 
           {hub === "settings" && (
             <FadeIn id="settings">
@@ -290,6 +298,7 @@ function AppInner() {
 
       <MobileBottomNav active={hub} onChange={navigate} />
 
+      <OfflineBadge />
       <UpdateToast />
 
       <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-text-dim space-y-1">

@@ -248,9 +248,12 @@ export function SocialView({
           </h3>
         </div>
         {accepted.length === 0 ? (
-          <p className="text-xs text-text-dim">
-            Aucun ami pour le moment. Recherche un pseudo ci-dessus.
-          </p>
+          <div className="flex flex-col items-center gap-2 py-6 text-center">
+            <Users className="w-8 h-8 text-text-dim opacity-50" />
+            <p className="text-xs text-text-dim">
+              Aucun ami pour le moment. Recherche un pseudo ci-dessus pour commencer.
+            </p>
+          </div>
         ) : (
           <div className="space-y-2">
             {accepted.map((f) => {

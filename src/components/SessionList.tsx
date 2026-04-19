@@ -1,8 +1,9 @@
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Pencil, Trash2 } from "lucide-react";
+import { Dumbbell, Pencil, Trash2 } from "lucide-react";
 import type { Session } from "../types";
 import { sessionScore, sessionVolume } from "../lib/scoring";
+import { EmptyState } from "./EmptyState";
 
 interface Props {
   sessions: Session[];
@@ -14,9 +15,11 @@ interface Props {
 export function SessionList({ sessions, onRemove, onEdit }: Props) {
   if (sessions.length === 0) {
     return (
-      <div className="card text-center text-text-dim text-sm py-10">
-        Aucune séance enregistrée pour le moment.
-      </div>
+      <EmptyState
+        icon={Dumbbell}
+        title="Aucune séance enregistrée"
+        description="C'est le moment de s'y mettre ! Enregistre ta première séance depuis l'onglet Training."
+      />
     );
   }
   return (

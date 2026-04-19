@@ -50,7 +50,6 @@ export async function chatCompletion(
     temperature: opts.temperature ?? 0.4,
     max_tokens: opts.maxTokens ?? 1500,
   };
-  console.debug("[LLM] →", url, { model: cfg.model, msgCount: messages.length });
   let res: Response;
   try {
     res = await fetch(url, {
@@ -74,7 +73,6 @@ export async function chatCompletion(
     throw new Error(`LLM HTTP ${res.status} — ${text.slice(0, 300)}`);
   }
   const json = await res.json();
-  console.debug("[LLM] ←", json);
   const content = json?.choices?.[0]?.message?.content;
   if (typeof content !== "string") {
     throw new Error(
