@@ -61,7 +61,7 @@ export function useAuth() {
   async function resetPasswordForEmail(email: string): Promise<void> {
     if (!client) throw new Error("Supabase non configuré");
     const { error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
+      redirectTo: "https://gabrielorsatti.github.io/Personnal-gym-tracker/",
     });
     if (error) throw error;
   }
