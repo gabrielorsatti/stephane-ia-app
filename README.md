@@ -1,243 +1,115 @@
-# Personal Gym Tracker
+<p align="center">
+  <img src="public/icon.svg" width="80" alt="Gym Track" />
+</p>
 
-> Ton compagnon de sport complet : musculation, cardio, nutrition, coaching IA
-> et réseau social fitness — le tout dans une seule app, sur mobile comme sur
-> desktop.
+<h1 align="center">Gym Track</h1>
 
-Application développée par **Gabriel Orsatti**.
+<p align="center">
+  <strong>L'app fitness Social-First propulsée par l'IA.</strong><br/>
+  Suis ta progression, partage tes performances, et reçois les conseils de <strong>Stéphane</strong>, ton coach IA personnel.
+</p>
 
----
-
-## Pour qui ?
-
-Personal Gym Tracker est un compagnon de sport complet pensé pour les gens qui
-s'entraînent sérieusement mais qui n'ont pas envie de se battre avec une app.
-Tu décris ta séance en français (« 4x10 squat 100kg, puis tractions 3x8 +10 »)
-et l'**IA intégrée** la convertit en séries structurées — plus besoin de taper
-case par case. Même chose côté **alimentation** : tu écris « 150g de poulet,
-riz, brocolis » et l'IA estime calories et macros automatiquement.
-
-Côté suivi, tu retrouves tes **graphiques de progression** (volume, records,
-allure cardio, macros sur 14 jours), un **calendrier** de tes séances et
-**Stéphane**, ton **coach IA personnel** qui lit tes dernières performances
-pour t'aider à ajuster tes charges, suggérer un programme ou débloquer un
-plateau.
-
-L'aspect **social** est au cœur de l'expérience : publie tes séances sur un
-**flux d'activité type Strava**, envoie des **Kudos** (likes), commente les
-performances de tes amis et suis tes **notifications** en temps réel. Chaque
-utilisateur dispose d'un **profil avec photo** visible partout dans l'app.
-
-L'app est **gratuite, sans publicité**, et tes données sont **chiffrées et
-synchronisées via Supabase** — accessibles depuis n'importe quel appareil,
-installables comme une application native (PWA) sur iPhone et Android, et
-protégées par une authentification sécurisée par e-mail.
+<p align="center">
+  <a href="https://gabrielorsatti.github.io/Personnal-gym-tracker/">🚀 Essayer l'application</a>
+</p>
 
 ---
 
-## Stack technique
+## Qu'est-ce que Gym Track ?
 
-**Front** : React 18 + TypeScript strict, bundler Vite 6, UI Tailwind CSS 3
-(système de thèmes via CSS variables — dark et rose pastel). Graphiques
-Recharts qui adaptent automatiquement leurs couleurs au thème actif. Icônes
-lucide-react.
-
-**Backend-as-a-Service** : **Supabase** (PostgreSQL managé) pour la persistance
-des séances, poids de corps, logs nutrition, programmes, profils, amitiés,
-notifications et interactions sociales. **Row Level Security** activé sur toutes
-les tables (`auth.uid() = user_id`), ce qui garantit qu'un utilisateur ne peut
-jamais lire ou modifier les données d'un autre, même en cas de requête directe.
-Authentification Supabase Auth par e-mail / mot de passe. **Supabase Storage**
-pour l'hébergement des photos de profil (bucket `avatars`).
-
-**IA** : intégration d'un modèle **Llama 3.3 / Mistral Small 3.2** via l'API
-OpenAI-compatible du Groupe GENES (ENSAE). Trois usages :
-- `parseWorkoutWithAI` / `parseNutritionWithAI` — extraction structurée en
-  JSON strict depuis du texte libre français.
-- `CoachChat` (« Stéphane ») — assistant contextuel avec accès au résumé des
-  séances, des records et des programmes ; peut proposer une mise à jour de
-  charges appliquées en un clic.
-- `generateSessionCommentary` — analyse automatique de chaque séance par
-  Stéphane (~100 mots), affichée dans la PublishModal et l'historique.
-
-**PWA** : `vite-plugin-pwa` avec service worker Workbox et registerType
-`prompt` — l'utilisateur est notifié par un toast à chaque nouvelle version
-plutôt que d'avoir un rechargement silencieux. Installable à l'écran d'accueil
-sur iOS et Android, fonctionne offline pour la consultation.
-
-**Déploiement** : GitHub Actions → GitHub Pages. Le push sur `main` déclenche
-build + tests + publication automatique.
-
-**Architecture de stockage** : interface `StorageAdapter` commune à un
-`localStorageAdapter` (mode déconnecté) et un `supabaseAdapter` (mode cloud).
-Le switch est transparent pour les hooks et composants.
-
----
-
-## Démarrage rapide
-
-```bash
-npm install
-npm run dev        # http://localhost:5173
-npm test           # tests unitaires (Vitest)
-npm run typecheck  # vérification des types
-npm run build      # build de production
-```
-
-Variables d'environnement (optionnelles en dev — `.env.local`) :
-
-```
-VITE_SUPABASE_URL=...
-VITE_SUPABASE_ANON_KEY=...
-VITE_LLM_API_KEY=...
-VITE_LLM_BASE_URL=https://llm.lab.groupe-genes.fr/openai
-VITE_LLM_MODEL=mistralai/Mistral-Small-3.2-24B-Instruct-2506
-```
-
-Sans ces clés l'app démarre en mode LocalStorage + parser regex, ce qui suffit
-à explorer l'interface.
+Gym Track est une application de fitness complète conçue pour les sportifs qui veulent un suivi intelligent sans friction. Décris ta séance en langage naturel, et l'IA la structure automatiquement. Publie tes entraînements sur un flux social inspiré de Strava, et laisse Stéphane — ton coach IA — analyser chaque séance avec un regard de professionnel.
 
 ---
 
 ## Fonctionnalités
 
-### Entraînement
+📱 **PWA installable** — Ajoute Gym Track sur ton écran d'accueil (iOS & Android)
 
-- **Saisie NLP** musculation (séries/reps/charges/lest) et cardio (distance,
-  durée, allure calculée)
-- **Fusion intelligente de séances** : fenêtre de 3 h — les exercices saisis
-  successivement s'accumulent dans la même session
-- **Dashboard** : volume total, volume 30j, poids de corps, calendrier, stats
-  cardio
-- **Historique** : édition en un clic (la séance est re-sérialisée en texte),
-  déduplication automatique des exercices via `groupExercises`
-- **Progression** : courbes par exercice (volume / intensité / record /
-  distance / allure / durée selon type), records personnels avec overrides
-  manuels
-- **Programmes personnalisés** : CRUD avec objectifs et cues pédagogiques,
-  sync Supabase
+🏋️ **Saisie en langage naturel** — Écris « 4×10 DC 80kg, tractions 3×8 +10 » et l'IA structure tout
 
-### Nutrition
+📊 **Progression détaillée** — Graphiques de volume, records personnels, courbes par exercice, suivi cardio
 
-- **Alimentation** : input libre analysé par IA, dashboard macros du jour,
-  historique 14 jours (protéines + calories)
+🤖 **Coach Stéphane** — Analyse critique et intelligente de tes séances (reconnaît ton split PPL, Upper/Lower, Full Body)
 
-### Coach IA — Stéphane
+🔥 **Flux social type Strava** — Publie tes séances, reçois des Kudos, commente les performances de tes amis
 
-- **Chat contextuel** avec accès à l'historique, aux records et aux programmes
-- **Recommandations** de charges appliquées en un clic (diff cliquable)
-- **Commentaire automatique** de chaque séance (~100 mots), visible dans
-  l'historique et la PublishModal (masqué du flux social pour la vie privée)
+👤 **Profils avec photos** — Avatar, stats publiques, historique de séances publiées navigable
 
-### Social
+🔔 **Notifications temps réel** — Likes, commentaires, demandes d'amis
 
-- **Profils utilisateur** avec **photo de profil** (upload via Supabase
-  Storage) et composant `UserBadge` réutilisable (avatar + pseudo) affiché
-  partout dans l'app
-- **Système d'amis** : recherche par pseudo, demandes envoyées/reçues,
-  acceptation/refus
-- **Profil ami** : stats publiques (séances, volume, top exercices, activité)
-- **Publication de séances** : workflow « Terminer ma séance » avec choix
-  **public / privé** et commentaire personnel
-- **Flux d'activité** type Strava : séances publiées par tes amis et par toi
-- **Kudos** (likes) et **commentaires** avec mise à jour optimiste
-- **Notifications** : badge rouge sur l'onglet Social + liste dédiée avec
-  « Tout marquer comme lu »
+🍗 **Suivi nutrition** — Saisie libre analysée par IA, dashboard macros, historique 14 jours
 
-### Administration
+🌱 **Dashboard Green IT** — Transparence totale sur l'impact carbone de tes prompts (sourcé ADEME, Luccioni et al.)
 
-- **Panneau admin** : liste des inscrits avec avatars, nombre d'amis, date
-  d'inscription
-- **Business Center FinOps** : suivi des tokens consommés par l'IA, coût par
-  utilisateur, KPI globaux
+📚 **Catalogue d'exercices** — 80+ mouvements avec tips techniques d'expert par exercice
 
-### Général
-
-- **Thèmes** : dark menthe / rose pastel clair, toggle instantané
-- **Backup** : export / import JSON complet, auto-backup quotidien optionnel
-- **Onboarding** : modal de bienvenue au premier lancement
-- **Responsive** : bottom nav mobile (5 onglets avec badge notif), sidebar
-  desktop
+🎨 **Thème Mauve & Blanc** — Design moderne avec mode sombre, adapté mobile
 
 ---
 
-## Schéma de données
+## Comment utiliser Gym Track
 
-Tables Supabase (`db/`) :
+### 1. Créer un compte
 
-| Table             | Clé                     | Contenu                                   |
-| ----------------- | ----------------------- | ----------------------------------------- |
-| `sessions`        | `id`                    | séances (exercices JSONB, coach_commentary, is_published, published_at) |
-| `body_weights`    | `(user_id, date)`       | poids de corps journalier                 |
-| `nutrition_logs`  | `id`                    | repas avec macros IA                      |
-| `programs`        | `id`                    | programmes personnalisés                  |
-| `profiles`        | `id` (= auth.users.id)  | pseudo, avatar_url, is_admin              |
-| `friendships`     | `id`                    | sender_id, receiver_id, status (pending/accepted) |
-| `likes`           | `(session_id, user_id)` | kudos sur les séances publiées            |
-| `comments`        | `id`                    | commentaires sur les séances publiées     |
-| `notifications`   | `id`                    | like/comment, actor_id, is_read           |
-| `api_usage_logs`  | `id`                    | tokens in/out, coût estimé par requête IA |
+Ouvre l'app et inscris-toi avec ton email. Choisis un pseudo unique — c'est ce que tes amis verront.
 
-Toutes les tables ont RLS activée. Migrations disponibles dans `db/`.
+### 2. Enregistrer ta première séance
 
----
-
-## Structure du code
+Va dans l'onglet **Training** et décris ta séance en français dans la zone de texte :
 
 ```
-src/
-├── types/            # Session, FeedPost, FeedComment, Friendship, AppNotification…
-├── lib/              # Domaine métier pur (TS testé)
-│   ├── exercises.ts, parser.ts, scoring.ts, records.ts
-│   ├── groupExercises.ts       # Déduplication exercices par nom
-│   ├── sessionCommentary.ts    # Commentaire auto Stéphane
-│   ├── recommendations.ts     # Recommandations de charges
-│   ├── nutritionParser.ts     # IA → macros
-│   ├── llm.ts                 # client chat/completions + tracking tokens
-│   ├── storage.ts             # StorageAdapter + switch local/cloud
-│   ├── supabase.ts            # Client Supabase singleton
-│   └── adapters/supabaseAdapter.ts
-├── hooks/            # useSessions, useFeed, useFriendships, useNotifications,
-│                     # useProfile, usePrograms, useSocialInteractions…
-├── components/       # UserBadge, FeedView, CommunityHub, NotificationList,
-│                     # PublishModal, CoachChat, AdminPanel, ProgramEditor…
-├── data/             # Seed + programmes par défaut
-├── App.tsx
-└── main.tsx
-db/
-├── schema.sql
-├── migration-profiles-friendships.sql
-├── migration-session-commentary.sql
-├── migration-social-feed.sql
-├── migration-likes-comments.sql
-├── migration-notifications.sql
-└── migration-api-usage-logs.sql
+DC 4×10 80kg
+Développé incliné haltères 3×12 28kg
+Dips 3×15
+Pushdown corde 4×12 25kg
 ```
+
+L'IA parse automatiquement tes exercices. Valide, et c'est enregistré.
+
+### 3. Publier et interagir
+
+Après ta séance, clique **Terminer ma séance** → choisis de la publier sur le flux social. Tes amis pourront te donner un Kudo ou commenter.
+
+### 4. Ajouter des amis
+
+Dans l'onglet **Social**, recherche un pseudo et envoie une demande. Une fois acceptée, vous voyez mutuellement vos séances publiées.
+
+### 5. Consulter Stéphane
+
+L'onglet **Coach** te donne accès à Stéphane : pose-lui des questions sur tes charges, ta programmation, ou demande-lui un programme personnalisé.
 
 ---
 
-## Tests
+## Tech Stack
 
-```bash
-npm test
-```
-
-Les suites couvrent le parser NLP, le scoring, l'agrégation des records et
-les overrides manuels.
+| Couche | Technologie |
+|--------|-------------|
+| Frontend | React 18 · TypeScript · Tailwind CSS 3 |
+| Build | Vite 6 · PWA (Workbox) |
+| Backend | Supabase (PostgreSQL + Auth + Storage) |
+| IA | LLM (Llama 3.3 / Mistral Small) |
+| Déploiement | GitHub Actions → GitHub Pages |
 
 ---
 
-## Déploiement
+## Captures
 
-Push sur `main` → `.github/workflows/deploy.yml` → install + typecheck +
-tests + build + publish sur GitHub Pages.
+L'application est accessible en ligne. Crée un compte pour explorer toutes les fonctionnalités.
 
-Les secrets Supabase et LLM sont injectés via les GitHub Actions Secrets. En
-leur absence, le site reste fonctionnel en mode LocalStorage + fallback
-regex.
+---
 
-### Supabase Storage
+## Auteur
 
-Pour les photos de profil, créer un bucket **public** nommé `avatars` dans le
-dashboard Supabase (Storage > New Bucket) avec une policy autorisant les uploads
-authentifiés sur le path `{user_id}/*`.
+Développé par **Gabriel Orsatti** — 2024-2026.
+
+---
+
+## Licence
+
+```
+© 2026 Gym Track — All Rights Reserved.
+
+Ce code est public pour consultation uniquement.
+Toute reproduction, modification ou redistribution
+sans autorisation écrite est strictement interdite.
+```
