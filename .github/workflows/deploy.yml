@@ -51,7 +51,7 @@ jobs:
           VITE_LLM_BASE_URL: ${{ secrets.VITE_LLM_BASE_URL }}
           VITE_LLM_MODEL: ${{ secrets.VITE_LLM_MODEL }}
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 

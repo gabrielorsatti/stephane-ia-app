@@ -8,7 +8,6 @@ import {
 import { useMemo, useState } from "react";
 import type { ProgramTemplate } from "../data/programs";
 import type {
-  BodyWeightEntry,
   PersonalRecordOverride,
   Session,
 } from "../types";
