@@ -8,9 +8,14 @@ import {
 import { useMemo, useState } from "react";
 import type { ProgramTemplate } from "../data/programs";
 import type {
+  BodyWeightEntry,
   PersonalRecordOverride,
   Session,
 } from "../types";
+import { CardioStatsCard } from "./CardioStatsCard";
+import { CategoryChart } from "./CategoryChart";
+import { OccupancyChart } from "./OccupancyChart";
+import { StatsCards } from "./StatsCards";
 import { generateSessionCommentary } from "../lib/sessionCommentary";
 import { sessionToNlp } from "../lib/toNlp";
 import { ExerciseCatalog } from "./ExerciseCatalog";
@@ -36,6 +41,7 @@ interface Props {
   removeOverride: (exercise: string) => void;
   programs: ProgramTemplate[];
   userId?: string;
+  bodyWeight?: number;
 }
 
 export function TrainingHub({
@@ -48,6 +54,7 @@ export function TrainingHub({
   removeOverride,
   programs,
   userId,
+  bodyWeight,
 }: Props) {
   const [view, setView] = useState<View>("main");
   const [direction, setDirection] = useState<"forward" | "back">("forward");
@@ -174,7 +181,13 @@ export function TrainingHub({
       <Wrap id="training-progression">
         <HubHeader title="Retour à Training" onBack={goBack} />
         <div className="space-y-4">
+          <StatsCards sessions={sessions} bodyWeight={bodyWeight} />
           <ProgressionChart sessions={sessions} overrides={overrides} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <CategoryChart sessions={sessions} />
+            <CardioStatsCard sessions={sessions} />
+            <OccupancyChart />
+          </div>
           <PersonalRecords
             sessions={sessions}
             overrides={overrides}

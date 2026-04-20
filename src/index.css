@@ -4,62 +4,61 @@
 
 /* Palette par défaut (thème sombre — "Menthe"). Chaque variable est un
    triplet RGB pour pouvoir combiner avec les alpha-values de Tailwind. */
+/* Thème par défaut — Mauve & Blanc (light mode premium). */
 :root,
-[data-theme="dark"] {
-  --c-bg: 15 19 22;
-  --c-bg-soft: 22 27 31;
-  --c-bg-card: 26 31 36;
-  --c-bg-elev: 34 41 49;
-  --c-border: 42 49 56;
-  --c-border-strong: 58 67 77;
-  --c-accent: 167 232 201;
-  --c-accent-soft: 125 211 174;
-  --c-accent-muted: 34 55 47;
-  --c-powder: 168 208 230;
-  --c-powder-soft: 127 181 212;
-  --c-powder-muted: 31 51 64;
-  --c-lavender: 201 184 232;
-  --c-lavender-soft: 168 146 209;
-  --c-lavender-muted: 46 41 64;
-  --c-text: 238 241 244;
-  --c-text-muted: 168 178 188;
-  --c-text-dim: 111 120 129;
-  /* Couleurs de graphiques alignées sur les accents actuels. */
-  --c-chart-1: 167 232 201;
-  --c-chart-2: 168 208 230;
-  --c-chart-3: 201 184 232;
-  --c-chart-grid: 42 49 56;
-  --c-chart-axis: 140 149 160;
-  color-scheme: dark;
+[data-theme="mauve"] {
+  --c-bg: 248 247 252;
+  --c-bg-soft: 241 239 248;
+  --c-bg-card: 255 255 255;
+  --c-bg-elev: 243 241 250;
+  --c-border: 224 220 236;
+  --c-border-strong: 196 189 212;
+  --c-accent: 124 58 237;
+  --c-accent-soft: 109 40 217;
+  --c-accent-muted: 237 233 254;
+  --c-powder: 99 102 241;
+  --c-powder-soft: 79 70 229;
+  --c-powder-muted: 224 231 255;
+  --c-lavender: 168 85 247;
+  --c-lavender-soft: 147 51 234;
+  --c-lavender-muted: 243 232 255;
+  --c-text: 30 27 45;
+  --c-text-muted: 87 83 108;
+  --c-text-dim: 140 135 158;
+  --c-chart-1: 124 58 237;
+  --c-chart-2: 99 102 241;
+  --c-chart-3: 168 85 247;
+  --c-chart-grid: 224 220 236;
+  --c-chart-axis: 120 115 140;
+  color-scheme: light;
 }
 
-/* Thème rose pastel épuré. Fond rose poudré légèrement foncé, texte
-   anthracite, accents pour contraste. */
-[data-theme="rose"] {
-  --c-bg: 248 232 232;
-  --c-bg-soft: 243 221 223;
-  --c-bg-card: 253 244 244;
-  --c-bg-elev: 247 226 228;
-  --c-border: 225 197 201;
-  --c-border-strong: 198 164 170;
-  --c-accent: 175 65 100;
-  --c-accent-soft: 148 48 82;
-  --c-accent-muted: 240 206 213;
-  --c-powder: 132 115 160;
-  --c-powder-soft: 105 90 135;
-  --c-powder-muted: 227 219 238;
-  --c-lavender: 160 108 156;
-  --c-lavender-soft: 128 82 124;
-  --c-lavender-muted: 235 217 232;
-  --c-text: 38 30 34;
-  --c-text-muted: 82 60 70;
-  --c-text-dim: 128 100 110;
-  --c-chart-1: 188 98 125;
-  --c-chart-2: 132 115 160;
-  --c-chart-3: 160 108 156;
-  --c-chart-grid: 225 197 201;
-  --c-chart-axis: 107 82 90;
-  color-scheme: light;
+/* Thème sombre — Mauve nuit. */
+[data-theme="dark"] {
+  --c-bg: 15 13 25;
+  --c-bg-soft: 23 20 36;
+  --c-bg-card: 28 25 42;
+  --c-bg-elev: 36 32 54;
+  --c-border: 50 44 72;
+  --c-border-strong: 70 62 98;
+  --c-accent: 167 139 250;
+  --c-accent-soft: 139 92 246;
+  --c-accent-muted: 46 38 72;
+  --c-powder: 129 140 248;
+  --c-powder-soft: 99 102 241;
+  --c-powder-muted: 38 36 64;
+  --c-lavender: 192 132 252;
+  --c-lavender-soft: 168 85 247;
+  --c-lavender-muted: 52 38 72;
+  --c-text: 238 236 248;
+  --c-text-muted: 174 168 196;
+  --c-text-dim: 120 114 142;
+  --c-chart-1: 167 139 250;
+  --c-chart-2: 129 140 248;
+  --c-chart-3: 192 132 252;
+  --c-chart-grid: 50 44 72;
+  --c-chart-axis: 140 134 160;
+  color-scheme: dark;
 }
 
 @layer base {
@@ -104,15 +103,18 @@
   ::-webkit-scrollbar-thumb:hover {
     background: rgb(var(--c-border-strong));
   }
-  /* Ombres douces pour le thème clair (soft UI sur rose pastel). */
-  [data-theme="rose"] .card,
-  [data-theme="rose"] .card-elev {
+  /* Ombres douces pour les thèmes clairs. */
+  :root .card,
+  :root .card-elev,
+  [data-theme="mauve"] .card,
+  [data-theme="mauve"] .card-elev {
     box-shadow:
-      0 1px 2px rgb(var(--c-border-strong) / 0.15),
-      0 4px 12px rgb(var(--c-border-strong) / 0.08);
+      0 1px 3px rgb(var(--c-border-strong) / 0.12),
+      0 4px 16px rgb(var(--c-border-strong) / 0.06);
   }
-  [data-theme="rose"] .btn-primary {
-    box-shadow: 0 2px 6px rgb(var(--c-accent) / 0.35);
+  :root .btn-primary,
+  [data-theme="mauve"] .btn-primary {
+    box-shadow: 0 2px 8px rgb(var(--c-accent) / 0.3);
   }
 }
 

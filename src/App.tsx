@@ -1,5 +1,5 @@
-import { Settings } from "lucide-react";
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Rss, Settings } from "lucide-react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ADMIN_UID } from "./components/AdminPanel";
 import { AuthGate } from "./components/AuthGate";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -7,20 +7,17 @@ import { OfflineBadge } from "./components/OfflineBadge";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { FadeIn } from "./components/Transition";
 import { CalendarView } from "./components/CalendarView";
-import { CardioStatsCard } from "./components/CardioStatsCard";
-import { CategoryChart } from "./components/CategoryChart";
+import { FeedView } from "./components/FeedView";
 import { CrowdCheckPrompt } from "./components/CrowdCheckPrompt";
 import type { Hub } from "./components/hubTypes";
 import { Logo } from "./components/Logo";
 import { MobileBottomNav } from "./components/MobileBottomNav";
-import { OccupancyChart } from "./components/OccupancyChart";
 import { Onboarding } from "./components/Onboarding";
 import { ProfileSetup } from "./components/ProfileSetup";
 import { SettingsHub } from "./components/SettingsHub";
 import { Sidebar } from "./components/Sidebar";
 import { SkeletonCard } from "./components/Skeleton";
-import { SplashScreen } from "./components/SplashScreen";
-import { StatsCards } from "./components/StatsCards";
+import { LoadingScreen } from "./components/LoadingScreen";
 import { UpdateToast } from "./components/UpdateToast";
 import { VolumeChart } from "./components/VolumeChart";
 
@@ -30,8 +27,10 @@ const CoachChat = lazy(() => import("./components/CoachChat").then(m => ({ defau
 const CommunityHub = lazy(() => import("./components/CommunityHub").then(m => ({ default: m.CommunityHub })));
 import { useAuth } from "./hooks/useAuth";
 import { useBodyWeight } from "./hooks/useBodyWeight";
+import { useFeed } from "./hooks/useFeed";
 import { useFriendships } from "./hooks/useFriendships";
 import { useNotifications } from "./hooks/useNotifications";
+import { useSocialInteractions } from "./hooks/useSocialInteractions";
 import { useGyms } from "./hooks/useGyms";
 import { useOccupancyFeedback } from "./hooks/useOccupancyFeedback";
 import { useProfile } from "./hooks/useProfile";
@@ -107,6 +106,13 @@ function AppInner() {
 
   const { unreadCount: notifCount } = useNotifications(auth.user?.id);
 
+  const homeFriendIds = useMemo(
+    () => accepted.map((f) => (f.senderId === auth.user?.id ? f.receiverId : f.senderId)),
+    [accepted, auth.user?.id],
+  );
+  const { posts: homePosts, loading: homeFeedLoading } = useFeed(auth.user?.id, homeFriendIds);
+  const { toggleLike: homeToggleLike, addComment: homeAddComment } = useSocialInteractions(auth.user?.id);
+
   const isAdmin =
     auth.user?.id === ADMIN_UID || (profile?.isAdmin ?? false);
 
@@ -134,8 +140,8 @@ function AppInner() {
     return result;
   }
 
-  if (auth.supabaseEnabled && auth.user && profileLoading) {
-    return <SplashScreen />;
+  if (auth.supabaseEnabled && (!auth.ready || (auth.user && profileLoading))) {
+    return <LoadingScreen />;
   }
 
   if (auth.supabaseEnabled && auth.user && needsSetup) {
@@ -160,7 +166,7 @@ function AppInner() {
               <Logo size={22} />
             </div>
             <div className="min-w-0">
-              <div className="font-semibold truncate">Personal Gym Tracker</div>
+              <div className="font-semibold truncate">Gym Track</div>
               <div className="text-xs text-text-muted truncate">
                 {profile
                   ? `@${profile.username}`
@@ -208,14 +214,24 @@ function AppInner() {
                   onDismiss={() => setCrowdCheckPending(false)}
                 />
               )}
-              <StatsCards sessions={sessions} bodyWeight={latest?.poids} />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
-                <VolumeChart sessions={sessions} />
-                <CategoryChart sessions={sessions} />
-                <CardioStatsCard sessions={sessions} />
-                <BodyWeightChart entries={entries} onAdd={addEntry} />
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <CalendarView sessions={sessions} />
-                <OccupancyChart />
+                <VolumeChart sessions={sessions} />
+                <BodyWeightChart entries={entries} onAdd={addEntry} />
+              </div>
+
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Rss className="w-4 h-4 text-accent" />
+                  <h3 className="text-sm font-semibold">Flux d'activité</h3>
+                </div>
+                <FeedView
+                  posts={homePosts}
+                  loading={homeFeedLoading}
+                  onToggleLike={homeToggleLike}
+                  onAddComment={homeAddComment}
+                />
               </div>
             </FadeIn>
           )}
@@ -233,6 +249,7 @@ function AppInner() {
                   removeOverride={removeOverride}
                   programs={programs}
                   userId={auth.user?.id}
+                  bodyWeight={latest?.poids}
                 />
               </FadeIn>
             )}

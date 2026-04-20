@@ -241,7 +241,7 @@ export function SettingsHub({
               onClick={onToggleTheme}
               className="text-sm text-text-muted hover:text-text"
             >
-              {theme === "dark" ? "Sombre" : "Rose pastel"}
+              {theme === "dark" ? "Sombre" : "Mauve & Blanc"}
             </button>
           }
         />
