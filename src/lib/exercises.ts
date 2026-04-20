@@ -349,6 +349,16 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     categorie: "Tirage",
     aliases: ["face pull", "facepull", "oiseau poulie"],
   },
+  {
+    canonical: "Pullover",
+    categorie: "Tirage",
+    aliases: ["pullover", "pull over", "pullover haltere", "pullover poulie"],
+  },
+  {
+    canonical: "Good morning",
+    categorie: "Tirage",
+    aliases: ["good morning", "good mornings", "gm"],
+  },
 
   // ────────── Jambes (quadriceps, ischios, fessiers, mollets) ──────────
   {
@@ -733,22 +743,63 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
   {
     canonical: "Course",
     categorie: "Cardio",
-    aliases: ["course", "running", "run", "tapis"],
+    aliases: ["course", "running", "run"],
+  },
+  {
+    canonical: "Tapis de course",
+    categorie: "Cardio",
+    aliases: ["tapis", "tapis de course", "treadmill", "tapis roulant"],
   },
   {
     canonical: "Vélo",
     categorie: "Cardio",
-    aliases: ["velo", "bike", "cyclisme"],
+    aliases: ["velo", "bike", "cyclisme", "velo d'appartement"],
+  },
+  {
+    canonical: "Vélo elliptique",
+    categorie: "Cardio",
+    aliases: ["elliptique", "velo elliptique", "cross trainer", "elliptical"],
+  },
+  {
+    canonical: "Assault Bike",
+    categorie: "Cardio",
+    aliases: ["assault bike", "air bike", "assault", "echo bike", "airbike"],
   },
   {
     canonical: "Rameur",
     categorie: "Cardio",
-    aliases: ["rameur", "rowing ergo", "rower"],
+    aliases: ["rameur", "rowing ergo", "rower", "concept 2", "c2"],
   },
   {
     canonical: "Corde à sauter",
     categorie: "Cardio",
-    aliases: ["corde a sauter", "jump rope"],
+    aliases: ["corde a sauter", "jump rope", "corde"],
+  },
+  {
+    canonical: "Ski erg",
+    categorie: "Cardio",
+    aliases: ["ski erg", "skierg", "ski"],
+  },
+  {
+    canonical: "Stairmaster",
+    categorie: "Cardio",
+    aliases: ["stairmaster", "stepper", "escalier", "stair climber"],
+  },
+  {
+    canonical: "Marche inclinée",
+    categorie: "Cardio",
+    aliases: ["marche inclinee", "incline walk", "12-3-30", "marche tapis"],
+  },
+  {
+    canonical: "Sprint",
+    categorie: "Cardio",
+    aliases: ["sprint", "sprints", "interval sprint", "hiit sprint"],
+  },
+  {
+    canonical: "Burpees",
+    categorie: "Cardio",
+    aliases: ["burpees", "burpee"],
+    type: "bodyweight",
   },
 ];
 
