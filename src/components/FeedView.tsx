@@ -6,6 +6,7 @@ import type { FeedComment, FeedPost } from "../types";
 import { groupExercises } from "../lib/groupExercises";
 import { sessionVolume } from "../lib/scoring";
 import { EmptyState } from "./EmptyState";
+import { LikersModal } from "./LikersModal";
 import { UserBadge } from "./UserBadge";
 
 interface Props {
@@ -78,6 +79,7 @@ function FeedCard({
   const [commentText, setCommentText] = useState("");
   const [localComments, setLocalComments] = useState<FeedComment[]>(post.comments);
   const [sending, setSending] = useState(false);
+  const [showLikers, setShowLikers] = useState(false);
 
   const vol = Math.round(sessionVolume(session));
   const grouped = groupExercises(session.exercices);
@@ -164,15 +166,25 @@ function FeedCard({
 
       {/* Actions: Kudo + Comments */}
       <div className="flex items-center gap-4 pt-1 border-t border-border">
-        <button
-          className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
-            liked ? "text-amber-400" : "text-text-muted hover:text-amber-400"
-          }`}
-          onClick={() => void handleLike()}
-        >
-          <Zap className={`w-4 h-4 ${liked ? "fill-amber-400" : ""}`} />
-          {likeCount > 0 && likeCount} Kudo{likeCount !== 1 ? "s" : ""}
-        </button>
+        <div className="flex items-center gap-1.5 text-xs font-medium">
+          <button
+            className={`flex items-center gap-1 transition-colors ${
+              liked ? "text-amber-400" : "text-text-muted hover:text-amber-400"
+            }`}
+            onClick={() => void handleLike()}
+          >
+            <Zap className={`w-4 h-4 ${liked ? "fill-amber-400" : ""}`} />
+            Kudo{likeCount !== 1 ? "s" : ""}
+          </button>
+          {likeCount > 0 && (
+            <button
+              className="text-text-muted hover:text-accent transition-colors tabular-nums"
+              onClick={() => setShowLikers(true)}
+            >
+              ({likeCount})
+            </button>
+          )}
+        </div>
         <button
           className="flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-text transition-colors"
           onClick={() => setShowComments((v) => !v)}
@@ -214,6 +226,10 @@ function FeedCard({
             </button>
           </form>
         </div>
+      )}
+
+      {showLikers && (
+        <LikersModal sessionId={session.id} onClose={() => setShowLikers(false)} />
       )}
     </div>
   );

@@ -82,7 +82,10 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
         profileMap.set(p.id, { username: p.username, avatarUrl: p.avatar_url ?? undefined });
         for (const list of commentsBySession.values()) {
           for (const c of list) {
-            if (c.userId === p.id) c.username = p.username;
+            if (c.userId === p.id) {
+              c.username = p.username;
+              c.avatarUrl = p.avatar_url ?? undefined;
+            }
           }
         }
       }
