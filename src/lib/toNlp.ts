@@ -4,6 +4,16 @@ import type { ExerciseEntry, Session } from "../types";
 // Règle : si toutes les séries ont même reps/poids -> format "NxM à Pkg",
 // sinon on détaille chaque série.
 function exerciseToNlp(ex: ExerciseEntry): string {
+  if (ex.durationMinutes) {
+    const intensity = ex.intensity && ex.intensity !== "modéré" ? ` ${ex.intensity}` : "";
+    return `${ex.nom} ${ex.durationMinutes}min${intensity}`;
+  }
+  if (ex.sets.length === 0 && ex.cardio) {
+    const parts = [ex.nom];
+    if (ex.cardio.distance) parts.push(`${ex.cardio.distance}km`);
+    if (ex.cardio.duree) parts.push(`${ex.cardio.duree}min`);
+    return parts.join(" ");
+  }
   if (ex.sets.length === 0) return ex.nom;
   const first = ex.sets[0];
   const uniform = ex.sets.every(

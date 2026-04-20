@@ -7,6 +7,10 @@ export function groupExercises(exercices: ExerciseEntry[]): ExerciseEntry[] {
     if (existing) {
       existing.sets = [...existing.sets, ...ex.sets];
       if (ex.cardio) existing.cardio = ex.cardio;
+      if (ex.durationMinutes) {
+        existing.durationMinutes = (existing.durationMinutes ?? 0) + ex.durationMinutes;
+        if (ex.intensity) existing.intensity = ex.intensity;
+      }
     } else {
       map.set(ex.nom, { ...ex, sets: [...ex.sets] });
     }

@@ -801,6 +801,105 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     aliases: ["burpees", "burpee"],
     type: "bodyweight",
   },
+
+  // ────────── Cours Collectif (cardio & renforcement en groupe) ──────────
+  {
+    canonical: "RPM",
+    categorie: "Cours Collectif",
+    aliases: ["rpm", "spinning", "spin", "cycle indoor", "indoor cycling"],
+  },
+  {
+    canonical: "Zumba",
+    categorie: "Cours Collectif",
+    aliases: ["zumba", "zumba gold", "zumba fitness"],
+  },
+  {
+    canonical: "Step",
+    categorie: "Cours Collectif",
+    aliases: ["step", "step aerobic", "cours de step"],
+  },
+  {
+    canonical: "HIIT Modéré",
+    categorie: "Cours Collectif",
+    aliases: ["hiit modere", "hiit doux", "hiit adapte", "hiit senior"],
+  },
+  {
+    canonical: "Pilates",
+    categorie: "Cours Collectif",
+    aliases: ["pilates", "mat pilates", "reformer pilates"],
+  },
+  {
+    canonical: "BodyPump",
+    categorie: "Cours Collectif",
+    aliases: ["bodypump", "body pump", "pump", "les mills pump"],
+  },
+  {
+    canonical: "Gym Douce",
+    categorie: "Cours Collectif",
+    aliases: ["gym douce", "gym senior", "gymnastique douce", "gym entretien"],
+  },
+  {
+    canonical: "CAF",
+    categorie: "Cours Collectif",
+    aliases: ["caf", "cuisses abdos fessiers", "cuisses-abdos-fessiers", "abdo fessier"],
+  },
+  {
+    canonical: "Aquagym",
+    categorie: "Cours Collectif",
+    aliases: ["aquagym", "aqua gym", "gym aquatique"],
+  },
+  {
+    canonical: "Aquabike",
+    categorie: "Cours Collectif",
+    aliases: ["aquabike", "aqua bike", "velo aquatique", "aquacycling"],
+  },
+  {
+    canonical: "Circuit Training Senior",
+    categorie: "Cours Collectif",
+    aliases: ["circuit senior", "circuit training senior", "circuit equilibre", "proprioception"],
+  },
+  {
+    canonical: "Gym Post-Partum",
+    categorie: "Cours Collectif",
+    aliases: ["post-partum", "gym post partum", "reeducation post partum", "gym postnatal"],
+  },
+
+  // ────────── Mobilité & Santé ──────────
+  {
+    canonical: "Yoga Hatha",
+    categorie: "Mobilité",
+    aliases: ["yoga", "hatha", "hatha yoga", "yoga hatha"],
+  },
+  {
+    canonical: "Yoga Vinyasa",
+    categorie: "Mobilité",
+    aliases: ["vinyasa", "yoga vinyasa", "flow yoga", "yoga flow"],
+  },
+  {
+    canonical: "Stretching",
+    categorie: "Mobilité",
+    aliases: ["stretching", "etirements", "etirement", "souplesse"],
+  },
+  {
+    canonical: "Qi Gong",
+    categorie: "Mobilité",
+    aliases: ["qi gong", "qigong", "chi gong"],
+  },
+  {
+    canonical: "Tai Chi",
+    categorie: "Mobilité",
+    aliases: ["tai chi", "taichi", "tai chi chuan", "tai-chi"],
+  },
+  {
+    canonical: "Méditation",
+    categorie: "Mobilité",
+    aliases: ["meditation", "pleine conscience", "mindfulness", "relaxation"],
+  },
+  {
+    canonical: "Foam Rolling",
+    categorie: "Mobilité",
+    aliases: ["foam rolling", "foam roller", "rouleau", "auto-massage", "myofascial"],
+  },
 ];
 
 // Normalise une chaîne pour la comparaison (minuscules, sans accents, sans ponctuation).

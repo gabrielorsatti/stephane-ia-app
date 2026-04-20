@@ -1,6 +1,6 @@
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Dumbbell, MessageCircle, Rss, Send, Zap } from "lucide-react";
+import { Clock, Dumbbell, MessageCircle, Rss, Send, Zap } from "lucide-react";
 import { useState } from "react";
 import type { FeedComment, FeedPost } from "../types";
 import { groupExercises } from "../lib/groupExercises";
@@ -86,6 +86,8 @@ function FeedCard({
   const [showLikers, setShowLikers] = useState(false);
 
   const vol = Math.round(sessionVolume(session));
+  const totalDuration = session.exercices.reduce((sum, e) => sum + (e.durationMinutes ?? 0), 0);
+  const isDurationBased = vol === 0 && totalDuration > 0;
   const grouped = groupExercises(session.exercices);
   const categories = [...new Set(session.exercices.map((e) => e.categorie))];
   const title = categories.length > 0
@@ -138,8 +140,17 @@ function FeedCard({
           <div className="text-[11px] text-text-dim">{timeAgo}</div>
         </div>
         <div className="flex items-center gap-1 text-text-muted">
-          <Dumbbell className="w-4 h-4" />
-          <span className="text-xs font-medium">{vol} kg</span>
+          {isDurationBased ? (
+            <>
+              <Clock className="w-4 h-4" />
+              <span className="text-xs font-medium">{totalDuration} min</span>
+            </>
+          ) : (
+            <>
+              <Dumbbell className="w-4 h-4" />
+              <span className="text-xs font-medium">{vol} kg</span>
+            </>
+          )}
         </div>
       </div>
 
@@ -159,7 +170,9 @@ function FeedCard({
                 </span>
               </div>
               <div className="text-text-dim">
-                {ex.sets.map((s) => `${s.reps}×${s.poids || "PDC"}`).join(" · ")}
+                {ex.durationMinutes
+                  ? `${ex.durationMinutes} min${ex.intensity ? ` · ${ex.intensity}` : ""}`
+                  : ex.sets.map((s) => `${s.reps}×${s.poids || "PDC"}`).join(" · ")}
               </div>
             </div>
           ))}

@@ -129,6 +129,7 @@ export function UserProfileView({ userId, onBack }: Props) {
           sessions.map((s) => {
             const categories = [...new Set(s.exercices.map((e) => e.categorie))];
             const vol = Math.round(sessionVolume(s));
+            const dur = s.exercices.reduce((sum, e) => sum + (e.durationMinutes ?? 0), 0);
             const expanded = expandedId === s.id;
             return (
               <div key={s.id} className="card !p-0 overflow-hidden">
@@ -142,7 +143,9 @@ export function UserProfileView({ userId, onBack }: Props) {
                     </div>
                     <div className="text-xs text-text-dim">{s.date}</div>
                   </div>
-                  <span className="text-xs text-text-muted shrink-0 ml-2">{vol} kg</span>
+                  <span className="text-xs text-text-muted shrink-0 ml-2">
+                    {vol > 0 ? `${vol} kg` : dur > 0 ? `${dur} min` : "—"}
+                  </span>
                 </button>
                 {expanded && (
                   <div className="border-t border-border px-4 py-3 space-y-1.5">
@@ -150,7 +153,9 @@ export function UserProfileView({ userId, onBack }: Props) {
                       <div key={i} className="text-xs">
                         <span className="font-medium">{ex.nom}</span>
                         <span className="text-text-dim ml-2">
-                          {ex.sets.map((set) => `${set.reps}×${set.poids || "PDC"}`).join(" · ")}
+                          {ex.durationMinutes
+                            ? `${ex.durationMinutes} min${ex.intensity ? ` · ${ex.intensity}` : ""}`
+                            : ex.sets.map((set) => `${set.reps}×${set.poids || "PDC"}`).join(" · ")}
                         </span>
                       </div>
                     ))}

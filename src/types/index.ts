@@ -7,6 +7,8 @@ export type Category =
   | "Bras"
   | "Abdos"
   | "Cardio"
+  | "Cours Collectif"
+  | "Mobilité"
   | "Autre";
 
 export const ALL_CATEGORIES: Category[] = [
@@ -17,6 +19,8 @@ export const ALL_CATEGORIES: Category[] = [
   "Bras",
   "Abdos",
   "Cardio",
+  "Cours Collectif",
+  "Mobilité",
   "Autre",
 ];
 
@@ -38,11 +42,15 @@ export interface CardioData {
   denivele?: number;
 }
 
+export type Intensity = "léger" | "modéré" | "intense";
+
 export interface ExerciseEntry {
   nom: string;
   categorie: Category;
   sets: SetEntry[];
   cardio?: CardioData;
+  durationMinutes?: number;
+  intensity?: Intensity;
 }
 
 export interface Session {

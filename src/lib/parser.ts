@@ -1,6 +1,8 @@
-import type { CardioData, ExerciseEntry, SetEntry } from "../types";
+import type { CardioData, ExerciseEntry, Intensity, SetEntry } from "../types";
 import { parsePace } from "./cardio";
 import { findExercise } from "./exercises";
+
+const DURATION_CATEGORIES = new Set(["Cours Collectif", "Mobilité"]);
 
 // Normalisation « douce » : minuscules + suppression d'accents, mais on
 // conserve la ponctuation (`*`, `,`, `.`, `@`) nécessaire aux regex numériques.
@@ -56,6 +58,19 @@ export function parseSegment(segment: string): ExerciseEntry | null {
         cardio,
       };
     }
+  }
+
+  // 0b. Cours collectif / Mobilité : durée + intensité optionnelle.
+  if (def0 && DURATION_CATEGORIES.has(def0.categorie)) {
+    const duration = extractDuration(norm);
+    const intensity = extractIntensity(norm);
+    return {
+      nom: def0.canonical,
+      categorie: def0.categorie,
+      sets: [],
+      durationMinutes: duration ?? 45,
+      intensity: intensity ?? "modéré",
+    };
   }
 
   // 1. Extraction des sets : "NxM", "N*M", "N séries de M", "N séries M rep"
@@ -148,6 +163,28 @@ function extractCardioData(norm: string): CardioData | null {
   const hasAny =
     out.distance != null || out.duree != null || out.denivele != null;
   return hasAny ? out : null;
+}
+
+function extractDuration(norm: string): number | null {
+  const hhmm = norm.match(/(\d+)\s*h\s*(\d{1,2})/);
+  if (hhmm) return parseInt(hhmm[1], 10) * 60 + parseInt(hhmm[2], 10);
+  const hOnly = norm.match(/(\d+(?:[.,]\d+)?)\s*h\b/);
+  if (hOnly) return Math.round(parseFloat(hOnly[1].replace(",", ".")) * 60);
+  const mOnly = norm.match(/(\d+(?:[.,]\d+)?)\s*(?:min|minutes?|mn|')\b/);
+  if (mOnly) return Math.round(parseFloat(mOnly[1].replace(",", ".")));
+  const bare = norm.match(/(\d+)\s*(?:$|\s)/);
+  if (bare) {
+    const n = parseInt(bare[1], 10);
+    if (n >= 10 && n <= 180) return n;
+  }
+  return null;
+}
+
+function extractIntensity(norm: string): Intensity | null {
+  if (/intense|fort|hard|difficile|max/.test(norm)) return "intense";
+  if (/modere|moyen|medium|normal/.test(norm)) return "modéré";
+  if (/leger|doux|soft|light|facile|tranquille/.test(norm)) return "léger";
+  return null;
 }
 
 // Parse l'ensemble de la saisie en plusieurs exercices.
