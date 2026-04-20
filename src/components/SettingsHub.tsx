@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import { GreenImpact } from "./GreenImpact";
 import { HubHeader } from "./HubHeader";
 import {
   buildBackup,
@@ -302,6 +303,13 @@ export function SettingsHub({
             </>
           }
         />
+      </Section>
+
+      {/* Impact IA */}
+      <Section title="Mon Impact">
+        <div className="px-4 py-3">
+          <GreenImpact />
+        </div>
       </Section>
 
       {/* À propos */}

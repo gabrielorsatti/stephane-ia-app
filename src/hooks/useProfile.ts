@@ -4,13 +4,15 @@ import type { Profile } from "../types";
 
 export function useProfile(userId: string | undefined) {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!userId);
 
   useEffect(() => {
     if (!userId) {
+      setProfile(null);
       setLoading(false);
       return;
     }
+    setLoading(true);
     let cancelled = false;
 
     const timeout = setTimeout(() => {

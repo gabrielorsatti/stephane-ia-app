@@ -14,11 +14,10 @@ import { useChartColors } from "../hooks/useChartColors";
 
 interface Props {
   sessions: Session[];
+  compact?: boolean;
 }
 
-// Courbe de volume total par jour calendaire. Les saisies multiples le même
-// jour sont agrégées en un seul point.
-export function VolumeChart({ sessions }: Props) {
+export function VolumeChart({ sessions, compact }: Props) {
   const c = useChartColors();
   const data = mergeSessionsByDate(sessions).map((s) => ({
     date: s.date,
@@ -27,7 +26,7 @@ export function VolumeChart({ sessions }: Props) {
   }));
 
   return (
-    <div className="card h-[320px]">
+    <div className={`card ${compact ? "h-[200px]" : "h-[320px]"}`}>
       <h3 className="text-sm font-semibold mb-3">Évolution du volume</h3>
       {data.length === 0 ? (
         <EmptyState />

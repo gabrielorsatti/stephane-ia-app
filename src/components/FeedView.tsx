@@ -14,9 +14,10 @@ interface Props {
   loading: boolean;
   onToggleLike: (sessionId: string, liked: boolean) => Promise<void>;
   onAddComment: (sessionId: string, content: string) => Promise<void>;
+  onViewProfile?: (userId: string) => void;
 }
 
-export function FeedView({ posts, loading, onToggleLike, onAddComment }: Props) {
+export function FeedView({ posts, loading, onToggleLike, onAddComment, onViewProfile }: Props) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -55,6 +56,7 @@ export function FeedView({ posts, loading, onToggleLike, onAddComment }: Props) 
           style={{ animationDelay: `${i * 60}ms` }}
           onToggleLike={onToggleLike}
           onAddComment={onAddComment}
+          onViewProfile={onViewProfile}
         />
       ))}
     </div>
@@ -66,13 +68,15 @@ function FeedCard({
   style,
   onToggleLike,
   onAddComment,
+  onViewProfile,
 }: {
   post: FeedPost;
   style?: React.CSSProperties;
   onToggleLike: (sessionId: string, liked: boolean) => Promise<void>;
   onAddComment: (sessionId: string, content: string) => Promise<void>;
+  onViewProfile?: (userId: string) => void;
 }) {
-  const { session, authorUsername, authorAvatarUrl } = post;
+  const { session, authorId, authorUsername, authorAvatarUrl } = post;
   const [liked, setLiked] = useState(post.likedByMe);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [showComments, setShowComments] = useState(false);
@@ -124,7 +128,12 @@ function FeedCard({
     <div className="card space-y-3 animate-fadeIn" style={style}>
       {/* Header */}
       <div className="flex items-center gap-3">
-        <UserBadge username={authorUsername} avatarUrl={authorAvatarUrl} size="lg" />
+        <UserBadge
+          username={authorUsername}
+          avatarUrl={authorAvatarUrl}
+          size="lg"
+          onClick={onViewProfile ? () => onViewProfile(authorId) : undefined}
+        />
         <div className="min-w-0 flex-1">
           <div className="text-[11px] text-text-dim">{timeAgo}</div>
         </div>
@@ -199,7 +208,12 @@ function FeedCard({
         <div className="space-y-2 pt-1">
           {localComments.map((c) => (
             <div key={c.id} className="flex items-start gap-2 text-xs">
-              <UserBadge username={c.username} avatarUrl={c.avatarUrl} size="sm" />
+              <UserBadge
+                username={c.username}
+                avatarUrl={c.avatarUrl}
+                size="sm"
+                onClick={onViewProfile && c.userId ? () => onViewProfile(c.userId) : undefined}
+              />
               <span className="text-text-muted pt-0.5">{c.content}</span>
             </div>
           ))}

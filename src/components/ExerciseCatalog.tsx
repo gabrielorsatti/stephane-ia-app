@@ -1,5 +1,6 @@
-import { BookOpen, Search } from "lucide-react";
+import { BookOpen, ChevronDown, Lightbulb, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { EXERCISE_TIPS } from "../data/exerciseTips";
 import { EXERCISE_CATALOG, exercisesByCategory, normalize } from "../lib/exercises";
 import { ALL_CATEGORIES, type Category } from "../types";
 
@@ -7,6 +8,7 @@ import { ALL_CATEGORIES, type Category } from "../types";
 // avec recherche texte et affichage des alias principaux.
 export function ExerciseCatalog() {
   const [query, setQuery] = useState("");
+  const [expandedTip, setExpandedTip] = useState<string | null>(null);
   const grouped = useMemo(() => exercisesByCategory(), []);
 
   const q = normalize(query);
@@ -73,20 +75,41 @@ export function ExerciseCatalog() {
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {list.map((def) => (
-                  <div
-                    key={def.canonical}
-                    className="bg-bg-soft border border-border rounded-lg px-3 py-2"
-                  >
-                    <div className="text-sm font-medium">{def.canonical}</div>
-                    {def.aliases.length > 0 && (
-                      <div className="text-[11px] text-text-dim mt-0.5 truncate">
-                        alias : {def.aliases.slice(0, 4).join(", ")}
-                        {def.aliases.length > 4 ? "…" : ""}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {list.map((def) => {
+                  const tip = EXERCISE_TIPS[def.canonical];
+                  const isExpanded = expandedTip === def.canonical;
+                  return (
+                    <div
+                      key={def.canonical}
+                      className="bg-bg-soft border border-border rounded-lg px-3 py-2"
+                    >
+                      <div className="text-sm font-medium">{def.canonical}</div>
+                      {def.aliases.length > 0 && (
+                        <div className="text-[11px] text-text-dim mt-0.5 truncate">
+                          alias : {def.aliases.slice(0, 4).join(", ")}
+                          {def.aliases.length > 4 ? "…" : ""}
+                        </div>
+                      )}
+                      {tip && (
+                        <div className="mt-1.5">
+                          <button
+                            className="flex items-center gap-1 text-[11px] text-accent hover:text-accent-soft transition-colors"
+                            onClick={() => setExpandedTip(isExpanded ? null : def.canonical)}
+                          >
+                            <Lightbulb className="w-3 h-3" />
+                            Conseils
+                            <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                          </button>
+                          {isExpanded && (
+                            <p className="text-[11px] text-text-muted mt-1 leading-relaxed">
+                              {tip}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );

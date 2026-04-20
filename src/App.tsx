@@ -10,8 +10,10 @@ import { CalendarView } from "./components/CalendarView";
 import { FeedView } from "./components/FeedView";
 import { CrowdCheckPrompt } from "./components/CrowdCheckPrompt";
 import type { Hub } from "./components/hubTypes";
+import { InstallPrompt } from "./components/InstallPrompt";
 import { Logo } from "./components/Logo";
 import { MobileBottomNav } from "./components/MobileBottomNav";
+import { OccupancyChart } from "./components/OccupancyChart";
 import { Onboarding } from "./components/Onboarding";
 import { ProfileSetup } from "./components/ProfileSetup";
 import { SettingsHub } from "./components/SettingsHub";
@@ -19,6 +21,7 @@ import { Sidebar } from "./components/Sidebar";
 import { SkeletonCard } from "./components/Skeleton";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { UpdateToast } from "./components/UpdateToast";
+import { UserProfileView } from "./components/UserProfileView";
 import { VolumeChart } from "./components/VolumeChart";
 
 const TrainingHub = lazy(() => import("./components/TrainingHub").then(m => ({ default: m.TrainingHub })));
@@ -119,6 +122,7 @@ function AppInner() {
   const [hub, setHub] = useState<Hub>("home");
   const prevHubRef = useRef<Hub>("home");
   const [crowdCheckPending, setCrowdCheckPending] = useState(false);
+  const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
 
   const navigate = useCallback(
     (next: Hub) => {
@@ -196,7 +200,7 @@ function AppInner() {
         <main className="flex-1 max-w-5xl mx-auto px-4 py-6 space-y-6 min-w-0">
           <Onboarding />
 
-          {hub === "home" && (
+          {hub === "home" && !viewingProfileId && (
             <FadeIn id="home">
               {crowdCheckPending && favoriteGym && (
                 <CrowdCheckPrompt
@@ -215,13 +219,7 @@ function AppInner() {
                 />
               )}
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <CalendarView sessions={sessions} />
-                <VolumeChart sessions={sessions} />
-                <BodyWeightChart entries={entries} onAdd={addEntry} />
-              </div>
-
-              <div className="mt-6">
+              <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Rss className="w-4 h-4 text-accent" />
                   <h3 className="text-sm font-semibold">Flux d'activité</h3>
@@ -231,8 +229,28 @@ function AppInner() {
                   loading={homeFeedLoading}
                   onToggleLike={homeToggleLike}
                   onAddComment={homeAddComment}
+                  onViewProfile={setViewingProfileId}
                 />
               </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+                <OccupancyChart />
+                <CalendarView sessions={sessions} />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                <VolumeChart sessions={sessions} compact />
+                <BodyWeightChart entries={entries} onAdd={addEntry} compact />
+              </div>
+            </FadeIn>
+          )}
+
+          {hub === "home" && viewingProfileId && (
+            <FadeIn id="profile-view">
+              <UserProfileView
+                userId={viewingProfileId}
+                onBack={() => setViewingProfileId(null)}
+              />
             </FadeIn>
           )}
 
@@ -326,6 +344,7 @@ function AppInner() {
 
       <OfflineBadge />
       <UpdateToast />
+      <InstallPrompt />
 
       <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-text-dim space-y-1">
         <div>

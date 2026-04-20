@@ -13,6 +13,7 @@ export interface ExerciseDef {
   categorie: Category;
   aliases: string[];
   type?: ExerciseType; // défaut dérivé : Cardio → cardio, sinon strength
+  tips?: string;
 }
 
 export const EXERCISE_CATALOG: ExerciseDef[] = [

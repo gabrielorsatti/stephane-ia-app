@@ -1,3 +1,4 @@
+import { trackAiUsage } from "../components/GreenImpact";
 import { getSupabase } from "./supabase";
 import type { TokenUsage } from "./llm";
 
@@ -13,6 +14,8 @@ export function estimateCost(usage: TokenUsage): number {
 }
 
 export async function logUsage(userId: string, usage: TokenUsage): Promise<void> {
+  trackAiUsage(usage.inputTokens + usage.outputTokens);
+
   const client = getSupabase();
   if (!client) return;
 
