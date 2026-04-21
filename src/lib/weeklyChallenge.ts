@@ -30,7 +30,6 @@ export function generateWeeklyChallenge(sessions: Session[]): WeeklyChallenge {
 
   const thisWeekVolume = summary.currentWeekVolume;
 
-  const topCat = summary.categoryFrequencies[0];
   const weakCat = summary.categoryFrequencies.length > 1
     ? summary.categoryFrequencies[summary.categoryFrequencies.length - 1]
     : null;

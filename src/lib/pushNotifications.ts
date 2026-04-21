@@ -36,10 +36,11 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
   let subscription = await reg.pushManager.getSubscription();
 
   if (!subscription) {
-    subscription = await reg.pushManager.subscribe({
+    const options: PushSubscriptionOptionsInit = {
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_KEY),
-    });
+    };
+    subscription = await reg.pushManager.subscribe(options);
   }
 
   const json = subscription.toJSON();

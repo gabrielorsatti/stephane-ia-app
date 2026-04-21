@@ -1,4 +1,4 @@
-import type { ExerciseEntry, Session } from "../types";
+import type { Session } from "../types";
 import { estimate1RM } from "./scoring";
 
 export interface PRAlert {
