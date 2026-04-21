@@ -38,7 +38,7 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
   if (!subscription) {
     const options: PushSubscriptionOptionsInit = {
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_KEY),
+      applicationServerKey: urlBase64ToUint8Array(VAPID_KEY) as BufferSource,
     };
     subscription = await reg.pushManager.subscribe(options);
   }
