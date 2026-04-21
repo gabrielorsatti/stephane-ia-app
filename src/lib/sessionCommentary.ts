@@ -41,8 +41,28 @@ Si la séance est de type "Cours Collectif", "Mobilité", "Yoga", "Pilates", "Ca
 
 Ton : bienveillant, chaleureux, inclusif. Pas de jargon de salle de musculation.
 
+═══ ANALYSE DE TENDANCE (si historySummary fourni) ═══
+
+Quand un résumé des 12 dernières semaines est joint :
+- Compare le volume de cette séance à la moyenne hebdomadaire. Si c'est un record → célèbre-le comme un événement majeur.
+- Si tu détectes une stagnation (volume/charge stable sur 4+ semaines) → suggère un deload ou un changement d'exercice.
+- Si tu détectes une baisse inexpliquée → encourage l'utilisateur, rappelle que c'est normal et suggère de vérifier sommeil/nutrition.
+- Mentionne brièvement les groupes musculaires en progrès ou négligés.
+- Ne liste PAS les statistiques brutes : intègre-les naturellement dans ton analyse.
+
 ═══ FORMAT (les deux modes) ═══
 Un seul paragraphe fluide de 80-120 mots. PAS de bullet points, PAS de titres. Commence directement par l'analyse.`;
+
+const BILAN_SYSTEM = `Tu es Stéphane, coach diplômé en préparation physique et bien-être. On te fournit un résumé statistique des 12 dernières semaines d'entraînement d'un utilisateur.
+
+Rédige un bilan de coaching structuré en 3 parties :
+
+1. **État de forme** (2-3 phrases) : fréquence, régularité, tendance de volume.
+2. **Points forts** (2-3 phrases) : groupes musculaires en progrès, exercices où la charge augmente.
+3. **Axes d'amélioration** (2-3 phrases) : groupes négligés, suggestions concrètes pour le mois à venir (deload, nouveau cycle, équilibre agonistes/antagonistes).
+
+Ton : professionnel mais chaleureux, comme un vrai coach qui connaît bien son athlète.
+Format : 150-200 mots max. PAS de bullet points. Des paragraphes fluides avec les 3 sections séparées par un saut de ligne. Utilise les données fournies mais ne les recopie pas : intègre-les dans ton discours.`;
 
 function detectSplit(session: Session): string {
   const counts: Record<string, number> = {};
@@ -74,7 +94,7 @@ function detectSplit(session: Session): string {
   return "Full Body";
 }
 
-function formatSessionForPrompt(session: Session, programs: ProgramTemplate[]): string {
+function formatSessionForPrompt(session: Session, programs: ProgramTemplate[], historySummary?: string): string {
   const vol = Math.round(sessionVolume(session));
   const split = detectSplit(session);
   const exos = session.exercices
@@ -93,13 +113,18 @@ function formatSessionForPrompt(session: Session, programs: ProgramTemplate[]): 
     ? `\n\nProgrammes actifs : ${programs.map((p) => p.nom).join(", ")}`
     : "";
 
-  return `Séance du ${session.date} — Type détecté : ${split} — volume total ${vol}kg${session.bodyWeight ? ` — PDC ${session.bodyWeight}kg` : ""}${session.notes ? ` — notes : ${session.notes}` : ""}\n\n${exos}${programCtx}`;
+  const historyCtx = historySummary
+    ? `\n\n═══ TENDANCES 12 SEMAINES ═══\n${historySummary}`
+    : "";
+
+  return `Séance du ${session.date} — Type détecté : ${split} — volume total ${vol}kg${session.bodyWeight ? ` — PDC ${session.bodyWeight}kg` : ""}${session.notes ? ` — notes : ${session.notes}` : ""}\n\n${exos}${programCtx}${historyCtx}`;
 }
 
 export async function generateSessionCommentary(
   session: Session,
   programs: ProgramTemplate[],
   userId?: string,
+  historySummary?: string,
 ): Promise<string | null> {
   const config = getLLMConfig();
   if (!config) return null;
@@ -107,13 +132,38 @@ export async function generateSessionCommentary(
 
   const messages: ChatMessage[] = [
     { role: "system", content: COMMENTARY_SYSTEM },
-    { role: "user", content: formatSessionForPrompt(session, programs) },
+    { role: "user", content: formatSessionForPrompt(session, programs, historySummary) },
   ];
 
   try {
     const result = await chatCompletionWithUsage(messages, {
       temperature: 0.5,
-      maxTokens: 300,
+      maxTokens: 350,
+    });
+    if (userId) void logUsage(userId, result.usage);
+    return result.content.trim();
+  } catch {
+    return null;
+  }
+}
+
+export async function generateCoachBilan(
+  historySummary: string,
+  userId?: string,
+): Promise<string | null> {
+  const config = getLLMConfig();
+  if (!config) return null;
+  if (!historySummary.trim()) return null;
+
+  const messages: ChatMessage[] = [
+    { role: "system", content: BILAN_SYSTEM },
+    { role: "user", content: historySummary },
+  ];
+
+  try {
+    const result = await chatCompletionWithUsage(messages, {
+      temperature: 0.5,
+      maxTokens: 400,
     });
     if (userId) void logUsage(userId, result.usage);
     return result.content.trim();

@@ -19,7 +19,9 @@ import { CategoryChart } from "./CategoryChart";
 import { OccupancyChart } from "./OccupancyChart";
 import { StatsCards } from "./StatsCards";
 import { generateSessionCommentary } from "../lib/sessionCommentary";
+import { buildProgressionSummary } from "../lib/progressionSummary";
 import { sessionToNlp } from "../lib/toNlp";
+import { CoachBilan } from "./CoachBilan";
 import { ExerciseCatalog } from "./ExerciseCatalog";
 import { HistoryView } from "./HistoryView";
 import { HubHeader } from "./HubHeader";
@@ -130,7 +132,9 @@ export function TrainingHub({
   }
 
   async function requestCommentary(sessionId: string, session: Session) {
-    const commentary = await generateSessionCommentary(session, programs, userId);
+    const summary = buildProgressionSummary(sessions, 12);
+    const historySummary = summary.totalSessions >= 3 ? summary.textSummary : undefined;
+    const commentary = await generateSessionCommentary(session, programs, userId, historySummary);
     if (commentary) updateSession(sessionId, { coachCommentary: commentary });
   }
 
@@ -205,6 +209,7 @@ export function TrainingHub({
       <Wrap id="training-progression">
         <HubHeader title="Retour à Training" onBack={goBack} />
         <div className="space-y-4">
+          <CoachBilan sessions={sessions} userId={userId} />
           <StatsCards sessions={sessions} bodyWeight={bodyWeight} />
           <ProgressionChart sessions={sessions} overrides={overrides} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
