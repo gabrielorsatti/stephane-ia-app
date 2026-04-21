@@ -96,7 +96,7 @@ function AppInner() {
   const { favorite: favoriteGym, favoriteId } = useGyms();
   const { addFeedback } = useOccupancyFeedback();
 
-  const { profile, loading: profileLoading, needsSetup, ensureProfile, updateUsername, updateAvatar, updateBio, addXp } =
+  const { profile, loading: profileLoading, loadError: profileError, needsSetup, ensureProfile, updateUsername, updateAvatar, updateBio, addXp } =
     useProfile(auth.user?.id);
   const {
     accepted,
@@ -148,6 +148,24 @@ function AppInner() {
 
   if (auth.supabaseEnabled && (!auth.ready || (auth.user && profileLoading))) {
     return <LoadingScreen />;
+  }
+
+  if (auth.supabaseEnabled && auth.user && profileError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="card max-w-sm text-center space-y-3">
+          <p className="text-sm text-text-muted">
+            Impossible de charger le profil. Vérifie ta connexion ou réessaie.
+          </p>
+          <button
+            className="btn-primary"
+            onClick={() => window.location.reload()}
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (auth.supabaseEnabled && auth.user && needsSetup) {

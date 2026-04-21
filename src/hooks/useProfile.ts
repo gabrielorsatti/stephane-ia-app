@@ -5,14 +5,17 @@ import type { Profile } from "../types";
 export function useProfile(userId: string | undefined) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(!!userId);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (!userId) {
       setProfile(null);
       setLoading(false);
+      setLoadError(false);
       return;
     }
     setLoading(true);
+    setLoadError(false);
     let cancelled = false;
 
     const timeout = setTimeout(() => {
@@ -28,26 +31,47 @@ export function useProfile(userId: string | undefined) {
         setLoading(false);
         return;
       }
-      const { data, error } = await client
+
+      // Try full query first; fall back to base columns if new columns don't exist yet
+      let data: Record<string, unknown> | null = null;
+      const { data: full, error: fullErr } = await client
         .from("profiles")
         .select("id, username, avatar_url, bio, total_xp, is_admin, created_at")
         .eq("id", userId)
         .maybeSingle();
+
       if (cancelled) return;
-      if (error) {
-        console.warn("[useProfile] load failed", error);
-        setLoading(false);
-        return;
+
+      if (fullErr) {
+        // Column might not exist — retry without new columns
+        const { data: basic, error: basicErr } = await client
+          .from("profiles")
+          .select("id, username, avatar_url, is_admin, created_at")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (cancelled) return;
+
+        if (basicErr) {
+          console.warn("[useProfile] load failed", basicErr);
+          setLoadError(true);
+          setLoading(false);
+          return;
+        }
+        data = basic as Record<string, unknown> | null;
+      } else {
+        data = full as Record<string, unknown> | null;
       }
+
       if (data) {
         setProfile({
-          id: data.id,
-          username: data.username,
-          avatarUrl: data.avatar_url ?? undefined,
-          bio: data.bio ?? undefined,
-          totalXp: data.total_xp ?? 0,
-          isAdmin: data.is_admin,
-          createdAt: data.created_at,
+          id: data.id as string,
+          username: data.username as string,
+          avatarUrl: (data.avatar_url as string) ?? undefined,
+          bio: (data.bio as string) ?? undefined,
+          totalXp: (data.total_xp as number) ?? 0,
+          isAdmin: data.is_admin as boolean,
+          createdAt: data.created_at as string,
         });
       }
       setLoading(false);
@@ -129,15 +153,13 @@ export function useProfile(userId: string | undefined) {
     [userId, profile?.totalXp],
   );
 
-  // Deux cas déclenchent le setup :
-  // 1. Le profil n'existe pas du tout (row absente — utilisateur pré-trigger)
-  // 2. Le pseudo est toujours le placeholder "user_XXXXX"
+  // Only trigger setup when we successfully loaded and found no profile or a placeholder username.
+  // Never trigger setup if the load errored (could be a transient/schema issue).
   const needsSetup =
     !loading &&
+    !loadError &&
     (profile === null || profile.username.startsWith("user_"));
 
-  // Si le profil n'existe pas, on doit d'abord le créer côté client avant
-  // de pouvoir le mettre à jour. createIfMissing gère ce cas edge.
   const ensureProfile = useCallback(
     async (username: string) => {
       if (!userId) return;
@@ -146,11 +168,11 @@ export function useProfile(userId: string | undefined) {
       const trimmed = username.trim().toLowerCase();
       if (!trimmed) throw new Error("Le pseudo ne peut pas être vide");
       if (profile === null) {
-        // Profil absent — insert (la policy owner insert l'autorise).
-        const { error } = await client.from("profiles").insert({
-          id: userId,
-          username: trimmed,
-        });
+        // Use upsert to handle both "row missing" and "row exists but wasn't loaded" cases
+        const { error } = await client.from("profiles").upsert(
+          { id: userId, username: trimmed },
+          { onConflict: "id" },
+        );
         if (error) {
           if (error.code === "23505")
             throw new Error("Ce pseudo est déjà pris");
@@ -174,5 +196,5 @@ export function useProfile(userId: string | undefined) {
     [userId, profile, updateUsername],
   );
 
-  return { profile, loading, needsSetup, updateUsername, updateAvatar, updateBio, addXp, ensureProfile };
+  return { profile, loading, loadError, needsSetup, updateUsername, updateAvatar, updateBio, addXp, ensureProfile };
 }
