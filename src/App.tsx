@@ -25,6 +25,9 @@ import { LoadingScreen } from "./components/LoadingScreen";
 import { UpdateToast } from "./components/UpdateToast";
 import { UserProfileView } from "./components/UserProfileView";
 import { VolumeChart } from "./components/VolumeChart";
+import { GoalSettingModal } from "./components/GoalSettingModal";
+import { WeeklyProgressBar } from "./components/WeeklyProgressBar";
+import { sessionsThisWeek } from "./lib/weeklyGoal";
 
 const TrainingHub = lazy(() => import("./components/TrainingHub").then(m => ({ default: m.TrainingHub })));
 const NutritionHub = lazy(() => import("./components/NutritionHub").then(m => ({ default: m.NutritionHub })));
@@ -96,7 +99,7 @@ function AppInner() {
   const { favorite: favoriteGym, favoriteId } = useGyms();
   const { addFeedback } = useOccupancyFeedback();
 
-  const { profile, loading: profileLoading, loadError: profileError, needsSetup, ensureProfile, updateUsername, updateAvatar, updateBio, addXp } =
+  const { profile, loading: profileLoading, loadError: profileError, needsSetup, ensureProfile, updateUsername, updateAvatar, updateBio, addXp, updateWeeklyGoal } =
     useProfile(auth.user?.id);
   const {
     accepted,
@@ -125,6 +128,9 @@ function AppInner() {
   const prevHubRef = useRef<Hub>("home");
   const [crowdCheckPending, setCrowdCheckPending] = useState(false);
   const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const weeklyCount = useMemo(() => sessionsThisWeek(sessions), [sessions]);
+  const needsGoalSetup = !profileLoading && profile != null && profile.weeklyGoal == null;
 
   const navigate = useCallback(
     (next: Hub) => {
@@ -227,6 +233,14 @@ function AppInner() {
 
           {hub === "home" && !viewingProfileId && (
             <FadeIn id="home">
+              {profile?.weeklyGoal != null && (
+                <WeeklyProgressBar
+                  current={weeklyCount}
+                  goal={profile.weeklyGoal}
+                  onClick={() => setShowGoalModal(true)}
+                />
+              )}
+
               {crowdCheckPending && favoriteGym && (
                 <CrowdCheckPrompt
                   gym={favoriteGym}
@@ -373,6 +387,14 @@ function AppInner() {
       <OfflineBadge />
       <UpdateToast />
       <InstallPrompt />
+
+      {(showGoalModal || needsGoalSetup) && (
+        <GoalSettingModal
+          currentGoal={profile?.weeklyGoal ?? undefined}
+          onSave={updateWeeklyGoal}
+          onClose={() => setShowGoalModal(false)}
+        />
+      )}
 
       <footer className="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-text-dim space-y-1">
         <div>

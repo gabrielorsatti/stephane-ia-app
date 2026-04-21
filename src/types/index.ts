@@ -138,6 +138,7 @@ export interface Profile {
   avatarUrl?: string;
   bio?: string;
   totalXp: number;
+  weeklyGoal?: number;
   isAdmin: boolean;
   createdAt: string;
 }

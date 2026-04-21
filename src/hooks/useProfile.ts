@@ -36,7 +36,7 @@ export function useProfile(userId: string | undefined) {
       let data: Record<string, unknown> | null = null;
       const { data: full, error: fullErr } = await client
         .from("profiles")
-        .select("id, username, avatar_url, bio, total_xp, is_admin, created_at")
+        .select("id, username, avatar_url, bio, total_xp, weekly_goal, is_admin, created_at")
         .eq("id", userId)
         .maybeSingle();
 
@@ -70,6 +70,7 @@ export function useProfile(userId: string | undefined) {
           avatarUrl: (data.avatar_url as string) ?? undefined,
           bio: (data.bio as string) ?? undefined,
           totalXp: (data.total_xp as number) ?? 0,
+          weeklyGoal: (data.weekly_goal as number) ?? undefined,
           isAdmin: data.is_admin as boolean,
           createdAt: data.created_at as string,
         });
@@ -153,6 +154,21 @@ export function useProfile(userId: string | undefined) {
     [userId, profile?.totalXp],
   );
 
+  const updateWeeklyGoal = useCallback(
+    async (goal: number) => {
+      if (!userId) return;
+      const client = getSupabase();
+      if (!client) return;
+      const { error } = await client
+        .from("profiles")
+        .update({ weekly_goal: goal })
+        .eq("id", userId);
+      if (error) throw error;
+      setProfile((p) => (p ? { ...p, weeklyGoal: goal } : p));
+    },
+    [userId],
+  );
+
   // Only trigger setup when we successfully loaded and found no profile or a placeholder username.
   // Never trigger setup if the load errored (could be a transient/schema issue).
   const needsSetup =
@@ -196,5 +212,5 @@ export function useProfile(userId: string | undefined) {
     [userId, profile, updateUsername],
   );
 
-  return { profile, loading, loadError, needsSetup, updateUsername, updateAvatar, updateBio, addXp, ensureProfile };
+  return { profile, loading, loadError, needsSetup, updateUsername, updateAvatar, updateBio, addXp, updateWeeklyGoal, ensureProfile };
 }
