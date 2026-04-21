@@ -11,6 +11,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "prompt",
       includeAssets: ["icon.svg"],
       manifest: {
@@ -37,9 +40,8 @@ export default defineConfig({
           },
         ],
       },
-      workbox: {
+      injectManifest: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff,woff2}"],
-        navigateFallback: "index.html",
       },
     }),
   ],

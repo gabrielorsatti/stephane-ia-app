@@ -1,4 +1,4 @@
-import type { ExerciseEntry, Session } from "../types";
+import type { Session } from "../types";
 import { exerciseVolume, bestEstimated1RM } from "./scoring";
 
 export interface WeekBucket {

@@ -1,4 +1,5 @@
 import {
+  Bell,
   Camera,
   Check,
   Download,
@@ -17,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import { usePushSubscription } from "../hooks/usePushSubscription";
 import { GreenImpact } from "./GreenImpact";
 import { HubHeader } from "./HubHeader";
 import { XPProgressBar } from "./XPProgressBar";
@@ -71,6 +73,7 @@ export function SettingsHub({
   const [avatarUploading, setAvatarUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const avatarRef = useRef<HTMLInputElement>(null);
+  const push = usePushSubscription(userId);
 
   async function saveUsername() {
     if (!username.trim()) return;
@@ -316,6 +319,34 @@ export function SettingsHub({
           }
         />
       </Section>
+
+      {/* Notifications */}
+      {push.supported && (
+        <Section title="Notifications">
+          <Row
+            icon={<Bell className="w-5 h-5" />}
+            label="Notifications push"
+            action={
+              <button
+                onClick={() => void push.toggle()}
+                disabled={push.loading}
+                className={[
+                  "w-10 h-6 rounded-full transition-colors relative",
+                  push.subscribed ? "bg-accent" : "bg-border",
+                  push.loading ? "opacity-50" : "",
+                ].join(" ")}
+              >
+                <span
+                  className={[
+                    "absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform",
+                    push.subscribed ? "left-[18px]" : "left-0.5",
+                  ].join(" ")}
+                />
+              </button>
+            }
+          />
+        </Section>
+      )}
 
       {/* Données */}
       <Section title="Données">

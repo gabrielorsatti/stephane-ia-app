@@ -29,7 +29,7 @@ export function RestTimer({ onClose }: Props) {
   const [remaining, setRemaining] = useState(duration);
   const [running, setRunning] = useState(true);
   const [finished, setFinished] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval>>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const vibrate = useCallback(() => {
     try {
