@@ -112,7 +112,7 @@ export function useFriendships(userId: string | undefined) {
       if (!trimmed) return [];
       const { data, error } = await client
         .from("profiles")
-        .select("id, username, avatar_url, is_admin, created_at")
+        .select("id, username, avatar_url, total_xp, is_admin, created_at")
         .ilike("username", `%${trimmed}%`)
         .neq("id", userId ?? "")
         .limit(10);
@@ -129,6 +129,7 @@ export function useFriendships(userId: string | undefined) {
           id: r.id,
           username: r.username,
           avatarUrl: r.avatar_url ?? undefined,
+          totalXp: r.total_xp ?? 0,
           isAdmin: r.is_admin,
           createdAt: r.created_at,
         }),

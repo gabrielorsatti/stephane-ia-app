@@ -1,4 +1,6 @@
 import { Rss, Settings } from "lucide-react";
+import { levelFromXp } from "./lib/leveling";
+import { LevelBadge } from "./components/LevelBadge";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ADMIN_UID } from "./components/AdminPanel";
 import { AuthGate } from "./components/AuthGate";
@@ -94,7 +96,7 @@ function AppInner() {
   const { favorite: favoriteGym, favoriteId } = useGyms();
   const { addFeedback } = useOccupancyFeedback();
 
-  const { profile, loading: profileLoading, needsSetup, ensureProfile, updateUsername, updateAvatar } =
+  const { profile, loading: profileLoading, needsSetup, ensureProfile, updateUsername, updateAvatar, updateBio, addXp } =
     useProfile(auth.user?.id);
   const {
     accepted,
@@ -171,10 +173,15 @@ function AppInner() {
             </div>
             <div className="min-w-0">
               <div className="font-semibold truncate">Gym Track</div>
-              <div className="text-xs text-text-muted truncate">
-                {profile
-                  ? `@${profile.username}`
-                  : "Suis ta progression sans friction."}
+              <div className="flex items-center gap-1.5 text-xs text-text-muted">
+                {profile ? (
+                  <>
+                    <span className="truncate">@{profile.username}</span>
+                    <LevelBadge level={levelFromXp(profile.totalXp)} size="sm" />
+                  </>
+                ) : (
+                  <span className="truncate">Suis ta progression sans friction.</span>
+                )}
               </div>
             </div>
           </div>
@@ -268,6 +275,8 @@ function AppInner() {
                   programs={programs}
                   userId={auth.user?.id}
                   bodyWeight={latest?.poids}
+                  totalXp={profile?.totalXp}
+                  onAddXp={addXp}
                 />
               </FadeIn>
             )}
@@ -321,6 +330,7 @@ function AppInner() {
                 onToggleTheme={toggleTheme}
                 onUpdateUsername={updateUsername}
                 onUpdateAvatar={updateAvatar}
+                onUpdateBio={updateBio}
                 userId={auth.user?.id}
                 onSignOut={
                   auth.supabaseEnabled && auth.user

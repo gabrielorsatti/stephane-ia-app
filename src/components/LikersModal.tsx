@@ -1,12 +1,14 @@
 import { X, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getSupabase } from "../lib/supabase";
+import { levelFromXp } from "../lib/leveling";
 import { UserBadge } from "./UserBadge";
 
 interface Liker {
   userId: string;
   username: string;
   avatarUrl?: string;
+  level: number;
 }
 
 interface Props {
@@ -36,7 +38,7 @@ export function LikersModal({ sessionId, onClose }: Props) {
       const userIds = likes.map((l) => l.user_id);
       const { data: profiles } = await client
         .from("profiles")
-        .select("id, username, avatar_url")
+        .select("id, username, avatar_url, total_xp")
         .in("id", userIds);
 
       setLikers(
@@ -44,6 +46,7 @@ export function LikersModal({ sessionId, onClose }: Props) {
           userId: p.id,
           username: p.username,
           avatarUrl: p.avatar_url ?? undefined,
+          level: levelFromXp(p.total_xp ?? 0),
         })),
       );
       setLoading(false);
@@ -86,7 +89,7 @@ export function LikersModal({ sessionId, onClose }: Props) {
           ) : (
             likers.map((l) => (
               <div key={l.userId} className="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-bg-soft transition-colors">
-                <UserBadge username={l.username} avatarUrl={l.avatarUrl} size="md" />
+                <UserBadge username={l.username} avatarUrl={l.avatarUrl} level={l.level} size="md" />
               </div>
             ))
           )}

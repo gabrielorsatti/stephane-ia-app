@@ -30,7 +30,7 @@ export function useProfile(userId: string | undefined) {
       }
       const { data, error } = await client
         .from("profiles")
-        .select("id, username, avatar_url, is_admin, created_at")
+        .select("id, username, avatar_url, bio, total_xp, is_admin, created_at")
         .eq("id", userId)
         .maybeSingle();
       if (cancelled) return;
@@ -44,6 +44,8 @@ export function useProfile(userId: string | undefined) {
           id: data.id,
           username: data.username,
           avatarUrl: data.avatar_url ?? undefined,
+          bio: data.bio ?? undefined,
+          totalXp: data.total_xp ?? 0,
           isAdmin: data.is_admin,
           createdAt: data.created_at,
         });
@@ -94,6 +96,39 @@ export function useProfile(userId: string | undefined) {
     [userId],
   );
 
+  const updateBio = useCallback(
+    async (bio: string) => {
+      if (!userId) return;
+      const client = getSupabase();
+      if (!client) return;
+      const { error } = await client
+        .from("profiles")
+        .update({ bio })
+        .eq("id", userId);
+      if (error) throw error;
+      setProfile((p) => (p ? { ...p, bio: bio || undefined } : p));
+    },
+    [userId],
+  );
+
+  const addXp = useCallback(
+    async (xp: number): Promise<{ oldXp: number; newXp: number }> => {
+      const oldXp = profile?.totalXp ?? 0;
+      const newXp = oldXp + xp;
+      if (!userId) return { oldXp, newXp };
+      const client = getSupabase();
+      if (!client) return { oldXp, newXp };
+      const { error } = await client
+        .from("profiles")
+        .update({ total_xp: newXp })
+        .eq("id", userId);
+      if (error) throw error;
+      setProfile((p) => (p ? { ...p, totalXp: newXp } : p));
+      return { oldXp, newXp };
+    },
+    [userId, profile?.totalXp],
+  );
+
   // Deux cas déclenchent le setup :
   // 1. Le profil n'existe pas du tout (row absente — utilisateur pré-trigger)
   // 2. Le pseudo est toujours le placeholder "user_XXXXX"
@@ -128,6 +163,7 @@ export function useProfile(userId: string | undefined) {
         setProfile({
           id: userId,
           username: trimmed,
+          totalXp: 0,
           isAdmin: false,
           createdAt: new Date().toISOString(),
         });
@@ -138,5 +174,5 @@ export function useProfile(userId: string | undefined) {
     [userId, profile, updateUsername],
   );
 
-  return { profile, loading, needsSetup, updateUsername, updateAvatar, ensureProfile };
+  return { profile, loading, needsSetup, updateUsername, updateAvatar, updateBio, addXp, ensureProfile };
 }

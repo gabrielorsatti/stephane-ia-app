@@ -1,15 +1,15 @@
 import type { ExerciseEntry, Session, SetEntry } from "../types";
 import { exerciseType } from "./exercises";
 
-// Charge effective d'une série. Pour un exercice bodyweight, c'est (PDC + lest);
-// pour un exercice strength, c'est simplement `poids`. Sans PDC fourni, on
-// retombe sur `poids` seul (comportement avant le module PDC).
+const DEFAULT_BODYWEIGHT = 70;
+
 export function effectiveLoad(
   set: SetEntry,
   opts: { bodyweight?: boolean; userWeight?: number } = {},
 ): number {
-  if (opts.bodyweight && opts.userWeight && opts.userWeight > 0) {
-    return opts.userWeight + (set.poids || 0);
+  if (opts.bodyweight) {
+    const bw = (opts.userWeight && opts.userWeight > 0) ? opts.userWeight : DEFAULT_BODYWEIGHT;
+    return bw + (set.poids || 0);
   }
   return set.poids || 0;
 }
@@ -22,8 +22,6 @@ export function setVolume(
   return set.reps * effectiveLoad(set, opts);
 }
 
-// Volume d'un exercice : somme des séries + éventuel volume cardio converti
-// (ici laissé à 0 — le cardio a ses propres métriques, voir lib/cardio.ts).
 export function exerciseVolume(
   ex: ExerciseEntry,
   userWeight?: number,
@@ -33,6 +31,22 @@ export function exerciseVolume(
     (acc, s) => acc + setVolume(s, { bodyweight, userWeight }),
     0,
   );
+}
+
+const INTENSITY_MULTIPLIER: Record<string, number> = {
+  "léger": 4,
+  "modéré": 6,
+  "intense": 9,
+};
+
+export function durationScore(ex: ExerciseEntry): number {
+  if (!ex.durationMinutes) return 0;
+  const mult = INTENSITY_MULTIPLIER[ex.intensity ?? "modéré"] ?? 6;
+  return (ex.durationMinutes * mult) / 2;
+}
+
+export function sessionDurationScore(session: Session): number {
+  return session.exercices.reduce((acc, ex) => acc + durationScore(ex), 0);
 }
 
 // Volume total d'une séance (kg). Utilise session.bodyWeight s'il est renseigné
@@ -97,12 +111,11 @@ export function sessionIntensityScore(session: Session): number {
   return den > 0 ? num / den : 0;
 }
 
-// Score global d'une séance : mélange volume + intensité (normalisé).
-// Formule : (volume / 100) + (intensité 1RM moyenne / 2). Ajustable.
 export function sessionScore(session: Session): number {
   const vol = sessionVolume(session);
   const intensity = sessionIntensityScore(session);
-  return Math.round(vol / 100 + intensity / 2);
+  const durScore = sessionDurationScore(session);
+  return Math.round(vol / 100 + intensity / 2 + durScore);
 }
 
 // ─── Helpers dédiés à la vue "Progression par exercice" ──────────────────

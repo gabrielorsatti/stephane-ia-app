@@ -11,6 +11,9 @@ import type {
   PersonalRecordOverride,
   Session,
 } from "../types";
+import { sessionScore } from "../lib/scoring";
+import { levelFromXp } from "../lib/leveling";
+import { LevelUpCelebration } from "./LevelUpCelebration";
 import { CardioStatsCard } from "./CardioStatsCard";
 import { CategoryChart } from "./CategoryChart";
 import { OccupancyChart } from "./OccupancyChart";
@@ -41,6 +44,8 @@ interface Props {
   programs: ProgramTemplate[];
   userId?: string;
   bodyWeight?: number;
+  totalXp?: number;
+  onAddXp?: (xp: number) => Promise<{ oldXp: number; newXp: number }>;
 }
 
 export function TrainingHub({
@@ -54,13 +59,16 @@ export function TrainingHub({
   programs,
   userId,
   bodyWeight,
+  totalXp,
+  onAddXp,
 }: Props) {
   const [view, setView] = useState<View>("main");
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [prefillText, setPrefillText] = useState<string | undefined>();
   const [prefillVersion, setPrefillVersion] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [publishSnapshot, setPublishSnapshot] = useState<{ id: string; session: Session } | null>(null);
+  const [publishSnapshot, setPublishSnapshot] = useState<{ id: string; session: Session; xpGained?: number; totalXpBefore?: number } | null>(null);
+  const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
 
   const editingSession = editingId
     ? sessions.find((s) => s.id === editingId)
@@ -107,6 +115,14 @@ export function TrainingHub({
     } else {
       const result = addSession(session);
       void requestCommentary(result.id, result.session);
+      const xp = sessionScore(result.session);
+      if (xp > 0 && onAddXp) {
+        void onAddXp(xp).then(({ oldXp, newXp }) => {
+          const oldLevel = levelFromXp(oldXp);
+          const newLevel = levelFromXp(newXp);
+          if (newLevel > oldLevel) setLevelUpLevel(newLevel);
+        });
+      }
     }
   }
 
@@ -117,7 +133,13 @@ export function TrainingHub({
 
   function finishSession() {
     if (!activeSession) return;
-    setPublishSnapshot({ id: activeSession.id, session: { ...activeSession } });
+    const xpGained = sessionScore(activeSession);
+    setPublishSnapshot({
+      id: activeSession.id,
+      session: { ...activeSession },
+      xpGained,
+      totalXpBefore: totalXp ?? 0,
+    });
   }
 
   function handlePublish(userComment: string) {
@@ -261,10 +283,16 @@ export function TrainingHub({
       {publishSnapshot && (
         <PublishModal
           session={publishSnapshot.session}
+          xpGained={publishSnapshot.xpGained}
+          totalXpBefore={publishSnapshot.totalXpBefore}
           onPublish={handlePublish}
           onKeepPrivate={handleKeepPrivate}
           onClose={() => setPublishSnapshot(null)}
         />
+      )}
+
+      {levelUpLevel != null && (
+        <LevelUpCelebration level={levelUpLevel} onDone={() => setLevelUpLevel(null)} />
       )}
     </Wrap>
   );

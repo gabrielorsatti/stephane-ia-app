@@ -1,24 +1,34 @@
-import { Brain, Globe, Lock } from "lucide-react";
+import { Brain, Globe, Lock, Zap } from "lucide-react";
 import { useState } from "react";
 import type { Session } from "../types";
 import { groupExercises } from "../lib/groupExercises";
-import { sessionVolume } from "../lib/scoring";
+import { sessionVolume, sessionDurationScore } from "../lib/scoring";
+import { xpProgress, levelFromXp } from "../lib/leveling";
+import { LevelBadge } from "./LevelBadge";
 
 interface Props {
   session: Session;
+  xpGained?: number;
+  totalXpBefore?: number;
   onPublish: (userComment: string) => void;
   onKeepPrivate: () => void;
   onClose: () => void;
 }
 
-export function PublishModal({ session, onPublish, onKeepPrivate, onClose }: Props) {
+export function PublishModal({ session, xpGained, totalXpBefore, onPublish, onKeepPrivate, onClose }: Props) {
   const [comment, setComment] = useState("");
   const vol = Math.round(sessionVolume(session));
+  const durScore = Math.round(sessionDurationScore(session));
 
   const categories = [...new Set(session.exercices.map((e) => e.categorie))];
   const title = categories.length > 0
     ? `Séance ${categories.join(" / ")}`
     : "Séance terminée";
+
+  const showXp = xpGained != null && xpGained > 0 && totalXpBefore != null;
+  const oldProgress = showXp ? xpProgress(totalXpBefore) : null;
+  const newProgress = showXp ? xpProgress(totalXpBefore + xpGained) : null;
+  const leveledUp = showXp && levelFromXp(totalXpBefore + xpGained) > levelFromXp(totalXpBefore);
 
   return (
     <div
@@ -30,9 +40,40 @@ export function PublishModal({ session, onPublish, onKeepPrivate, onClose }: Pro
           <div>
             <h2 className="text-lg font-bold">{title}</h2>
             <p className="text-xs text-text-muted mt-0.5">
-              {session.exercices.length} exercices · {vol} kg de volume
+              {session.exercices.length} exercices
+              {vol > 0 ? ` · ${vol} kg de volume` : ""}
+              {durScore > 0 && vol === 0 ? ` · ${Math.round(session.exercices.reduce((s, e) => s + (e.durationMinutes ?? 0), 0))} min` : ""}
             </p>
           </div>
+
+          {showXp && oldProgress && newProgress && (
+            <div className="bg-accent/5 border border-accent/20 rounded-xl px-4 py-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-accent" />
+                  <span className="text-sm font-bold text-accent">+{xpGained} XP</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <LevelBadge level={newProgress.level} size="md" />
+                  {leveledUp && (
+                    <span className="text-[10px] font-bold text-amber-400 animate-pulse">LEVEL UP !</span>
+                  )}
+                </div>
+              </div>
+              <div className="h-2.5 bg-bg-soft rounded-full overflow-hidden border border-border">
+                <div
+                  className="h-full bg-gradient-to-r from-accent to-accent-soft rounded-full animate-xpFill"
+                  style={{
+                    "--xp-from": `${oldProgress.percent}%`,
+                    "--xp-to": `${newProgress.percent}%`,
+                  } as React.CSSProperties}
+                />
+              </div>
+              <div className="text-[10px] text-text-dim text-center tabular-nums">
+                {newProgress.current} / {newProgress.needed} XP
+              </div>
+            </div>
+          )}
 
           <div className="space-y-1.5 max-h-40 overflow-y-auto">
             {groupExercises(session.exercices).map((ex, i) => (
@@ -47,7 +88,9 @@ export function PublishModal({ session, onPublish, onKeepPrivate, onClose }: Pro
                   </span>
                 </div>
                 <div className="text-xs text-text-muted">
-                  {ex.sets.map((s) => `${s.reps}×${s.poids || "PDC"}`).join(" · ")}
+                  {ex.durationMinutes
+                    ? `${ex.durationMinutes} min${ex.intensity ? ` · ${ex.intensity}` : ""}`
+                    : ex.sets.map((s) => `${s.reps}×${s.poids || "PDC"}`).join(" · ")}
                 </div>
               </div>
             ))}

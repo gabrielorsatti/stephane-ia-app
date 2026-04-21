@@ -3,13 +3,17 @@ import { useEffect, useState } from "react";
 import { getSupabase } from "../lib/supabase";
 import { groupExercises } from "../lib/groupExercises";
 import { sessionVolume } from "../lib/scoring";
+import { levelFromXp } from "../lib/leveling";
 import type { ExerciseEntry, Session } from "../types";
 import { UserBadge } from "./UserBadge";
+import { XPProgressBar } from "./XPProgressBar";
 
 interface ProfileData {
   id: string;
   username: string;
   avatarUrl?: string;
+  bio?: string;
+  totalXp: number;
   createdAt: string;
 }
 
@@ -31,7 +35,7 @@ export function UserProfileView({ userId, onBack }: Props) {
       if (!client) return;
 
       const [profileRes, sessionsRes, friendsRes] = await Promise.all([
-        client.from("profiles").select("id, username, avatar_url, created_at").eq("id", userId).single(),
+        client.from("profiles").select("id, username, avatar_url, bio, total_xp, created_at").eq("id", userId).single(),
         client.from("sessions")
           .select("id, date, exercices, notes, body_weight, created_at, user_comment, published_at")
           .eq("user_id", userId)
@@ -49,6 +53,8 @@ export function UserProfileView({ userId, onBack }: Props) {
           id: profileRes.data.id,
           username: profileRes.data.username,
           avatarUrl: profileRes.data.avatar_url ?? undefined,
+          bio: profileRes.data.bio ?? undefined,
+          totalXp: profileRes.data.total_xp ?? 0,
           createdAt: profileRes.data.created_at,
         });
       }
@@ -110,11 +116,15 @@ export function UserProfileView({ userId, onBack }: Props) {
         Retour
       </button>
 
-      <div className="card">
+      <div className="card space-y-3">
         <div className="flex items-center gap-4">
-          <UserBadge username={profile.username} avatarUrl={profile.avatarUrl} size="lg" />
+          <UserBadge username={profile.username} avatarUrl={profile.avatarUrl} level={levelFromXp(profile.totalXp)} size="lg" />
         </div>
-        <div className="grid grid-cols-3 gap-3 mt-4">
+        {profile.bio && (
+          <p className="text-xs text-text-muted italic">{profile.bio}</p>
+        )}
+        <XPProgressBar totalXp={profile.totalXp} compact />
+        <div className="grid grid-cols-3 gap-3">
           <StatBox icon={<Dumbbell className="w-4 h-4" />} value={sessions.length.toString()} label="Séances" />
           <StatBox icon={<Users className="w-4 h-4" />} value={friendCount.toString()} label="Amis" />
           <StatBox icon={<Calendar className="w-4 h-4" />} value={Math.round(totalVolume / 1000).toString() + "t"} label="Volume" />

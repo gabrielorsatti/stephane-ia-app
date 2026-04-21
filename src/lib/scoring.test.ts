@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   bestEstimated1RM,
+  durationScore,
   estimate1RM,
   exerciseVolume,
   sessionScore,
@@ -39,7 +40,6 @@ describe("scoring", () => {
   });
 
   it("estime le 1RM via Epley", () => {
-    // 80 * (1 + 10/30) = 106.666...
     expect(estimate1RM({ reps: 10, poids: 80 })).toBeCloseTo(106.67, 1);
   });
 
@@ -61,5 +61,37 @@ describe("scoring", () => {
     const map = volumeByCategory([session]);
     expect(map["Poussée"]).toBe(1480);
     expect(map["Jambes"]).toBe(600);
+  });
+
+  it("calcule un score > 0 pour les exercices bodyweight sans lest", () => {
+    const bwSession: Session = {
+      id: "s2",
+      date: "2026-01-16",
+      exercices: [
+        {
+          nom: "Pompes",
+          categorie: "Poussée",
+          sets: [{ reps: 20, poids: 0 }],
+        },
+      ],
+    };
+    expect(sessionScore(bwSession)).toBeGreaterThan(0);
+  });
+
+  it("calcule un durationScore pour les exercices bien-être", () => {
+    expect(durationScore({ nom: "Yoga", categorie: "Mobilité", sets: [], durationMinutes: 60, intensity: "modéré" })).toBe(180);
+    expect(durationScore({ nom: "HIIT", categorie: "Cours Collectif", sets: [], durationMinutes: 30, intensity: "intense" })).toBe(135);
+    expect(durationScore({ nom: "Marche", categorie: "Cardio", sets: [], durationMinutes: 45, intensity: "léger" })).toBe(90);
+  });
+
+  it("inclut le durationScore dans le sessionScore", () => {
+    const wellnessSession: Session = {
+      id: "s3",
+      date: "2026-01-17",
+      exercices: [
+        { nom: "Yoga Hatha", categorie: "Mobilité", sets: [], durationMinutes: 60, intensity: "modéré" },
+      ],
+    };
+    expect(sessionScore(wellnessSession)).toBeGreaterThan(0);
   });
 });

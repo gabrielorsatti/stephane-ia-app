@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "../lib/supabase";
+import { levelFromXp } from "../lib/leveling";
 import type { ExerciseEntry, FeedComment, FeedPost, Session } from "../types";
 
 export function useFeed(userId: string | undefined, friendIds: string[]) {
@@ -36,7 +37,7 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
 
     const [profilesRes, likesRes, myLikesRes, commentsRes] = await Promise.all([
       authorIds.length > 0
-        ? client.from("profiles").select("id, username, avatar_url").in("id", authorIds)
+        ? client.from("profiles").select("id, username, avatar_url, total_xp").in("id", authorIds)
         : { data: [] },
       sessionIds.length > 0
         ? client.from("likes").select("session_id").in("session_id", sessionIds)
@@ -49,8 +50,8 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
         : { data: [] },
     ]);
 
-    const profileMap = new Map<string, { username: string; avatarUrl?: string }>();
-    for (const p of profilesRes.data ?? []) profileMap.set(p.id, { username: p.username, avatarUrl: p.avatar_url ?? undefined });
+    const profileMap = new Map<string, { username: string; avatarUrl?: string; level: number }>();
+    for (const p of profilesRes.data ?? []) profileMap.set(p.id, { username: p.username, avatarUrl: p.avatar_url ?? undefined, level: levelFromXp(p.total_xp ?? 0) });
 
     const likeCounts = new Map<string, number>();
     for (const l of likesRes.data ?? []) {
@@ -79,7 +80,7 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
     if (commentAuthorIds.length > 0) {
       const { data: extra } = await client.from("profiles").select("id, username, avatar_url").in("id", commentAuthorIds);
       for (const p of extra ?? []) {
-        profileMap.set(p.id, { username: p.username, avatarUrl: p.avatar_url ?? undefined });
+        profileMap.set(p.id, { username: p.username, avatarUrl: p.avatar_url ?? undefined, level: 0 });
         for (const list of commentsBySession.values()) {
           for (const c of list) {
             if (c.userId === p.id) {
@@ -106,6 +107,7 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
       authorId: row.user_id,
       authorUsername: profileMap.get(row.user_id)?.username ?? "?",
       authorAvatarUrl: profileMap.get(row.user_id)?.avatarUrl,
+      authorLevel: profileMap.get(row.user_id)?.level,
       likeCount: likeCounts.get(row.id) ?? 0,
       likedByMe: myLikes.has(row.id),
       comments: commentsBySession.get(row.id) ?? [],

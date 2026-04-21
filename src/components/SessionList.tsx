@@ -57,7 +57,9 @@ function SessionCard({
             {format(parseISO(session.date), "EEEE d MMMM yyyy", { locale: fr })}
           </div>
           <div className="text-xs text-text-muted mt-0.5">
-            {session.exercices.length} exercices · {vol} kg de volume · score {score}
+            {session.exercices.length} exercices
+            {vol > 0 ? ` · ${vol} kg` : ""}
+            {` · ${score} XP`}
             {session.bodyWeight ? ` · PDC ${session.bodyWeight}kg` : ""}
           </div>
         </div>
@@ -93,9 +95,9 @@ function SessionCard({
               </span>
             </div>
             <div className="text-xs text-text-muted">
-              {ex.sets
-                .map((s) => `${s.reps}×${s.poids || "PDC"}`)
-                .join(" · ")}
+              {ex.durationMinutes
+                ? `${ex.durationMinutes} min${ex.intensity ? ` · ${ex.intensity}` : ""}`
+                : ex.sets.map((s) => `${s.reps}×${s.poids || "PDC"}`).join(" · ")}
             </div>
           </div>
         ))}

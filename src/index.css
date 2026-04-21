@@ -253,6 +253,43 @@
     animation: splashText 500ms cubic-bezier(0.4, 0, 0.2, 1) 300ms both;
   }
 
+  @keyframes levelUp {
+    0%   { opacity: 0; transform: scale(0.5); }
+    50%  { transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes confettiFall {
+    0%   { opacity: 1; transform: translateY(-40px) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(60vh) rotate(720deg); }
+  }
+  @keyframes xpFill {
+    from { width: var(--xp-from); }
+    to   { width: var(--xp-to); }
+  }
+
+  .animate-levelUp {
+    animation: levelUp 500ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute;
+    top: -10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    animation: confettiFall 2.5s ease-in forwards;
+  }
+
+  .animate-xpFill {
+    animation: xpFill 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s both;
+  }
+
   .skeleton {
     @apply rounded-lg;
     background: linear-gradient(

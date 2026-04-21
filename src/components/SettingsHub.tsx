@@ -11,6 +11,7 @@ import {
   Pencil,
   ShieldCheck,
   Sun,
+  Type,
   Upload,
   User,
   X,
@@ -18,6 +19,7 @@ import {
 import { useRef, useState } from "react";
 import { GreenImpact } from "./GreenImpact";
 import { HubHeader } from "./HubHeader";
+import { XPProgressBar } from "./XPProgressBar";
 import {
   buildBackup,
   downloadBackup,
@@ -35,6 +37,7 @@ interface Props {
   onToggleTheme: () => void;
   onUpdateUsername: (username: string) => Promise<void>;
   onUpdateAvatar?: (url: string) => Promise<void>;
+  onUpdateBio?: (bio: string) => Promise<void>;
   userId?: string;
   onSignOut?: () => void;
   sessions: Session[];
@@ -49,6 +52,7 @@ export function SettingsHub({
   onToggleTheme,
   onUpdateUsername,
   onUpdateAvatar,
+  onUpdateBio,
   userId,
   onSignOut,
   sessions,
@@ -61,6 +65,9 @@ export function SettingsHub({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [auto, setAuto] = useState(isAutoBackupEnabled());
+  const [editingBio, setEditingBio] = useState(false);
+  const [bio, setBio] = useState(profile?.bio ?? "");
+  const [savingBio, setSavingBio] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const avatarRef = useRef<HTMLInputElement>(null);
@@ -76,6 +83,20 @@ export function SettingsHub({
       setError(e instanceof Error ? e.message : "Erreur");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveBio() {
+    if (!onUpdateBio) return;
+    setSavingBio(true);
+    setError("");
+    try {
+      await onUpdateBio(bio.trim());
+      setEditingBio(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setSavingBio(false);
     }
   }
 
@@ -220,6 +241,54 @@ export function SettingsHub({
               </div>
             }
           />
+        )}
+        {onUpdateBio && (
+          <Row
+            icon={<Type className="w-5 h-5" />}
+            label="Bio"
+            action={
+              editingBio ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    className="input !w-40 !py-1 text-sm"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") void saveBio(); }}
+                    autoFocus
+                    disabled={savingBio}
+                    maxLength={160}
+                    placeholder="Ta bio..."
+                  />
+                  <button
+                    onClick={() => void saveBio()}
+                    disabled={savingBio}
+                    className="p-1 rounded hover:bg-bg-elev text-accent"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => { setEditingBio(false); setError(""); setBio(profile?.bio ?? ""); }}
+                    className="p-1 rounded hover:bg-bg-elev text-text-muted"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setEditingBio(true)}
+                  className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text max-w-[200px]"
+                >
+                  <span className="truncate text-right">{profile?.bio || "Ajouter une bio"}</span>
+                  <Pencil className="w-3.5 h-3.5 shrink-0" />
+                </button>
+              )
+            }
+          />
+        )}
+        {profile && (
+          <div className="px-4 py-3">
+            <XPProgressBar totalXp={profile.totalXp} />
+          </div>
         )}
         {error && (
           <div className="text-xs text-rose-300 px-4 pb-2">{error}</div>

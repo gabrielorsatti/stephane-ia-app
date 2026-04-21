@@ -71,6 +71,7 @@ export interface FeedPost {
   authorId: string;
   authorUsername: string;
   authorAvatarUrl?: string;
+  authorLevel?: number;
   likeCount: number;
   likedByMe: boolean;
   comments: FeedComment[];
@@ -135,6 +136,8 @@ export interface Profile {
   id: string; // auth.users.id
   username: string;
   avatarUrl?: string;
+  bio?: string;
+  totalXp: number;
   isAdmin: boolean;
   createdAt: string;
 }

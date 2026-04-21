@@ -1,6 +1,9 @@
+import { LevelBadge } from "./LevelBadge";
+
 interface Props {
   username: string;
   avatarUrl?: string;
+  level?: number;
   size?: "sm" | "md" | "lg";
   onClick?: () => void;
 }
@@ -11,7 +14,7 @@ const SIZES = {
   lg: { avatar: "w-10 h-10", text: "text-sm", initial: "text-lg" },
 };
 
-export function UserBadge({ username, avatarUrl, size = "sm", onClick }: Props) {
+export function UserBadge({ username, avatarUrl, level, size = "sm", onClick }: Props) {
   const s = SIZES[size];
 
   const content = (
@@ -24,6 +27,9 @@ export function UserBadge({ username, avatarUrl, size = "sm", onClick }: Props) 
         </div>
       )}
       <span className={`${s.text} font-semibold truncate`}>@{username}</span>
+      {level != null && level > 0 && (
+        <LevelBadge level={level} size={size === "sm" ? "sm" : "md"} />
+      )}
     </>
   );
 

@@ -76,7 +76,7 @@ function FeedCard({
   onAddComment: (sessionId: string, content: string) => Promise<void>;
   onViewProfile?: (userId: string) => void;
 }) {
-  const { session, authorId, authorUsername, authorAvatarUrl } = post;
+  const { session, authorId, authorUsername, authorAvatarUrl, authorLevel } = post;
   const [liked, setLiked] = useState(post.likedByMe);
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [showComments, setShowComments] = useState(false);
@@ -133,6 +133,7 @@ function FeedCard({
         <UserBadge
           username={authorUsername}
           avatarUrl={authorAvatarUrl}
+          level={authorLevel}
           size="lg"
           onClick={onViewProfile ? () => onViewProfile(authorId) : undefined}
         />
