@@ -16,15 +16,15 @@ self.addEventListener("push", (event) => {
     payload = { title: "Gym Track", body: event.data.text() };
   }
 
-  event.waitUntil(
-    self.registration.showNotification(payload.title, {
-      body: payload.body,
-      icon: payload.icon ?? "/Personnal-gym-tracker/icon.svg",
-      badge: "/Personnal-gym-tracker/icon.svg",
-      data: { url: payload.url },
-      vibrate: [100, 50, 100],
-    }),
-  );
+  const options: NotificationOptions & { vibrate?: number[] } = {
+    body: payload.body,
+    icon: payload.icon ?? "/Personnal-gym-tracker/icon.svg",
+    badge: "/Personnal-gym-tracker/icon.svg",
+    data: { url: payload.url },
+    vibrate: [100, 50, 100],
+  };
+
+  event.waitUntil(self.registration.showNotification(payload.title, options));
 });
 
 self.addEventListener("notificationclick", (event) => {

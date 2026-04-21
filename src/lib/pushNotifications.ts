@@ -44,14 +44,16 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
 
   const json = subscription.toJSON();
   const client = getSupabase();
-  if (!client || !json.endpoint || !json.keys) return false;
+  const p256dh = json.keys?.p256dh;
+  const auth = json.keys?.auth;
+  if (!client || !json.endpoint || !p256dh || !auth) return false;
 
   const { error } = await client.from("push_subscriptions").upsert(
     {
       user_id: userId,
       endpoint: json.endpoint,
-      p256dh: json.keys.p256dh,
-      auth: json.keys.auth,
+      p256dh,
+      auth,
     },
     { onConflict: "user_id,endpoint" },
   );

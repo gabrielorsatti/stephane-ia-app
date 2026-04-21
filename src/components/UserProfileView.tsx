@@ -1,9 +1,10 @@
-import { ArrowLeft, Calendar, Dumbbell, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Calendar, Dumbbell, Flame, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { getSupabase } from "../lib/supabase";
 import { groupExercises } from "../lib/groupExercises";
 import { sessionVolume } from "../lib/scoring";
 import { levelFromXp } from "../lib/leveling";
+import { computeStreaks } from "../lib/streaks";
 import type { ExerciseEntry, Session } from "../types";
 import { UserBadge } from "./UserBadge";
 import { XPProgressBar } from "./XPProgressBar";
@@ -105,6 +106,7 @@ export function UserProfileView({ userId, onBack }: Props) {
   }
 
   const totalVolume = sessions.reduce((sum, s) => sum + sessionVolume(s), 0);
+  const streak = useMemo(() => computeStreaks(sessions), [sessions]);
 
   return (
     <div className="space-y-4">
@@ -124,10 +126,11 @@ export function UserProfileView({ userId, onBack }: Props) {
           <p className="text-xs text-text-muted italic">{profile.bio}</p>
         )}
         <XPProgressBar totalXp={profile.totalXp} compact />
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           <StatBox icon={<Dumbbell className="w-4 h-4" />} value={sessions.length.toString()} label="Séances" />
           <StatBox icon={<Users className="w-4 h-4" />} value={friendCount.toString()} label="Amis" />
           <StatBox icon={<Calendar className="w-4 h-4" />} value={Math.round(totalVolume / 1000).toString() + "t"} label="Volume" />
+          <StatBox icon={<Flame className="w-4 h-4" />} value={streak.current > 0 ? `${streak.current}` : "—"} label="Streak" />
         </div>
       </div>
 

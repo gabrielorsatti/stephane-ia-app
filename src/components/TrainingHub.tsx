@@ -20,8 +20,10 @@ import { OccupancyChart } from "./OccupancyChart";
 import { StatsCards } from "./StatsCards";
 import { generateSessionCommentary } from "../lib/sessionCommentary";
 import { buildProgressionSummary } from "../lib/progressionSummary";
+import { detectNewPRs, type PRAlert } from "../lib/prDetection";
 import { sessionToNlp } from "../lib/toNlp";
 import { CoachBilan } from "./CoachBilan";
+import { PRCelebration } from "./PRCelebration";
 import { ExerciseCatalog } from "./ExerciseCatalog";
 import { HistoryView } from "./HistoryView";
 import { HubHeader } from "./HubHeader";
@@ -73,6 +75,7 @@ export function TrainingHub({
   const [publishSnapshot, setPublishSnapshot] = useState<{ id: string; session: Session; xpGained?: number; totalXpBefore?: number } | null>(null);
   const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
   const [showRestTimer, setShowRestTimer] = useState(false);
+  const [prAlerts, setPrAlerts] = useState<PRAlert[]>([]);
 
   const editingSession = editingId
     ? sessions.find((s) => s.id === editingId)
@@ -119,6 +122,8 @@ export function TrainingHub({
     } else {
       const result = addSession(session);
       setShowRestTimer(true);
+      const prs = detectNewPRs(result.session, sessions);
+      if (prs.length > 0) setPrAlerts(prs);
       void requestCommentary(result.id, result.session);
       const xp = sessionScore(result.session);
       if (xp > 0 && onAddXp) {
@@ -301,6 +306,10 @@ export function TrainingHub({
 
       {levelUpLevel != null && (
         <LevelUpCelebration level={levelUpLevel} onDone={() => setLevelUpLevel(null)} />
+      )}
+
+      {prAlerts.length > 0 && (
+        <PRCelebration alerts={prAlerts} onDone={() => setPrAlerts([])} />
       )}
 
       {showRestTimer && !publishSnapshot && (

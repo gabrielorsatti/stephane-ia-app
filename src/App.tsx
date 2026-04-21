@@ -27,7 +27,11 @@ import { ErrorToast } from "./components/ErrorToast";
 import { UserProfileView } from "./components/UserProfileView";
 import { VolumeChart } from "./components/VolumeChart";
 import { GoalSettingModal } from "./components/GoalSettingModal";
+import { StreakBadge } from "./components/StreakBadge";
+import { WeeklyChallengeCard } from "./components/WeeklyChallengeCard";
 import { WeeklyProgressBar } from "./components/WeeklyProgressBar";
+import { computeStreaks } from "./lib/streaks";
+import { generateWeeklyChallenge } from "./lib/weeklyChallenge";
 import { sessionsThisWeek } from "./lib/weeklyGoal";
 
 const TrainingHub = lazy(() => import("./components/TrainingHub").then(m => ({ default: m.TrainingHub })));
@@ -131,6 +135,8 @@ function AppInner() {
   const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
   const [showGoalModal, setShowGoalModal] = useState(false);
   const weeklyCount = useMemo(() => sessionsThisWeek(sessions), [sessions]);
+  const streak = useMemo(() => computeStreaks(sessions), [sessions]);
+  const challenge = useMemo(() => generateWeeklyChallenge(sessions), [sessions]);
   const needsGoalSetup = !profileLoading && profile != null && profile.weeklyGoal == null;
 
   const navigate = useCallback(
@@ -203,6 +209,7 @@ function AppInner() {
                   <>
                     <span className="truncate">@{profile.username}</span>
                     <LevelBadge level={levelFromXp(profile.totalXp)} size="sm" />
+                    <StreakBadge streak={streak} />
                   </>
                 ) : (
                   <span className="truncate">Suis ta progression sans friction.</span>
@@ -241,6 +248,8 @@ function AppInner() {
                   onClick={() => setShowGoalModal(true)}
                 />
               )}
+
+              <WeeklyChallengeCard challenge={challenge} />
 
               {crowdCheckPending && favoriteGym && (
                 <CrowdCheckPrompt
