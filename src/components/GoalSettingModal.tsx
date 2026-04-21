@@ -1,5 +1,6 @@
 import { Target } from "lucide-react";
 import { useState } from "react";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 
 interface Props {
   currentGoal?: number;
@@ -10,6 +11,7 @@ interface Props {
 export function GoalSettingModal({ currentGoal, onSave, onClose }: Props) {
   const [goal, setGoal] = useState(currentGoal ?? 3);
   const [saving, setSaving] = useState(false);
+  const trapRef = useFocusTrap<HTMLDivElement>();
 
   async function handleSave() {
     setSaving(true);
@@ -26,7 +28,7 @@ export function GoalSettingModal({ currentGoal, onSave, onClose }: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget && currentGoal != null) onClose(); }}
     >
-      <div className="bg-bg-card border border-border rounded-2xl w-full max-w-sm animate-fadeIn">
+      <div ref={trapRef} className="bg-bg-card border border-border rounded-2xl w-full max-w-sm animate-fadeIn">
         <div className="p-5 space-y-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-accent/15 text-accent flex items-center justify-center">

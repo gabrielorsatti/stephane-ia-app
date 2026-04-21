@@ -118,7 +118,7 @@ export function OccupancyChart() {
               key={i}
               onClick={() => setDayOfWeek(i)}
               className={[
-                "flex-1 py-1 text-[11px] font-medium rounded-md border transition-colors",
+                "flex-1 py-1 text-xs font-medium rounded-md border transition-colors",
                 on
                   ? "bg-accent text-bg border-accent"
                   : i === todayDow
@@ -173,7 +173,7 @@ export function OccupancyChart() {
       </div>
 
       {favorite && (
-        <div className="flex items-center justify-between mt-2 text-[11px] text-text-dim">
+        <div className="flex items-center justify-between mt-2 text-xs text-text-dim">
           <span>
             {feedbacks.length > 0
               ? `${feedbacks.length} Crowd Check${feedbacks.length > 1 ? "s" : ""} enregistré${feedbacks.length > 1 ? "s" : ""}`
@@ -193,7 +193,7 @@ export function OccupancyChart() {
         </div>
       )}
 
-      <div className="flex items-start gap-2 mt-3 text-[11px] text-text-dim">
+      <div className="flex items-start gap-2 mt-3 text-xs text-text-dim">
         <Info className="w-3 h-3 mt-0.5 shrink-0" />
         <span>
           Pas de donnée temps réel côté chaînes. Le modèle combine horaires

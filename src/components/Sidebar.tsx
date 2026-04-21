@@ -40,7 +40,7 @@ export function Sidebar({ active, onChange, notifCount = 0 }: Props) {
         {it.icon}
         <span>{it.label}</span>
         {badge && (
-          <span className="ml-auto w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+          <span className="ml-auto w-5 h-5 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center">
             {notifCount > 9 ? "9+" : notifCount}
           </span>
         )}

@@ -116,7 +116,7 @@ function Mini({
 }) {
   return (
     <div className="bg-bg-soft border border-border rounded-lg p-2">
-      <div className="flex items-center gap-1 text-text-dim text-[10px] uppercase tracking-wide">
+      <div className="flex items-center gap-1 text-text-dim text-xs uppercase tracking-wide">
         {icon}
         {label}
       </div>

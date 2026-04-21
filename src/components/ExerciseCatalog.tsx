@@ -85,7 +85,7 @@ export function ExerciseCatalog() {
                     >
                       <div className="text-sm font-medium">{def.canonical}</div>
                       {def.aliases.length > 0 && (
-                        <div className="text-[11px] text-text-dim mt-0.5 truncate">
+                        <div className="text-xs text-text-dim mt-0.5 truncate">
                           alias : {def.aliases.slice(0, 4).join(", ")}
                           {def.aliases.length > 4 ? "…" : ""}
                         </div>
@@ -93,7 +93,7 @@ export function ExerciseCatalog() {
                       {tip && (
                         <div className="mt-1.5">
                           <button
-                            className="flex items-center gap-1 text-[11px] text-accent hover:text-accent-soft transition-colors"
+                            className="flex items-center gap-1 text-xs text-accent hover:text-accent-soft transition-colors"
                             onClick={() => setExpandedTip(isExpanded ? null : def.canonical)}
                           >
                             <Lightbulb className="w-3 h-3" />
@@ -101,7 +101,7 @@ export function ExerciseCatalog() {
                             <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                           </button>
                           {isExpanded && (
-                            <p className="text-[11px] text-text-muted mt-1 leading-relaxed">
+                            <p className="text-xs text-text-muted mt-1 leading-relaxed">
                               {tip}
                             </p>
                           )}

@@ -65,7 +65,7 @@ export function NotificationList({ notifications, onMarkAllRead }: Props) {
                   ? "a aimé ta séance"
                   : "a commenté ta séance"}
               </p>
-              <p className="text-[11px] text-text-dim mt-0.5">
+              <p className="text-xs text-text-dim mt-0.5">
                 {formatDistanceToNow(parseISO(n.createdAt), {
                   addSuffix: true,
                   locale: fr,

@@ -1,5 +1,6 @@
 import { Check, ChevronRight, X } from "lucide-react";
 import { useState } from "react";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 import type { ProgramTemplate } from "../data/programs";
 import {
   applyChanges,
@@ -26,6 +27,7 @@ export function RecommendationModal({
   const [selected, setSelected] = useState<Set<number>>(
     () => new Set(recommendation.shortTerm.map((_, i) => i)),
   );
+  const trapRef = useFocusTrap<HTMLDivElement>();
 
   function toggle(i: number) {
     const next = new Set(selected);
@@ -52,6 +54,7 @@ export function RecommendationModal({
       onClick={onClose}
     >
       <div
+        ref={trapRef}
         className="bg-bg-card border border-border rounded-t-xl sm:rounded-xl w-full max-w-2xl max-h-[100dvh] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
@@ -176,7 +179,7 @@ function ChangeRow({
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium">{change.exerciseName}</div>
-          <div className="text-[11px] text-text-dim mt-0.5">
+          <div className="text-xs text-text-dim mt-0.5">
             {change.programId} · {fieldLabel[change.field]}
           </div>
           <div className="flex items-center gap-2 text-xs mt-2 flex-wrap">
@@ -189,7 +192,7 @@ function ChangeRow({
             </span>
           </div>
           {change.reason && (
-            <div className="text-[11px] text-text-muted mt-2 italic">
+            <div className="text-xs text-text-muted mt-2 italic">
               {change.reason}
             </div>
           )}

@@ -47,7 +47,7 @@ export function WeeklyProgressBar({ current, goal, onClick }: Props) {
           style={{ width: `${percent}%` }}
         />
       </div>
-      <div className="text-[10px] text-text-dim mt-1 group-hover:text-text-muted transition-colors">
+      <div className="text-xs text-text-dim mt-1 group-hover:text-text-muted transition-colors">
         {completed
           ? "Bravo ! Clique pour modifier ton objectif."
           : `Encore ${goal - current} séance${goal - current > 1 ? "s" : ""} avant dimanche. Clique pour modifier.`}

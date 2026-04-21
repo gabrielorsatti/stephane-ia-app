@@ -172,7 +172,7 @@ export function CoachChat({
             <Bot className="w-5 h-5 text-accent" />
             <div>
               <h3 className="text-sm font-semibold">Stéphane</h3>
-              <p className="text-[10px] text-text-dim">Votre coach personnel propulsé par l'IA</p>
+              <p className="text-xs text-text-dim">Votre coach personnel propulsé par l'IA</p>
             </div>
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -212,7 +212,7 @@ export function CoachChat({
                 key={s.label}
                 onClick={() => void send(s.prompt)}
                 disabled={loading || !config}
-                className="text-[11px] px-2.5 py-1 rounded-full border border-border bg-bg-soft text-text-muted hover:text-text hover:border-accent/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="text-xs px-2.5 py-1 rounded-full border border-border bg-bg-soft text-text-muted hover:text-text hover:border-accent/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 {s.label}
               </button>

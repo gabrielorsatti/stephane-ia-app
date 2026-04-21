@@ -226,7 +226,7 @@ export function SocialView({
                 className="flex items-center justify-between bg-bg-soft border border-border rounded-lg px-3 py-2"
               >
                 <UserBadge username={f.receiverUsername ?? "?"} avatarUrl={f.receiverAvatarUrl} size="md" />
-                <span className="text-[11px] text-text-dim">En attente</span>
+                <span className="text-xs text-text-dim">En attente</span>
               </div>
             ))}
           </div>

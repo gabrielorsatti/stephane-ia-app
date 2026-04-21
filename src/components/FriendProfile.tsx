@@ -138,7 +138,7 @@ function StatCard({
     <div className="bg-bg-soft border border-border rounded-lg p-3">
       <div className="flex items-center gap-2 text-text-muted mb-1">
         {icon}
-        <span className="text-[11px] uppercase tracking-wide">{label}</span>
+        <span className="text-xs uppercase tracking-wide">{label}</span>
       </div>
       <div className="text-lg font-bold">{value}</div>
     </div>

@@ -21,7 +21,7 @@ const LEVEL_COLORS: Record<number, string> = {
 export function LevelBadge({ level, size = "sm" }: Props) {
   const color = LEVEL_COLORS[level] ?? LEVEL_COLORS[1];
   const title = levelTitle(level);
-  const textSize = size === "sm" ? "text-[9px]" : "text-[10px]";
+  const textSize = "text-xs";
   const padding = size === "sm" ? "px-1 py-px" : "px-1.5 py-0.5";
   return (
     <span

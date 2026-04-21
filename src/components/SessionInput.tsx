@@ -469,7 +469,7 @@ function InlineEditor({
       <div className="space-y-1">
         {sets.map((s, i) => (
           <div key={i} className="flex items-center gap-2">
-            <span className="text-[11px] text-text-dim w-6">#{i + 1}</span>
+            <span className="text-xs text-text-dim w-6">#{i + 1}</span>
             <input
               type="number"
               className="input text-xs w-16 text-center"
@@ -485,7 +485,7 @@ function InlineEditor({
               onChange={(e) => updateSet(i, "poids", e.target.value)}
               placeholder="kg"
             />
-            <span className="text-text-dim text-[11px]">kg</span>
+            <span className="text-text-dim text-xs">kg</span>
             {sets.length > 1 && (
               <button
                 className="text-text-dim hover:text-rose-400 p-0.5"

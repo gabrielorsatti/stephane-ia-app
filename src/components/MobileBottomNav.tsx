@@ -37,7 +37,7 @@ export function MobileBottomNav({ active, onChange, notifCount = 0 }: Props) {
               <button
                 onClick={() => onChange(it.id)}
                 className={[
-                  "w-full py-2.5 flex flex-col items-center gap-0.5 text-[10px] font-medium transition-all active:scale-95 relative",
+                  "w-full py-2.5 flex flex-col items-center gap-0.5 text-xs font-medium transition-all active:scale-95 relative",
                   on
                     ? "text-accent"
                     : "text-text-dim hover:text-text-muted",
@@ -47,7 +47,7 @@ export function MobileBottomNav({ active, onChange, notifCount = 0 }: Props) {
                 {it.icon}
                 <span>{it.label}</span>
                 {badge && (
-                  <span className="absolute top-1 right-1/4 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute top-1 right-1/4 w-4 h-4 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center">
                     {notifCount > 9 ? "9+" : notifCount}
                   </span>
                 )}

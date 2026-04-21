@@ -9,7 +9,7 @@ interface Props {
 }
 
 const SIZES = {
-  sm: { avatar: "w-6 h-6", text: "text-xs", initial: "text-[10px]" },
+  sm: { avatar: "w-6 h-6", text: "text-xs", initial: "text-xs" },
   md: { avatar: "w-8 h-8", text: "text-sm", initial: "text-sm" },
   lg: { avatar: "w-10 h-10", text: "text-sm", initial: "text-lg" },
 };

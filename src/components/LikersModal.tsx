@@ -1,5 +1,6 @@
 import { X, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 import { getSupabase } from "../lib/supabase";
 import { levelFromXp } from "../lib/leveling";
 import { UserBadge } from "./UserBadge";
@@ -19,6 +20,7 @@ interface Props {
 export function LikersModal({ sessionId, onClose }: Props) {
   const [likers, setLikers] = useState<Liker[]>([]);
   const [loading, setLoading] = useState(true);
+  const trapRef = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
     async function load() {
@@ -58,6 +60,7 @@ export function LikersModal({ sessionId, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
       <div
+        ref={trapRef}
         className="card w-full max-w-sm max-h-[70vh] flex flex-col animate-fadeIn"
         onClick={(e) => e.stopPropagation()}
       >

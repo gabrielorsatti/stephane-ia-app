@@ -12,7 +12,7 @@ export function XPProgressBar({ totalXp, compact }: Props) {
   if (compact) {
     return (
       <div className="space-y-1">
-        <div className="flex items-center justify-between text-[10px]">
+        <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-1.5">
             <LevelBadge level={level} size="sm" />
             <span className="text-text-dim">{levelTitle(level)}</span>
@@ -44,7 +44,7 @@ export function XPProgressBar({ totalXp, compact }: Props) {
           style={{ width: `${percent}%` }}
         />
       </div>
-      <div className="text-[10px] text-text-dim text-center tabular-nums">
+      <div className="text-xs text-text-dim text-center tabular-nums">
         {current} / {needed} XP pour le niveau {level + 1}
       </div>
     </div>

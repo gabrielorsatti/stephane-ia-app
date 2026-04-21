@@ -231,7 +231,7 @@ export function ProgressionChart({ sessions, overrides = [] }: Props) {
           );
         })}
       </div>
-      <div className="text-[11px] text-text-dim mb-3">{active.sub}</div>
+      <div className="text-xs text-text-dim mb-3">{active.sub}</div>
 
       {(objectif || cues.length > 0) && (
         <div className="mb-3 space-y-2">

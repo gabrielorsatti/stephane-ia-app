@@ -156,13 +156,13 @@ export function AdminPanel() {
                 <div className="flex items-center gap-3 min-w-0">
                   <UserBadge username={u.username} avatarUrl={u.avatarUrl} size="md" />
                   <div className="min-w-0">
-                    <div className="text-[11px] text-text-dim font-mono truncate">
+                    <div className="text-xs text-text-dim font-mono truncate">
                       {u.id}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-2">
-                  <span className="text-[11px] text-text-dim">
+                  <span className="text-xs text-text-dim">
                     {u.friendCount} ami{u.friendCount !== 1 ? "s" : ""}
                   </span>
                   <span className="text-xs text-text-muted">
@@ -271,7 +271,7 @@ export function AdminPanel() {
         )}
       </div>
 
-      <div className="text-[11px] text-text-dim flex items-center gap-2">
+      <div className="text-xs text-text-dim flex items-center gap-2">
         <Users className="w-3 h-3" />
         Les emails ne sont jamais exposés — seuls les pseudos sont visibles.
       </div>
@@ -303,7 +303,7 @@ function KpiCard({
         >
           {icon}
         </div>
-        <span className="text-[11px] text-text-muted">{label}</span>
+        <span className="text-xs text-text-muted">{label}</span>
       </div>
       <div className="text-lg font-bold">{value}</div>
     </div>

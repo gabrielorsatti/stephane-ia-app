@@ -107,11 +107,11 @@ function SessionCard({
       )}
       {session.coachCommentary && (
         <div className="bg-accent-muted/20 border border-accent-muted rounded-xl px-3 py-2.5 space-y-1">
-          <div className="flex items-center gap-1.5 text-accent-soft text-[11px] font-semibold uppercase tracking-wide">
+          <div className="flex items-center gap-1.5 text-accent-soft text-xs font-semibold uppercase tracking-wide">
             <Brain className="w-3.5 h-3.5" />
             L'avis de Stéphane
           </div>
-          <p className="text-[10px] text-text-dim mb-1">Votre coach personnel propulsé par l'IA</p>
+          <p className="text-xs text-text-dim mb-1">Votre coach personnel propulsé par l'IA</p>
           <p className="text-xs text-text-muted italic leading-relaxed">
             {session.coachCommentary}
           </p>

@@ -145,7 +145,7 @@ function FeedCard({
           onClick={onViewProfile ? () => onViewProfile(authorId) : undefined}
         />
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] text-text-dim">{timeAgo}</div>
+          <div className="text-xs text-text-dim">{timeAgo}</div>
         </div>
         <div className="flex items-center gap-1 text-text-muted">
           {isDurationBased ? (
@@ -173,7 +173,7 @@ function FeedCard({
             >
               <div className="flex items-center gap-1.5 mb-0.5">
                 <span className="font-medium truncate">{ex.nom}</span>
-                <span className="chip bg-accent-muted/40 text-accent-soft text-[10px] !py-0 !px-1.5 shrink-0">
+                <span className="chip bg-accent-muted/40 text-accent-soft text-xs !py-0 !px-1.5 shrink-0">
                   {ex.categorie}
                 </span>
               </div>

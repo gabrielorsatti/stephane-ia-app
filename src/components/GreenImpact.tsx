@@ -85,7 +85,7 @@ export function GreenImpact() {
       {/* Équivalences */}
       {usage.promptCount > 0 && (
         <div className="bg-bg-soft border border-border rounded-lg p-3 space-y-1.5">
-          <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wide">Équivalences</p>
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">Équivalences</p>
           <div className="flex items-center gap-2 text-xs text-text-muted">
             <span>🚗</span>
             <span>{eqKm < 0.01 ? "< 0,01" : eqKm.toFixed(2)} km en voiture</span>
@@ -203,7 +203,7 @@ function MetricCard({ icon, iconColor, iconBg, value, label }: {
         {icon}
       </div>
       <div className="text-sm font-bold">{value}</div>
-      <div className="text-[10px] text-text-dim">{label}</div>
+      <div className="text-xs text-text-dim">{label}</div>
     </div>
   );
 }

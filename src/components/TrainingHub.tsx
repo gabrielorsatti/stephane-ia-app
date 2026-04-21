@@ -28,6 +28,7 @@ import { PersonalRecords } from "./PersonalRecords";
 import { ProgressionChart } from "./ProgressionChart";
 import { ProgramView } from "./ProgramView";
 import { PublishModal } from "./PublishModal";
+import { RestTimer } from "./RestTimer";
 import { SessionInput } from "./SessionInput";
 import { SlideBack, SlideIn } from "./Transition";
 
@@ -69,6 +70,7 @@ export function TrainingHub({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [publishSnapshot, setPublishSnapshot] = useState<{ id: string; session: Session; xpGained?: number; totalXpBefore?: number } | null>(null);
   const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
+  const [showRestTimer, setShowRestTimer] = useState(false);
 
   const editingSession = editingId
     ? sessions.find((s) => s.id === editingId)
@@ -114,6 +116,7 @@ export function TrainingHub({
       void requestCommentary(editingId, { ...session, id: editingId });
     } else {
       const result = addSession(session);
+      setShowRestTimer(true);
       void requestCommentary(result.id, result.session);
       const xp = sessionScore(result.session);
       if (xp > 0 && onAddXp) {
@@ -293,6 +296,10 @@ export function TrainingHub({
 
       {levelUpLevel != null && (
         <LevelUpCelebration level={levelUpLevel} onDone={() => setLevelUpLevel(null)} />
+      )}
+
+      {showRestTimer && !publishSnapshot && (
+        <RestTimer onClose={() => setShowRestTimer(false)} />
       )}
     </Wrap>
   );

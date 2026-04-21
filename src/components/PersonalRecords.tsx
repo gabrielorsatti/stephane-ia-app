@@ -134,11 +134,11 @@ export function PersonalRecords({
                 )}
               </div>
               {pr.notes && (
-                <div className="text-[11px] text-text-muted italic mt-2">
+                <div className="text-xs text-text-muted italic mt-2">
                   « {pr.notes} »
                 </div>
               )}
-              <div className="text-[10px] text-text-dim mt-2">
+              <div className="text-xs text-text-dim mt-2">
                 {pr.totalSessions > 0
                   ? `${pr.totalSessions} séance${pr.totalSessions > 1 ? "s" : ""}`
                   : "Aucune séance associée"}
@@ -181,11 +181,11 @@ function Stat({
 }) {
   return (
     <div>
-      <div className="text-text-dim uppercase tracking-wide text-[10px]">
+      <div className="text-text-dim uppercase tracking-wide text-xs">
         {label}
       </div>
       <div className="font-semibold text-text">{value}</div>
-      {hint && <div className="text-text-dim text-[10px]">{hint}</div>}
+      {hint && <div className="text-text-dim text-xs">{hint}</div>}
     </div>
   );
 }

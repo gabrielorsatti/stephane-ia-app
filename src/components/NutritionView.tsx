@@ -348,7 +348,7 @@ function DailyDashboard({
                 <span className="text-lg font-semibold" style={{ color }}>
                   {value}
                 </span>
-                <span className="text-[10px] text-text-dim">{it.unit}</span>
+                <span className="text-xs text-text-dim">{it.unit}</span>
               </div>
             </div>
           );

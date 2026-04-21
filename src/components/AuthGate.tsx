@@ -264,7 +264,7 @@ function SignInCard({
           )}
         </form>
 
-        <p className="text-[11px] text-text-dim border-t border-border pt-3">
+        <p className="text-xs text-text-dim border-t border-border pt-3">
           Tes séances sont stockées dans ton compte Supabase — isolation RLS
           stricte, aucun autre utilisateur ne peut les voir.
         </p>
