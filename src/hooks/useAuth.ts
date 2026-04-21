@@ -23,6 +23,10 @@ export function useAuth() {
       if (cancelled) return;
       setUser(data.user ?? null);
       setReady(true);
+    }).catch((err) => {
+      if (cancelled) return;
+      console.warn("[useAuth] getUser failed", err);
+      setReady(true);
     });
     const { data: sub } = client.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);

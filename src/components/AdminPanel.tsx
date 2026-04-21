@@ -45,7 +45,8 @@ export function AdminPanel() {
       const { data, error } = await client!
         .from("profiles")
         .select("id, username, avatar_url, created_at")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(100);
       if (error) console.warn("[AdminPanel]", error);
 
       const { data: friendships } = await client!
@@ -82,7 +83,8 @@ export function AdminPanel() {
       }
       const { data: profiles } = await client!
         .from("profiles")
-        .select("id, username, avatar_url");
+        .select("id, username, avatar_url")
+        .limit(200);
 
       const profileMap = new Map<string, { username: string; avatarUrl?: string }>();
       for (const p of profiles ?? []) profileMap.set(p.id, { username: p.username, avatarUrl: p.avatar_url ?? undefined });

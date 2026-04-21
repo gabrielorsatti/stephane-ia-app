@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { maybeAutoBackup } from "../lib/backup";
 import { getAdapter, makeId } from "../lib/storage";
+import { showError } from "../components/ErrorToast";
 import type { Session } from "../types";
 
 const MERGE_WINDOW_MS = 3 * 60 * 60 * 1000; // 3 hours
@@ -29,8 +30,12 @@ export function useSessions() {
           setSessions(sorted);
           setReady(true);
         })
-        .catch(() => {
-          if (!cancelled) setReady(true);
+        .catch((err) => {
+          if (!cancelled) {
+            console.warn("[useSessions] load failed", err);
+            showError("Impossible de charger les séances. Vérifie ta connexion.");
+            setReady(true);
+          }
         });
     }
     load();
@@ -46,8 +51,11 @@ export function useSessions() {
     ref.current = sorted;
     setSessions(sorted);
     const adapter = getAdapter();
-    void adapter.saveSessions(sorted);
-    void adapter.getBodyWeights().then((bw) => maybeAutoBackup(sorted, bw));
+    void adapter.saveSessions(sorted).catch((err) => {
+      console.warn("[useSessions] save failed", err);
+      showError("Sauvegarde échouée. Tes données seront resynchronisées.");
+    });
+    void adapter.getBodyWeights().then((bw) => maybeAutoBackup(sorted, bw)).catch(() => {});
   }, []);
 
   const addSession = useCallback(

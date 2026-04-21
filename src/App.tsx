@@ -23,6 +23,7 @@ import { Sidebar } from "./components/Sidebar";
 import { SkeletonCard } from "./components/Skeleton";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { UpdateToast } from "./components/UpdateToast";
+import { ErrorToast } from "./components/ErrorToast";
 import { UserProfileView } from "./components/UserProfileView";
 import { VolumeChart } from "./components/VolumeChart";
 import { GoalSettingModal } from "./components/GoalSettingModal";
@@ -387,6 +388,7 @@ function AppInner() {
       <OfflineBadge />
       <UpdateToast />
       <InstallPrompt />
+      <ErrorToast />
 
       {(showGoalModal || needsGoalSetup) && (
         <GoalSettingModal

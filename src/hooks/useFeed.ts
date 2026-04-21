@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabase } from "../lib/supabase";
 import { levelFromXp } from "../lib/leveling";
 import type { ExerciseEntry, FeedComment, FeedPost, Session } from "../types";
@@ -6,6 +6,7 @@ import type { ExerciseEntry, FeedComment, FeedPost, Session } from "../types";
 export function useFeed(userId: string | undefined, friendIds: string[]) {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const stableFriendKey = useMemo(() => friendIds.join(","), [friendIds]);
 
   const load = useCallback(async () => {
     const client = getSupabase();
@@ -115,7 +116,7 @@ export function useFeed(userId: string | undefined, friendIds: string[]) {
 
     setPosts(feed);
     setLoading(false);
-  }, [userId, friendIds.join(",")]);
+  }, [userId, stableFriendKey]);
 
   useEffect(() => {
     void load();

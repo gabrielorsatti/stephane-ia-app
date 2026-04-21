@@ -109,6 +109,7 @@ export function useProfile(userId: string | undefined) {
   const updateAvatar = useCallback(
     async (url: string) => {
       if (!userId) return;
+      if (!url.startsWith("https://")) throw new Error("URL d'avatar non sécurisée");
       const client = getSupabase();
       if (!client) return;
       const { error } = await client
@@ -138,8 +139,9 @@ export function useProfile(userId: string | undefined) {
 
   const addXp = useCallback(
     async (xp: number): Promise<{ oldXp: number; newXp: number }> => {
+      const clamped = Math.max(0, Math.min(xp, 10_000));
       const oldXp = profile?.totalXp ?? 0;
-      const newXp = oldXp + xp;
+      const newXp = oldXp + clamped;
       if (!userId) return { oldXp, newXp };
       const client = getSupabase();
       if (!client) return { oldXp, newXp };

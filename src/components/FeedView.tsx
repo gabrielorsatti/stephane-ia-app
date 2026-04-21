@@ -12,8 +12,8 @@ import { UserBadge } from "./UserBadge";
 interface Props {
   posts: FeedPost[];
   loading: boolean;
-  onToggleLike: (sessionId: string, liked: boolean) => Promise<void>;
-  onAddComment: (sessionId: string, content: string) => Promise<void>;
+  onToggleLike: (sessionId: string, liked: boolean) => Promise<boolean | void>;
+  onAddComment: (sessionId: string, content: string) => Promise<boolean | void>;
   onViewProfile?: (userId: string) => void;
 }
 
@@ -72,8 +72,8 @@ function FeedCard({
 }: {
   post: FeedPost;
   style?: React.CSSProperties;
-  onToggleLike: (sessionId: string, liked: boolean) => Promise<void>;
-  onAddComment: (sessionId: string, content: string) => Promise<void>;
+  onToggleLike: (sessionId: string, liked: boolean) => Promise<boolean | void>;
+  onAddComment: (sessionId: string, content: string) => Promise<boolean | void>;
   onViewProfile?: (userId: string) => void;
 }) {
   const { session, authorId, authorUsername, authorAvatarUrl, authorLevel } = post;
@@ -105,24 +105,31 @@ function FeedCard({
     const wasLiked = liked;
     setLiked(!wasLiked);
     setLikeCount((c) => c + (wasLiked ? -1 : 1));
-    await onToggleLike(session.id, wasLiked);
+    const ok = await onToggleLike(session.id, wasLiked);
+    if (ok === false) {
+      setLiked(wasLiked);
+      setLikeCount((c) => c + (wasLiked ? 1 : -1));
+    }
   }
 
   async function handleComment() {
     if (!commentText.trim() || sending) return;
     setSending(true);
-    await onAddComment(session.id, commentText.trim());
-    setLocalComments((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        userId: "",
-        username: "Toi",
-        content: commentText.trim(),
-        createdAt: new Date().toISOString(),
-      },
-    ]);
-    setCommentText("");
+    const saved = commentText.trim();
+    const ok = await onAddComment(session.id, saved);
+    if (ok !== false) {
+      setLocalComments((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          userId: "",
+          username: "Toi",
+          content: saved,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+      setCommentText("");
+    }
     setSending(false);
   }
 
