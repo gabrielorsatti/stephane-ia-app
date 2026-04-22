@@ -84,6 +84,9 @@ export function UserProfileView({ userId, onBack, isBlocked, onBlock, onUnblock 
     void load();
   }, [userId]);
 
+  const totalVolume = sessions.reduce((sum, s) => sum + sessionVolume(s), 0);
+  const streak = useMemo(() => computeStreaks(sessions), [sessions]);
+
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse">
@@ -107,9 +110,6 @@ export function UserProfileView({ userId, onBack, isBlocked, onBlock, onUnblock 
       </div>
     );
   }
-
-  const totalVolume = sessions.reduce((sum, s) => sum + sessionVolume(s), 0);
-  const streak = useMemo(() => computeStreaks(sessions), [sessions]);
 
   return (
     <div className="space-y-4">
