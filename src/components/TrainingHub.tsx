@@ -76,6 +76,7 @@ export function TrainingHub({
   const [levelUpLevel, setLevelUpLevel] = useState<number | null>(null);
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [prAlerts, setPrAlerts] = useState<PRAlert[]>([]);
+  const [celebratedPRs, setCelebratedPRs] = useState<Set<string>>(new Set());
 
   const editingSession = editingId
     ? sessions.find((s) => s.id === editingId)
@@ -122,8 +123,15 @@ export function TrainingHub({
     } else {
       const result = addSession(session);
       setShowRestTimer(true);
-      const prs = detectNewPRs(result.session, sessions);
-      if (prs.length > 0) setPrAlerts(prs);
+      const prs = detectNewPRs(result.session, sessions, celebratedPRs);
+      if (prs.length > 0) {
+        setPrAlerts(prs);
+        setCelebratedPRs(prev => {
+          const next = new Set(prev);
+          for (const pr of prs) next.add(`${pr.exerciseName}:${pr.type}`);
+          return next;
+        });
+      }
       void requestCommentary(result.id, result.session);
       const xp = sessionScore(result.session);
       if (xp > 0 && onAddXp) {

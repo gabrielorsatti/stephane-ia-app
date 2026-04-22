@@ -50,4 +50,29 @@ describe("detectNewPRs", () => {
     expect(alerts.length).toBe(1);
     expect(alerts[0].type).toBe("maxPoids");
   });
+
+  it("skips already celebrated PRs", () => {
+    const newSession = makeSession("3", "2026-01-15", [
+      { nom: "Bench Press", categorie: "Poussée", sets: [{ reps: 10, poids: 90 }] },
+    ]);
+    const celebrated = new Set(["Bench Press:maxPoids"]);
+    const alerts = detectNewPRs(newSession, history, celebrated);
+    expect(alerts).toEqual([]);
+  });
+
+  it("detects cardio duration PR", () => {
+    const cardioHistory: Session[] = [
+      makeSession("1", "2026-01-01", [
+        { nom: "Course", categorie: "Cardio", sets: [], durationMinutes: 30 },
+      ]),
+    ];
+    const newSession = makeSession("2", "2026-01-08", [
+      { nom: "Course", categorie: "Cardio", sets: [], durationMinutes: 45 },
+    ]);
+    const alerts = detectNewPRs(newSession, cardioHistory);
+    expect(alerts.length).toBe(1);
+    expect(alerts[0].type).toBe("maxDuration");
+    expect(alerts[0].oldValue).toBe(30);
+    expect(alerts[0].newValue).toBe(45);
+  });
 });

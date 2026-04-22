@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Info, Loader2, Plus, Sparkles, Trash2, Utensils } from "lucide-react";
+import { CalendarMinus, Info, Loader2, Plus, Sparkles, Trash2, Utensils } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { NutritionLog } from "../types";
 import { parseNutritionWithAI } from "../lib/nutritionParser";
@@ -18,6 +18,12 @@ import { useNutritionLogs } from "../hooks/useNutritionLogs";
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function yesterdayISO(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
 }
 
 function sumMacros(logs: NutritionLog[]) {
@@ -66,6 +72,17 @@ export function NutritionView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manual, setManual] = useState(false);
+  const [yesterdayMode, setYesterdayMode] = useState(false);
+  const [yesterdayText, setYesterdayText] = useState("");
+  const [yesterdayLoading, setYesterdayLoading] = useState(false);
+  const [yesterdayError, setYesterdayError] = useState<string | null>(null);
+  const [yesterdayManual, setYesterdayManual] = useState(false);
+  const [yesterdayManualMacros, setYesterdayManualMacros] = useState({
+    calories: "",
+    protein: "",
+    carbs: "",
+    fat: "",
+  });
   const [manualMacros, setManualMacros] = useState({
     calories: "",
     protein: "",
@@ -74,6 +91,7 @@ export function NutritionView() {
   });
 
   const today = todayISO();
+  const yesterday = yesterdayISO();
   const todayLogs = useMemo(
     () => logs.filter((l) => l.date === today),
     [logs, today],
@@ -99,6 +117,46 @@ export function NutritionView() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleYesterdayAi() {
+    if (!yesterdayText.trim() || yesterdayLoading) return;
+    setYesterdayLoading(true);
+    setYesterdayError(null);
+    try {
+      const macros = await parseNutritionWithAI(yesterdayText);
+      addLog({ date: yesterday, foodText: yesterdayText.trim(), ...macros });
+      setYesterdayText("");
+    } catch (e) {
+      setYesterdayError(
+        e instanceof Error
+          ? e.message
+          : "Impossible d'analyser. Essaie la saisie manuelle.",
+      );
+      setYesterdayManual(true);
+    } finally {
+      setYesterdayLoading(false);
+    }
+  }
+
+  function handleYesterdayManual() {
+    const cal = parseFloat(yesterdayManualMacros.calories) || 0;
+    const p = parseFloat(yesterdayManualMacros.protein) || 0;
+    const cb = parseFloat(yesterdayManualMacros.carbs) || 0;
+    const f = parseFloat(yesterdayManualMacros.fat) || 0;
+    if (!yesterdayText.trim() && cal === 0 && p === 0 && cb === 0 && f === 0) return;
+    addLog({
+      date: yesterday,
+      foodText: yesterdayText.trim() || "Saisie manuelle (hier)",
+      calories: cal,
+      protein: p,
+      carbs: cb,
+      fat: f,
+    });
+    setYesterdayText("");
+    setYesterdayManualMacros({ calories: "", protein: "", carbs: "", fat: "" });
+    setYesterdayManual(false);
+    setYesterdayError(null);
   }
 
   function handleManual() {
@@ -209,6 +267,98 @@ export function NutritionView() {
               <Plus className="w-4 h-4" />
               Ajouter au journal
             </button>
+          </div>
+        )}
+
+        <button
+          className="mt-3 flex items-center gap-1.5 text-xs text-text-muted hover:text-text"
+          onClick={() => setYesterdayMode((v) => !v)}
+          type="button"
+        >
+          <CalendarMinus className="w-3.5 h-3.5" />
+          {yesterdayMode ? "Fermer le journal d'hier" : "Remplir pour hier"}
+        </button>
+
+        {yesterdayMode && (
+          <div className="mt-3 bg-bg-soft border border-border rounded-lg p-3 space-y-2">
+            <div className="text-xs text-text-muted font-medium">
+              Journal du {yesterday.slice(5).replace("-", "/")}
+            </div>
+            <div className="flex gap-2">
+              <input
+                className="input flex-1"
+                placeholder="Ex: pizza + salade hier soir"
+                value={yesterdayText}
+                onChange={(e) => setYesterdayText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    void handleYesterdayAi();
+                  }
+                }}
+                disabled={yesterdayLoading}
+              />
+              <button
+                className="btn-primary shrink-0"
+                onClick={() => void handleYesterdayAi()}
+                disabled={yesterdayLoading || !yesterdayText.trim()}
+                aria-label="Analyser avec l'IA"
+              >
+                {yesterdayLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            {yesterdayError && (
+              <div className="text-xs text-accent-soft bg-accent-muted/20 border border-accent-muted/40 rounded-lg px-3 py-2">
+                {yesterdayError}
+              </div>
+            )}
+            <button
+              className="text-xs text-text-muted hover:text-text underline"
+              onClick={() => setYesterdayManual((v) => !v)}
+              type="button"
+            >
+              {yesterdayManual ? "Fermer la saisie manuelle" : "Saisie manuelle"}
+            </button>
+            {yesterdayManual && (
+              <div className="grid grid-cols-2 gap-2">
+                {(["calories", "protein", "carbs", "fat"] as const).map((k) => (
+                  <label key={k} className="text-xs text-text-muted">
+                    <span className="block mb-1 capitalize">
+                      {k === "calories"
+                        ? "Calories"
+                        : k === "protein"
+                          ? "Protéines (g)"
+                          : k === "carbs"
+                            ? "Glucides (g)"
+                            : "Lipides (g)"}
+                    </span>
+                    <input
+                      className="input"
+                      inputMode="decimal"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={yesterdayManualMacros[k]}
+                      onChange={(e) =>
+                        setYesterdayManualMacros({ ...yesterdayManualMacros, [k]: e.target.value })
+                      }
+                    />
+                  </label>
+                ))}
+                <button
+                  className="btn-primary col-span-2"
+                  onClick={handleYesterdayManual}
+                  type="button"
+                >
+                  <Plus className="w-4 h-4" />
+                  Ajouter au journal d'hier
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

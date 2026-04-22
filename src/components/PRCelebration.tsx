@@ -48,10 +48,10 @@ export function PRCelebration({ alerts, onDone }: Props) {
               </span>
               <div className="flex items-center gap-1.5 shrink-0 text-xs">
                 <span className="text-text-dim font-mono line-through">
-                  {pr.oldValue} {pr.type === "maxPoids" ? "kg" : "1RM"}
+                  {pr.oldValue} {pr.type === "maxDuration" ? "min" : pr.type === "maxPoids" ? "kg" : "1RM"}
                 </span>
                 <span className="font-bold text-amber-400">
-                  {pr.newValue} {pr.type === "maxPoids" ? "kg" : "1RM"}
+                  {pr.newValue} {pr.type === "maxDuration" ? "min" : pr.type === "maxPoids" ? "kg" : "1RM"}
                 </span>
               </div>
             </div>

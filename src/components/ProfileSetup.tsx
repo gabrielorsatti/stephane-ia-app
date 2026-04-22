@@ -52,7 +52,7 @@ export function ProfileSetup({ onSubmit }: Props) {
         <input
           type="text"
           className="input w-full"
-          placeholder="ex: gabriel.fit"
+          placeholder="ex: stephane_01"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           maxLength={30}
