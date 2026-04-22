@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  <a href="https://gym-track-landing-2iys.vercel.app/">Site vitrine </a>
+</p>
+
+<p align="center">
   <a href="https://gabrielorsatti.github.io/Personnal-gym-tracker/">Essayer l'application</a>
 </p>
 
