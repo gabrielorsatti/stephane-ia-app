@@ -1,9 +1,7 @@
 import { RefreshCw, X } from "lucide-react";
+import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
-// Toast discret affiché quand une nouvelle version du service worker est
-// disponible. L'utilisateur clique pour rafraîchir — plus propre qu'une mise
-// à jour automatique qui peut casser une session en cours.
 export function UpdateToast() {
   const {
     needRefresh: [needRefresh, setNeedRefresh],
@@ -13,6 +11,15 @@ export function UpdateToast() {
       console.error("[PWA] registration error", err);
     },
   });
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    function onControllerChange() {
+      window.location.reload();
+    }
+    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+    return () => navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+  }, []);
 
   if (!needRefresh) return null;
 
