@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   Bell,
   Camera,
   Check,
@@ -10,8 +11,10 @@ import {
   LogOut,
   Moon,
   Pencil,
+  Shield,
   ShieldCheck,
   Sun,
+  Trash2,
   Type,
   Upload,
   User,
@@ -42,6 +45,8 @@ interface Props {
   onUpdateBio?: (bio: string) => Promise<void>;
   userId?: string;
   onSignOut?: () => void;
+  onDeleteAccount?: () => Promise<void>;
+  onShowPrivacy?: () => void;
   sessions: Session[];
   bodyWeights: BodyWeightEntry[];
   onImport: (sessions: Session[], bodyWeights: BodyWeightEntry[]) => void;
@@ -57,6 +62,8 @@ export function SettingsHub({
   onUpdateBio,
   userId,
   onSignOut,
+  onDeleteAccount,
+  onShowPrivacy,
   sessions,
   bodyWeights,
   onImport,
@@ -71,6 +78,8 @@ export function SettingsHub({
   const [bio, setBio] = useState(profile?.bio ?? "");
   const [savingBio, setSavingBio] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<0 | 1 | 2>(0);
+  const [deleting, setDeleting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const avatarRef = useRef<HTMLInputElement>(null);
   const push = usePushSubscription(userId);
@@ -440,11 +449,27 @@ export function SettingsHub({
       {/* Légal */}
       <Section title="Légal">
         <Row
+          icon={<Shield className="w-5 h-5" />}
+          label="Politique de confidentialité"
+          action={
+            onShowPrivacy ? (
+              <button
+                onClick={onShowPrivacy}
+                className="text-sm text-accent hover:text-accent-soft"
+              >
+                Consulter
+              </button>
+            ) : (
+              <span className="text-xs text-text-dim">Non disponible</span>
+            )
+          }
+        />
+        <Row
           icon={<Lock className="w-5 h-5" />}
-          label="Confidentialité"
+          label="Sécurité"
           action={
             <span className="text-xs text-text-dim max-w-[200px] text-right">
-              Données chiffrées, isolation RLS par utilisateur.
+              Chiffrement HTTPS, isolation RLS par utilisateur.
             </span>
           }
         />
@@ -469,6 +494,79 @@ export function SettingsHub({
             <LogOut className="w-5 h-5" />
             <span>Déconnexion</span>
           </button>
+        </Section>
+      )}
+
+      {/* Suppression de compte */}
+      {onDeleteAccount && (
+        <Section title="Zone de danger">
+          {deleteStep === 0 && (
+            <button
+              onClick={() => setDeleteStep(1)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+            >
+              <Trash2 className="w-5 h-5" />
+              <span>Supprimer mon compte</span>
+            </button>
+          )}
+          {deleteStep === 1 && (
+            <div className="px-4 py-3 space-y-3">
+              <div className="flex items-start gap-2 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  Cette action est <strong>irréversible</strong>. Toutes tes données
+                  (séances, nutrition, profil, amis, commentaires) seront définitivement supprimées.
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 text-sm py-2 rounded-lg border border-border text-text-muted hover:bg-bg-soft transition-colors"
+                  onClick={() => setDeleteStep(0)}
+                >
+                  Annuler
+                </button>
+                <button
+                  className="flex-1 text-sm py-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-400 font-semibold hover:bg-rose-500/30 transition-colors"
+                  onClick={() => setDeleteStep(2)}
+                >
+                  Je confirme
+                </button>
+              </div>
+            </div>
+          )}
+          {deleteStep === 2 && (
+            <div className="px-4 py-3 space-y-3">
+              <p className="text-xs text-rose-300 font-semibold text-center">
+                Dernière chance — clique pour supprimer définitivement ton compte.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 text-sm py-2 rounded-lg border border-border text-text-muted hover:bg-bg-soft transition-colors"
+                  onClick={() => setDeleteStep(0)}
+                  disabled={deleting}
+                >
+                  Annuler
+                </button>
+                <button
+                  className="flex-1 text-sm py-2 rounded-lg bg-rose-600 text-white font-bold hover:bg-rose-700 transition-colors disabled:opacity-50"
+                  disabled={deleting}
+                  onClick={async () => {
+                    setDeleting(true);
+                    try {
+                      await onDeleteAccount();
+                      window.location.reload();
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : "Erreur");
+                      setDeleting(false);
+                      setDeleteStep(0);
+                    }
+                  }}
+                >
+                  {deleting ? "Suppression…" : "Supprimer définitivement"}
+                </button>
+              </div>
+            </div>
+          )}
         </Section>
       )}
     </div>

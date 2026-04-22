@@ -1,4 +1,4 @@
-import { ArrowLeft, Calendar, Dumbbell, Flame, Users } from "lucide-react";
+import { ArrowLeft, Ban, Calendar, Dumbbell, Flame, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabase } from "../lib/supabase";
 import { groupExercises } from "../lib/groupExercises";
@@ -21,9 +21,12 @@ interface ProfileData {
 interface Props {
   userId: string;
   onBack: () => void;
+  isBlocked?: boolean;
+  onBlock?: (userId: string) => Promise<boolean>;
+  onUnblock?: (userId: string) => Promise<boolean>;
 }
 
-export function UserProfileView({ userId, onBack }: Props) {
+export function UserProfileView({ userId, onBack, isBlocked, onBlock, onUnblock }: Props) {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [friendCount, setFriendCount] = useState(0);
@@ -110,13 +113,31 @@ export function UserProfileView({ userId, onBack }: Props) {
 
   return (
     <div className="space-y-4">
-      <button
-        onClick={onBack}
-        className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Retour
-      </button>
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Retour
+        </button>
+        {(onBlock || onUnblock) && (
+          <button
+            onClick={() => {
+              if (isBlocked && onUnblock) void onUnblock(userId);
+              else if (!isBlocked && onBlock) void onBlock(userId);
+            }}
+            className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
+              isBlocked
+                ? "border-border text-text-muted hover:text-text hover:bg-bg-soft"
+                : "border-rose-500/30 text-rose-400 hover:bg-rose-500/10"
+            }`}
+          >
+            <Ban className="w-3.5 h-3.5" />
+            {isBlocked ? "Débloquer" : "Bloquer"}
+          </button>
+        )}
+      </div>
 
       <div className="card space-y-3">
         <div className="flex items-center gap-4">

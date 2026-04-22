@@ -1,6 +1,6 @@
 import { formatDistanceToNow, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Clock, Dumbbell, MessageCircle, Rss, Send, Zap } from "lucide-react";
+import { Clock, Dumbbell, Flag, MessageCircle, Rss, Send, Zap } from "lucide-react";
 import { useState } from "react";
 import type { FeedComment, FeedPost } from "../types";
 import { groupExercises } from "../lib/groupExercises";
@@ -15,9 +15,10 @@ interface Props {
   onToggleLike: (sessionId: string, liked: boolean) => Promise<boolean | void>;
   onAddComment: (sessionId: string, content: string) => Promise<boolean | void>;
   onViewProfile?: (userId: string) => void;
+  onReport?: (contentId: string, contentType: "session" | "comment") => void;
 }
 
-export function FeedView({ posts, loading, onToggleLike, onAddComment, onViewProfile }: Props) {
+export function FeedView({ posts, loading, onToggleLike, onAddComment, onViewProfile, onReport }: Props) {
   if (loading) {
     return (
       <div className="space-y-4">
@@ -57,6 +58,7 @@ export function FeedView({ posts, loading, onToggleLike, onAddComment, onViewPro
           onToggleLike={onToggleLike}
           onAddComment={onAddComment}
           onViewProfile={onViewProfile}
+          onReport={onReport}
         />
       ))}
     </div>
@@ -69,12 +71,14 @@ function FeedCard({
   onToggleLike,
   onAddComment,
   onViewProfile,
+  onReport,
 }: {
   post: FeedPost;
   style?: React.CSSProperties;
   onToggleLike: (sessionId: string, liked: boolean) => Promise<boolean | void>;
   onAddComment: (sessionId: string, content: string) => Promise<boolean | void>;
   onViewProfile?: (userId: string) => void;
+  onReport?: (contentId: string, contentType: "session" | "comment") => void;
 }) {
   const { session, authorId, authorUsername, authorAvatarUrl, authorLevel } = post;
   const [liked, setLiked] = useState(post.likedByMe);
@@ -222,6 +226,15 @@ function FeedCard({
           <MessageCircle className="w-4 h-4" />
           {localComments.length > 0 && localComments.length} Commentaire{localComments.length !== 1 ? "s" : ""}
         </button>
+        {onReport && (
+          <button
+            className="ml-auto flex items-center gap-1 text-xs text-text-dim hover:text-amber-400 transition-colors"
+            onClick={() => onReport(session.id, "session")}
+            title="Signaler ce post"
+          >
+            <Flag className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {/* Comments section */}

@@ -5,11 +5,11 @@ interface Props {
   onSubmit: (username: string) => Promise<void>;
 }
 
-// Écran bloquant affiché si le profil n'a pas encore de pseudo personnalisé.
 export function ProfileSetup({ onSubmit }: Props) {
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [consent, setConsent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,6 +58,19 @@ export function ProfileSetup({ onSubmit }: Props) {
           maxLength={30}
           autoFocus
         />
+        <label className="flex items-start gap-2 text-xs text-text-muted cursor-pointer">
+          <input
+            type="checkbox"
+            checked={consent}
+            onChange={(e) => setConsent(e.target.checked)}
+            className="accent-accent mt-0.5"
+          />
+          <span>
+            J'accepte que mes données de santé (entraînement, nutrition, poids)
+            soient traitées pour le coaching IA personnalisé.{" "}
+            <span className="text-text-dim">Voir Politique de confidentialité.</span>
+          </span>
+        </label>
         {error && (
           <div className="flex items-center gap-2 text-xs text-rose-400">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
@@ -67,7 +80,7 @@ export function ProfileSetup({ onSubmit }: Props) {
         <button
           type="submit"
           className="btn-primary w-full"
-          disabled={saving || !username.trim()}
+          disabled={saving || !username.trim() || !consent}
         >
           {saving ? "Enregistrement…" : "Valider"}
         </button>

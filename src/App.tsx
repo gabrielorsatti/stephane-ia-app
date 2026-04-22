@@ -6,6 +6,8 @@ import { ADMIN_UID } from "./components/AdminPanel";
 import { AuthGate } from "./components/AuthGate";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { OfflineBadge } from "./components/OfflineBadge";
+import { PrivacyPolicy } from "./components/PrivacyPolicy";
+import { ReportModal } from "./components/ReportModal";
 import { BodyWeightChart } from "./components/BodyWeightChart";
 import { FadeIn } from "./components/Transition";
 import { CalendarView } from "./components/CalendarView";
@@ -42,6 +44,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useBodyWeight } from "./hooks/useBodyWeight";
 import { useFeed } from "./hooks/useFeed";
 import { useFriendships } from "./hooks/useFriendships";
+import { useModeration } from "./hooks/useModeration";
 import { useNotifications } from "./hooks/useNotifications";
 import { useSocialInteractions } from "./hooks/useSocialInteractions";
 import { useGyms } from "./hooks/useGyms";
@@ -104,7 +107,7 @@ function AppInner() {
   const { favorite: favoriteGym, favoriteId } = useGyms();
   const { addFeedback } = useOccupancyFeedback();
 
-  const { profile, loading: profileLoading, loadError: profileError, needsSetup, ensureProfile, updateUsername, updateAvatar, updateBio, addXp, updateWeeklyGoal } =
+  const { profile, loading: profileLoading, loadError: profileError, needsSetup, ensureProfile, updateUsername, updateAvatar, updateBio, addXp, updateWeeklyGoal, deleteAccount } =
     useProfile(auth.user?.id);
   const {
     accepted,
@@ -118,12 +121,17 @@ function AppInner() {
   } = useFriendships(auth.user?.id);
 
   const { unreadCount: notifCount } = useNotifications(auth.user?.id);
+  const { blockedIds, reportContent, blockUser, unblockUser } = useModeration(auth.user?.id);
 
   const homeFriendIds = useMemo(
     () => accepted.map((f) => (f.senderId === auth.user?.id ? f.receiverId : f.senderId)),
     [accepted, auth.user?.id],
   );
-  const { posts: homePosts, loading: homeFeedLoading } = useFeed(auth.user?.id, homeFriendIds);
+  const { posts: rawHomePosts, loading: homeFeedLoading } = useFeed(auth.user?.id, homeFriendIds);
+  const homePosts = useMemo(
+    () => rawHomePosts.filter((p) => !blockedIds.has(p.authorId)),
+    [rawHomePosts, blockedIds],
+  );
   const { toggleLike: homeToggleLike, addComment: homeAddComment } = useSocialInteractions(auth.user?.id);
 
   const isAdmin =
@@ -134,6 +142,8 @@ function AppInner() {
   const [crowdCheckPending, setCrowdCheckPending] = useState(false);
   const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
   const [showGoalModal, setShowGoalModal] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ id: string; type: "session" | "comment" } | null>(null);
   const weeklyCount = useMemo(() => sessionsThisWeek(sessions), [sessions]);
   const streak = useMemo(() => computeStreaks(sessions), [sessions]);
   const challenge = useMemo(() => generateWeeklyChallenge(sessions), [sessions]);
@@ -279,6 +289,7 @@ function AppInner() {
                   onToggleLike={homeToggleLike}
                   onAddComment={homeAddComment}
                   onViewProfile={setViewingProfileId}
+                  onReport={(id, type) => setReportTarget({ id, type })}
                 />
               </div>
 
@@ -299,6 +310,9 @@ function AppInner() {
               <UserProfileView
                 userId={viewingProfileId}
                 onBack={() => setViewingProfileId(null)}
+                isBlocked={blockedIds.has(viewingProfileId)}
+                onBlock={blockUser}
+                onUnblock={unblockUser}
               />
             </FadeIn>
           )}
@@ -364,7 +378,7 @@ function AppInner() {
             )}
           </Suspense>
 
-          {hub === "settings" && (
+          {hub === "settings" && !showPrivacy && (
             <FadeIn id="settings">
               <SettingsHub
                 profile={profile}
@@ -379,6 +393,8 @@ function AppInner() {
                     ? () => void auth.signOut()
                     : undefined
                 }
+                onDeleteAccount={auth.supabaseEnabled && auth.user && profile ? deleteAccount : undefined}
+                onShowPrivacy={() => setShowPrivacy(true)}
                 sessions={sessions}
                 bodyWeights={entries}
                 onImport={(s, b) => {
@@ -387,6 +403,12 @@ function AppInner() {
                 }}
                 onBack={goBackFromSettings}
               />
+            </FadeIn>
+          )}
+
+          {hub === "settings" && showPrivacy && (
+            <FadeIn id="privacy">
+              <PrivacyPolicy onBack={() => setShowPrivacy(false)} />
             </FadeIn>
           )}
         </main>
@@ -398,6 +420,15 @@ function AppInner() {
       <UpdateToast />
       <InstallPrompt />
       <ErrorToast />
+
+      {reportTarget && (
+        <ReportModal
+          contentId={reportTarget.id}
+          contentType={reportTarget.type}
+          onSubmit={reportContent}
+          onClose={() => setReportTarget(null)}
+        />
+      )}
 
       {(showGoalModal || needsGoalSetup) && (
         <GoalSettingModal

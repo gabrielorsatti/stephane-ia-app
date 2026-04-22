@@ -214,5 +214,13 @@ export function useProfile(userId: string | undefined) {
     [userId, profile, updateUsername],
   );
 
-  return { profile, loading, loadError, needsSetup, updateUsername, updateAvatar, updateBio, addXp, updateWeeklyGoal, ensureProfile };
+  const deleteAccount = useCallback(async () => {
+    if (!userId) throw new Error("Non authentifié");
+    const client = getSupabase();
+    if (!client) throw new Error("Client Supabase indisponible");
+    const { error } = await client.rpc("delete_user_account");
+    if (error) throw new Error(error.message);
+  }, [userId]);
+
+  return { profile, loading, loadError, needsSetup, updateUsername, updateAvatar, updateBio, addXp, updateWeeklyGoal, ensureProfile, deleteAccount };
 }

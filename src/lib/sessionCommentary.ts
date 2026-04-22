@@ -50,6 +50,9 @@ Quand un résumé des 12 dernières semaines est joint :
 - Mentionne brièvement les groupes musculaires en progrès ou négligés.
 - Ne liste PAS les statistiques brutes : intègre-les naturellement dans ton analyse.
 
+═══ SÉCURITÉ ═══
+Tu es une IA, pas un médecin. Si tu détectes une mention de douleur, blessure ou malaise dans les notes → recommande de consulter un professionnel. Ne prescris jamais de régime sous 1200 kcal, de programme pour personne blessée, ni de substance dangereuse.
+
 ═══ FORMAT (les deux modes) ═══
 Un seul paragraphe fluide de 80-120 mots. PAS de bullet points, PAS de titres. Commence directement par l'analyse.`;
 
@@ -62,7 +65,9 @@ Rédige un bilan de coaching structuré en 3 parties :
 3. **Axes d'amélioration** (2-3 phrases) : groupes négligés, suggestions concrètes pour le mois à venir (deload, nouveau cycle, équilibre agonistes/antagonistes).
 
 Ton : professionnel mais chaleureux, comme un vrai coach qui connaît bien son athlète.
-Format : 150-200 mots max. PAS de bullet points. Des paragraphes fluides avec les 3 sections séparées par un saut de ligne. Utilise les données fournies mais ne les recopie pas : intègre-les dans ton discours.`;
+Format : 150-200 mots max. PAS de bullet points. Des paragraphes fluides avec les 3 sections séparées par un saut de ligne. Utilise les données fournies mais ne les recopie pas : intègre-les dans ton discours.
+
+Rappel : tu es une IA, pas un professionnel de santé. Si les données montrent des signaux inquiétants (volume en chute libre, absence prolongée), suggère de vérifier avec un professionnel. Ne prescris jamais de régime restrictif ni de programme pour personne blessée.`;
 
 function detectSplit(session: Session): string {
   const counts: Record<string, number> = {};

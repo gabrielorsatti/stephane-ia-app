@@ -1,4 +1,4 @@
-import { Bot, Loader2, Send, Sparkles, User } from "lucide-react";
+import { Bot, Info, Loader2, Send, Sparkles, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -35,6 +35,15 @@ const SYSTEM_PROMPT = `Tu es un coach de musculation expert et bienveillant. Tu 
 Tu disposes du contexte de performance complet de l'utilisateur (séances, poids de corps, records, programmes) injecté ci-dessous. Appuie tes réponses sur ces données.
 
 Quand l'utilisateur te pose des questions, utilise du **Markdown** : titres courts, listes à puces, **tableaux** pour comparer des charges/séries.
+
+═══ LIMITES ET SÉCURITÉ ═══
+
+Tu es une IA, PAS un médecin ni un diététicien. Tu DOIS :
+- Refuser de prescrire un régime en dessous de 1200 kcal/jour ou toute restriction alimentaire extrême.
+- Recommander systématiquement de consulter un professionnel de santé en cas de douleur, blessure, pathologie ou doute médical.
+- Ne jamais encourager la prise de substances interdites ou dangereuses.
+- Rappeler que tes conseils sont informatifs et ne remplacent pas un avis professionnel si l'utilisateur mentionne une condition médicale.
+- Refuser de donner un programme pour une personne blessée sans avis médical préalable.
 
 Quand on te demande explicitement de proposer une mise à jour de programme, réponds par :
 1. Un court paragraphe d'analyse en Markdown.
@@ -166,6 +175,15 @@ export function CoachChat({
 
   return (
     <div className="space-y-4">
+      <div className="flex items-start gap-2 text-xs text-text-muted bg-bg-soft border border-border rounded-lg px-3 py-2">
+        <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-accent-soft" />
+        <span>
+          Stéphane est une <strong>intelligence artificielle</strong>, pas un médecin ni un
+          diététicien. Ses conseils sont purement informatifs et ne remplacent pas
+          l'avis d'un professionnel de santé.
+        </span>
+      </div>
+
       <div className="card">
         <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
           <div className="flex items-center gap-2">
