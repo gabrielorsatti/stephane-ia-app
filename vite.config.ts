@@ -14,11 +14,12 @@ export default defineConfig({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
-      registerType: "prompt",
+      registerType: "autoUpdate",
       includeAssets: ["icon.svg"],
       manifest: {
-        name: "Stephane IA",
-        short_name: "Stephane IA",
+        name: "Stéphane-IA",
+        short_name: "Stéphane",
+        start_url: "./",
         description:
           "Suivi de musculation avec saisie en langage naturel et statistiques.",
         theme_color: "#a7e8c9",

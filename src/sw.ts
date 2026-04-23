@@ -12,6 +12,10 @@ self.addEventListener("message", (event) => {
   }
 });
 
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", (event) => {
   if (!event.data) return;
 
@@ -22,10 +26,11 @@ self.addEventListener("push", (event) => {
     payload = { title: "Stephane IA", body: event.data.text() };
   }
 
+  const base = self.registration.scope;
   const options: NotificationOptions & { vibrate?: number[] } = {
     body: payload.body,
-    icon: payload.icon ?? "/stephane-ia/icon.svg",
-    badge: "/stephane-ia/icon.svg",
+    icon: payload.icon ?? `${base}icon.svg`,
+    badge: `${base}icon.svg`,
     data: { url: payload.url },
     vibrate: [100, 50, 100],
   };
@@ -35,12 +40,13 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data?.url as string) ?? "/stephane-ia/";
+  const scope = self.registration.scope;
+  const url = (event.notification.data?.url as string) ?? scope;
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {
-        if (client.url.includes("stephane-ia") && "focus" in client) {
+        if (client.url.startsWith(scope) && "focus" in client) {
           return client.focus();
         }
       }
