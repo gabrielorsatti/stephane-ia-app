@@ -19,13 +19,13 @@ self.addEventListener("push", (event) => {
   try {
     payload = event.data.json();
   } catch {
-    payload = { title: "Gym Track", body: event.data.text() };
+    payload = { title: "Stephane IA", body: event.data.text() };
   }
 
   const options: NotificationOptions & { vibrate?: number[] } = {
     body: payload.body,
-    icon: payload.icon ?? "/Personnal-gym-tracker/icon.svg",
-    badge: "/Personnal-gym-tracker/icon.svg",
+    icon: payload.icon ?? "/stephane-ia/icon.svg",
+    badge: "/stephane-ia/icon.svg",
     data: { url: payload.url },
     vibrate: [100, 50, 100],
   };
@@ -35,12 +35,12 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data?.url as string) ?? "/Personnal-gym-tracker/";
+  const url = (event.notification.data?.url as string) ?? "/stephane-ia/";
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {
-        if (client.url.includes("Personnal-gym-tracker") && "focus" in client) {
+        if (client.url.includes("stephane-ia") && "focus" in client) {
           return client.focus();
         }
       }

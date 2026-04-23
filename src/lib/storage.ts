@@ -28,12 +28,12 @@ export interface StorageAdapter {
   saveOccupancyFeedback(feedback: OccupancyFeedback[]): Promise<void>;
 }
 
-const KEY_SESSIONS = "gym-tracker:sessions:v1";
-const KEY_BW = "gym-tracker:bodyweight:v1";
-const KEY_OVERRIDES = "gym-tracker:pr-overrides:v1";
-const KEY_NUTRITION = "gym-tracker:nutrition:v1";
-const KEY_GYMS = "gym-tracker:gyms:v1";
-const KEY_OCCUPANCY = "gym-tracker:occupancy-feedback:v1";
+const KEY_SESSIONS = "stephane-ia:sessions:v1";
+const KEY_BW = "stephane-ia:bodyweight:v1";
+const KEY_OVERRIDES = "stephane-ia:pr-overrides:v1";
+const KEY_NUTRITION = "stephane-ia:nutrition:v1";
+const KEY_GYMS = "stephane-ia:gyms:v1";
+const KEY_OCCUPANCY = "stephane-ia:occupancy-feedback:v1";
 
 // Les PR overrides restent volontairement découplés de StorageAdapter pour
 // l'instant : ils sont une préférence utilisateur, pas une donnée source.
@@ -128,7 +128,7 @@ let cloudEnabled = false;
 export function setCloudMode(enabled: boolean): void {
   cloudEnabled = enabled;
   // Notifie les hooks qu'ils doivent re-fetcher depuis la nouvelle source.
-  window.dispatchEvent(new CustomEvent("gym-tracker:storage-changed"));
+  window.dispatchEvent(new CustomEvent("stephane-ia:storage-changed"));
 }
 
 export function getAdapter(): StorageAdapter {

@@ -28,7 +28,7 @@ export function downloadBackup(file: BackupFile): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `gym-tracker-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `stephane-ia-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -36,8 +36,8 @@ export function downloadBackup(file: BackupFile): void {
 }
 
 // Clé LocalStorage traçant la date (YYYY-MM-DD) du dernier auto-backup.
-const AUTO_BACKUP_KEY = "gym-tracker:last-auto-backup";
-const AUTO_BACKUP_ENABLED_KEY = "gym-tracker:auto-backup-enabled";
+const AUTO_BACKUP_KEY = "stephane-ia:last-auto-backup";
+const AUTO_BACKUP_ENABLED_KEY = "stephane-ia:auto-backup-enabled";
 
 export function isAutoBackupEnabled(): boolean {
   return localStorage.getItem(AUTO_BACKUP_ENABLED_KEY) === "1";
@@ -50,7 +50,7 @@ export function setAutoBackupEnabled(on: boolean): void {
 
 // Copie redondante en LocalStorage sous une clé séparée — si la clé
 // principale se corrompt, on a toujours cette sauvegarde locale à restaurer.
-const MIRROR_KEY = "gym-tracker:mirror:v1";
+const MIRROR_KEY = "stephane-ia:mirror:v1";
 export function writeMirror(
   sessions: Session[],
   bodyWeights: BodyWeightEntry[],

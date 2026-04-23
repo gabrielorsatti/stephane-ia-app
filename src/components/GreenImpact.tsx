@@ -1,7 +1,7 @@
 import { Battery, Droplets, Info, Leaf, X, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 
-const STORAGE_KEY = "gym-tracker:ai-usage";
+const STORAGE_KEY = "stephane-ia:ai-usage";
 
 // Ratios — estimations moyennes hautes pour transparence
 const CO2_PER_1000_TOKENS = 0.5; // gCO2e

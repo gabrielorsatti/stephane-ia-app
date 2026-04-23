@@ -1,4 +1,4 @@
--- Personal Gym Tracker — schéma Supabase
+-- Stephane IA — schéma Supabase
 -- À exécuter une fois dans le SQL Editor d'un nouveau projet Supabase.
 -- Idempotent : peut être rejoué sans casser.
 

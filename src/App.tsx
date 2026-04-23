@@ -81,7 +81,7 @@ function AppInner() {
         void migrateOwnerDataIfNeeded(client, auth.user).then((migrated) => {
           if (migrated) {
             window.dispatchEvent(
-              new CustomEvent("gym-tracker:storage-changed"),
+              new CustomEvent("stephane-ia:storage-changed"),
             );
           }
         });
@@ -213,7 +213,7 @@ function AppInner() {
               <Logo size={22} />
             </div>
             <div className="min-w-0">
-              <div className="font-semibold truncate">Gym Track</div>
+              <div className="font-semibold truncate">Stephane IA</div>
               <div className="flex items-center gap-1.5 text-xs text-text-muted">
                 {profile ? (
                   <>

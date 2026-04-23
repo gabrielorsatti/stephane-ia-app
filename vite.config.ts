@@ -4,7 +4,7 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // `base` est exigé par GitHub Pages quand le site est servi sous un
 // sous-chemin (https://<user>.github.io/<repo>/). En dev local on reste à "/".
-const base = process.env.GITHUB_ACTIONS ? "/Personnal-gym-tracker/" : "/";
+const base = process.env.GITHUB_ACTIONS ? "/stephane-ia/" : "/";
 
 export default defineConfig({
   base,
@@ -17,8 +17,8 @@ export default defineConfig({
       registerType: "prompt",
       includeAssets: ["icon.svg"],
       manifest: {
-        name: "Personal Gym Tracker",
-        short_name: "Gym Tracker",
+        name: "Stephane IA",
+        short_name: "Stephane IA",
         description:
           "Suivi de musculation avec saisie en langage naturel et statistiques.",
         theme_color: "#a7e8c9",

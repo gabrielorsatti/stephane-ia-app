@@ -8,7 +8,7 @@ export function LoadingScreen() {
           <Logo size={48} />
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-          Gym Track
+          Stephane IA
         </h1>
       </div>
     </div>

@@ -178,7 +178,7 @@ function SignInCard({
             <Logo size={24} />
           </div>
           <div>
-            <h1 className="font-semibold text-lg">Personal Gym Tracker</h1>
+            <h1 className="font-semibold text-lg">Stephane IA</h1>
             <p className="text-xs text-text-muted">
               {mode === "signin"
                 ? "Connecte-toi à ton compte"

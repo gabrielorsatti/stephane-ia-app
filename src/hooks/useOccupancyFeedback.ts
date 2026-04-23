@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getAdapter, makeId } from "../lib/storage";
 import type { OccupancyFeedback, OccupancyLevel } from "../types";
 
-const EVT = "gym-tracker:occupancy-feedback-changed";
+const EVT = "stephane-ia:occupancy-feedback-changed";
 
 export function useOccupancyFeedback() {
   const [feedback, setFeedback] = useState<OccupancyFeedback[]>([]);
@@ -18,11 +18,11 @@ export function useOccupancyFeedback() {
         .catch(() => {});
     }
     load();
-    window.addEventListener("gym-tracker:storage-changed", load);
+    window.addEventListener("stephane-ia:storage-changed", load);
     window.addEventListener(EVT, load);
     return () => {
       cancelled = true;
-      window.removeEventListener("gym-tracker:storage-changed", load);
+      window.removeEventListener("stephane-ia:storage-changed", load);
       window.removeEventListener(EVT, load);
     };
   }, []);

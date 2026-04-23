@@ -1,7 +1,7 @@
 import { Bot, Sparkles, TrendingUp, X } from "lucide-react";
 import { useState } from "react";
 
-const FLAG = "gym-tracker:onboarded:v2";
+const FLAG = "stephane-ia:onboarded:v2";
 
 // Modal de bienvenue affichée au premier lancement. Stocke un flag
 // LocalStorage (bump v2 pour réinitialiser l'état existant). Fermeture via

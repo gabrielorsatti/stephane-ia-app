@@ -23,7 +23,7 @@ export function PrivacyPolicy({ onBack }: Props) {
         <p className="text-xs text-text-dim">Dernière mise à jour : avril 2026</p>
 
         <Section title="1. Données collectées">
-          <p>Gym Track collecte les données suivantes dans le cadre de son fonctionnement :</p>
+          <p>Stephane IA collecte les données suivantes dans le cadre de son fonctionnement :</p>
           <ul className="list-disc list-inside space-y-1 mt-2">
             <li><strong>Données d'entraînement</strong> : séances, exercices, séries, charges, durées.</li>
             <li><strong>Données corporelles</strong> : poids de corps (si renseigné).</li>
@@ -77,7 +77,7 @@ export function PrivacyPolicy({ onBack }: Props) {
 
         <Section title="6. Cookies et stockage local">
           <p>
-            Gym Track utilise le localStorage du navigateur pour conserver vos préférences (thème, cache de bilan, etc.)
+            Stephane IA utilise le localStorage du navigateur pour conserver vos préférences (thème, cache de bilan, etc.)
             et un mode hors-ligne. Aucun cookie tiers, tracker ou pixel de suivi n'est utilisé.
           </p>
         </Section>

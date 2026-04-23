@@ -7,7 +7,7 @@ const OWNER_EMAIL = "gabriel.orsatti@gmail.com";
 
 // Clé de flag par user_id — une fois la migration faite, on ne la rejoue pas.
 function flagKey(userId: string): string {
-  return `gym-tracker:owner-seeded:${userId}`;
+  return `stephane-ia:owner-seeded:${userId}`;
 }
 
 // Injecte les données historiques dans le compte Supabase SI et seulement SI :

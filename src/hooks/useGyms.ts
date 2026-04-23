@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getAdapter, makeId } from "../lib/storage";
 import type { Gym, LocationType } from "../types";
 
-const KEY_CACHE = "gym-tracker:gyms:v1"; // cache local-first (toujours écrit)
-const KEY_FAVORITE = "gym-tracker:favorite-gym:v1";
-const EVT_GYMS = "gym-tracker:gyms-changed";
-const EVT_FAVORITE = "gym-tracker:favorite-gym-changed";
+const KEY_CACHE = "stephane-ia:gyms:v1"; // cache local-first (toujours écrit)
+const KEY_FAVORITE = "stephane-ia:favorite-gym:v1";
+const EVT_GYMS = "stephane-ia:gyms-changed";
+const EVT_FAVORITE = "stephane-ia:favorite-gym-changed";
 
 function readCache(): Gym[] {
   try {
@@ -71,12 +71,12 @@ export function useGyms() {
       setFavoriteIdState(id);
     }
     void load();
-    window.addEventListener("gym-tracker:storage-changed", load);
+    window.addEventListener("stephane-ia:storage-changed", load);
     window.addEventListener(EVT_GYMS, load);
     window.addEventListener(EVT_FAVORITE, onFavorite);
     return () => {
       cancelled = true;
-      window.removeEventListener("gym-tracker:storage-changed", load);
+      window.removeEventListener("stephane-ia:storage-changed", load);
       window.removeEventListener(EVT_GYMS, load);
       window.removeEventListener(EVT_FAVORITE, onFavorite);
     };

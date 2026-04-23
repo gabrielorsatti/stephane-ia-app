@@ -1,4 +1,4 @@
--- Schéma Supabase pour Personal Gym Tracker.
+-- Schéma Supabase pour Stephane IA.
 -- Exécute ce script dans l'éditeur SQL de ton projet Supabase
 -- (https://supabase.com/dashboard → SQL Editor → New query → Run).
 

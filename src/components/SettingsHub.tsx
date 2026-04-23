@@ -435,7 +435,7 @@ export function SettingsHub({
           label="Code source"
           action={
             <a
-              href="https://github.com/gabrielorsatti/Personnal-gym-tracker"
+              href="https://github.com/gabrielorsatti/stephane-ia"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-accent hover:text-accent-soft"

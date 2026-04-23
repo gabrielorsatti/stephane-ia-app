@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 export type Theme = "mauve" | "dark";
-const KEY = "gym-tracker:theme";
+const KEY = "stephane-ia:theme";
 const DEFAULT: Theme = "mauve";
 
 const THEME_COLOR: Record<Theme, string> = {

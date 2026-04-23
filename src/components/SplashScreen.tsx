@@ -9,7 +9,7 @@ export function SplashScreen() {
         </div>
       </div>
       <div className="mt-5 text-sm font-semibold text-text animate-splash-text">
-        Personal Gym Tracker
+        Stephane IA
       </div>
       <div className="mt-1.5 text-xs text-text-dim animate-splash-text">
         Chargement…

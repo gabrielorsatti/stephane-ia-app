@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="public/icon.svg" width="80" alt="Gym Track" />
+  <img src="public/icon.svg" width="80" alt="Stephane IA" />
 </p>
 
-<h1 align="center">Gym Track</h1>
+<h1 align="center">Stephane IA</h1>
 
 <p align="center">
   <strong>L'app fitness Social-First propulsée par l'IA.</strong><br/>
@@ -14,20 +14,20 @@
 </p>
 
 <p align="center">
-  <a href="https://gabrielorsatti.github.io/Personnal-gym-tracker/">Essayer l'application</a>
+  <a href="https://gabrielorsatti.github.io/stephane-ia/">Essayer l'application</a>
 </p>
 
 ---
 
-## Qu'est-ce que Gym Track ?
+## Qu'est-ce que Stephane IA ?
 
-Gym Track est une application de fitness complète conçue pour les sportifs qui veulent un suivi intelligent sans friction. Décris ta séance en langage naturel, et l'IA la structure automatiquement. Publie tes entraînements sur un flux social inspiré de Strava, et laisse Stéphane, ton coach IA, analyser chaque séance avec un regard de professionnel.
+Stephane IA est une application de fitness complète conçue pour les sportifs qui veulent un suivi intelligent sans friction. Décris ta séance en langage naturel, et l'IA la structure automatiquement. Publie tes entraînements sur un flux social inspiré de Strava, et laisse Stéphane, ton coach IA, analyser chaque séance avec un regard de professionnel.
 
 ---
 
 ## Fonctionnalités
 
-📱 **PWA installable** : Ajoute Gym Track sur ton écran d'accueil (iOS & Android)
+📱 **PWA installable** : Ajoute Stephane IA sur ton écran d'accueil (iOS & Android)
 
 🏋️ **Saisie en langage naturel** : Écris « 4×10 DC 80kg, tractions 3×8 +10 » et l'IA structure tout
 
@@ -51,7 +51,7 @@ Gym Track est une application de fitness complète conçue pour les sportifs qui
 
 ---
 
-## Comment utiliser Gym Track
+## Comment utiliser Stephane IA
 
 ### 1. Créer un compte
 
@@ -112,7 +112,7 @@ Développé par **Gabriel Orsatti**, 2026.
 ## Licence
 
 ```
-© 2026 Gym Track — All Rights Reserved.
+© 2026 Stephane IA — All Rights Reserved.
 
 Ce code est public pour consultation uniquement.
 Toute reproduction, modification ou redistribution

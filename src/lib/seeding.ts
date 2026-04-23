@@ -3,7 +3,7 @@ import { localStorageAdapter } from "./storage";
 
 // Marqueur posé en LocalStorage après un seed réussi : empêche un second
 // remplissage involontaire, même si l'utilisateur vide ensuite ses données.
-const FLAG_KEY = "gym-tracker:seeded:v1";
+const FLAG_KEY = "stephane-ia:seeded:v1";
 
 // Initialise le LocalStorage avec les données de démarrage si (et seulement
 // si) aucune séance n'est déjà stockée et que le marqueur est absent.

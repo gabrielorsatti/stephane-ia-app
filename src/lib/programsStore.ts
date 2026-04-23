@@ -1,6 +1,6 @@
 import { DEFAULT_PROGRAMS, type ProgramTemplate } from "../data/programs";
 
-const KEY = "gym-tracker:programs:v1";
+const KEY = "stephane-ia:programs:v1";
 
 // Retourne les programmes actuels (sync, lit le LocalStorage). Initialise
 // avec les valeurs par défaut au premier accès.

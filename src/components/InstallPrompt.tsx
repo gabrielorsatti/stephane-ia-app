@@ -1,7 +1,7 @@
 import { Download, Share, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const DISMISSED_KEY = "gym-tracker:install-dismissed";
+const DISMISSED_KEY = "stephane-ia:install-dismissed";
 
 export function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -50,7 +50,7 @@ export function InstallPrompt() {
               <Download className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-sm font-semibold">Installer Gym Track</p>
+              <p className="text-sm font-semibold">Installer Stephane IA</p>
               <p className="text-xs text-text-muted">Accès rapide depuis ton écran d'accueil</p>
             </div>
           </div>

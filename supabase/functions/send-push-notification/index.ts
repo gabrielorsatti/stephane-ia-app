@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY")!;
 const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY")!;
-const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:contact@gymtrack.app";
+const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:contact@stephane-ia.app";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -27,7 +27,7 @@ function buildMessage(type: string, actorUsername: string): { title: string; bod
       body: `${actorUsername} a commenté ta séance.`,
     };
   }
-  return { title: "Gym Track", body: "Nouvelle activité sur ton profil." };
+  return { title: "Stephane IA", body: "Nouvelle activité sur ton profil." };
 }
 
 async function sendWebPush(
@@ -78,7 +78,7 @@ serve(async (req: Request) => {
   const message = buildMessage(type, actorUsername);
   const payload = JSON.stringify({
     ...message,
-    url: "/Personnal-gym-tracker/",
+    url: "/stephane-ia/",
   });
 
   const { data: subscriptions } = await supabase

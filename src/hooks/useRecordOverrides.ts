@@ -18,10 +18,10 @@ export function useRecordOverrides() {
         .catch(() => {});
     }
     load();
-    window.addEventListener("gym-tracker:storage-changed", load);
+    window.addEventListener("stephane-ia:storage-changed", load);
     return () => {
       cancelled = true;
-      window.removeEventListener("gym-tracker:storage-changed", load);
+      window.removeEventListener("stephane-ia:storage-changed", load);
     };
   }, []);
 
