@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://gym-track-landing-2iys.vercel.app/">Site vitrine </a>
+  <a href="https://stephane.fit/">Site vitrine </a>
 </p>
 
 <p align="center">
