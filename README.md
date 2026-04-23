@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="https://gabrielorsatti.github.io/stephane-ia/">Essayer l'application</a>
+  <a href="https://app.stephane.fit/">Essayer l'application</a>
 </p>
 
 ---
