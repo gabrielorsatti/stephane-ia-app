@@ -15,6 +15,7 @@ import { FeedView } from "./components/FeedView";
 import { CrowdCheckPrompt } from "./components/CrowdCheckPrompt";
 import type { Hub } from "./components/hubTypes";
 import { InstallPrompt } from "./components/InstallPrompt";
+import { MigrationBanner } from "./components/MigrationBanner";
 import { Logo } from "./components/Logo";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { OccupancyChart } from "./components/OccupancyChart";
@@ -61,6 +62,7 @@ import { getSupabase } from "./lib/supabase";
 export default function App() {
   return (
     <ErrorBoundary>
+      <MigrationBanner />
       <AuthGate>
         <AppInner />
       </AuthGate>
