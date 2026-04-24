@@ -3,7 +3,7 @@ import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
 
 declare const self: ServiceWorkerGlobalScope;
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
