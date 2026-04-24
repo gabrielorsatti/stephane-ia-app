@@ -319,7 +319,7 @@ export function TrainingHub({
   return (
     <>
       <Wrap id="training-main">
-        <div className="flex flex-col gap-4 px-4 pb-32">
+        <div className="flex flex-col gap-4 px-4 pb-6">
 
           {/* ── Active session banner ── */}
           {activeSession && (
@@ -452,20 +452,19 @@ export function TrainingHub({
               onClick={() => goTo("exercises")}
             />
           </div>
+
+          {/* ── CTA Nouvelle séance — in-flow, never overlaps ── */}
+          <div className="pt-4 pb-2">
+            <button
+              onClick={openInput}
+              className="w-full flex items-center justify-center gap-3 rounded-2xl bg-accent py-5 text-white font-bold text-lg shadow-lg shadow-accent/20 transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.97]"
+            >
+              <Plus className="h-6 w-6" strokeWidth={2.5} />
+              Nouvelle séance
+            </button>
+          </div>
         </div>
       </Wrap>
-
-      {/* ══════ FAB — outside Wrap, never clipped ══════ */}
-      {view === "main" && !isInputOpen && (
-        <button
-          onClick={openInput}
-          className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-white font-semibold shadow-xl shadow-accent/25 transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:shadow-accent/30 active:scale-95 sm:px-7 sm:py-4"
-          aria-label="Nouvelle séance"
-        >
-          <Plus className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
-          <span className="text-sm sm:text-base">Nouvelle séance</span>
-        </button>
-      )}
 
       {/* ══════ Full-screen input overlay ══════ */}
       {isInputOpen && (
