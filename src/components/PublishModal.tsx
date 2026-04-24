@@ -1,4 +1,4 @@
-import { Brain, Globe, Lock, Zap } from "lucide-react";
+import { Brain, Globe, Lock, MessageSquarePlus, Zap } from "lucide-react";
 import { useState } from "react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import type { Session } from "../types";
@@ -11,13 +11,15 @@ interface Props {
   session: Session;
   xpGained?: number;
   totalXpBefore?: number;
-  onPublish: (userComment: string) => void;
+  onPublish: (userComment: string, exerciseComments?: Record<string, string>) => void;
   onKeepPrivate: () => void;
   onClose: () => void;
 }
 
 export function PublishModal({ session, xpGained, totalXpBefore, onPublish, onKeepPrivate, onClose }: Props) {
   const [comment, setComment] = useState("");
+  const [exComments, setExComments] = useState<Record<string, string>>({});
+  const [exCommentOpen, setExCommentOpen] = useState<Record<string, boolean>>({});
   const trapRef = useFocusTrap<HTMLDivElement>();
   const vol = Math.round(sessionVolume(session));
   const durScore = Math.round(sessionDurationScore(session));
@@ -77,7 +79,7 @@ export function PublishModal({ session, xpGained, totalXpBefore, onPublish, onKe
             </div>
           )}
 
-          <div className="space-y-1.5 max-h-40 overflow-y-auto">
+          <div className="space-y-1.5 max-h-52 overflow-y-auto">
             {groupExercises(session.exercices).map((ex, i) => (
               <div
                 key={i}
@@ -88,12 +90,35 @@ export function PublishModal({ session, xpGained, totalXpBefore, onPublish, onKe
                   <span className="chip bg-accent-muted/40 text-accent-soft text-xs shrink-0">
                     {ex.categorie}
                   </span>
+                  <button
+                    type="button"
+                    className={`ml-auto p-0.5 rounded transition-colors ${
+                      exCommentOpen[ex.nom] ? "text-accent" : "text-text-dim hover:text-accent"
+                    }`}
+                    onClick={() =>
+                      setExCommentOpen((prev) => ({ ...prev, [ex.nom]: !prev[ex.nom] }))
+                    }
+                    title="Ajouter un commentaire"
+                  >
+                    <MessageSquarePlus className="w-3.5 h-3.5" />
+                  </button>
                 </div>
                 <div className="text-xs text-text-muted">
                   {ex.durationMinutes
                     ? `${ex.durationMinutes} min${ex.intensity ? ` · ${ex.intensity}` : ""}`
                     : ex.sets.map((s) => `${s.reps}×${s.poids || "PDC"}`).join(" · ")}
                 </div>
+                {exCommentOpen[ex.nom] && (
+                  <input
+                    className="input !py-1 !px-2 !text-xs mt-1.5"
+                    placeholder={`Note sur ${ex.nom}...`}
+                    value={exComments[ex.nom] ?? ""}
+                    onChange={(e) =>
+                      setExComments((prev) => ({ ...prev, [ex.nom]: e.target.value }))
+                    }
+                    maxLength={200}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -135,7 +160,13 @@ export function PublishModal({ session, xpGained, totalXpBefore, onPublish, onKe
             </button>
             <button
               className="btn-primary flex-1 text-sm"
-              onClick={() => onPublish(comment.trim())}
+              onClick={() => {
+                const cleaned: Record<string, string> = {};
+                for (const [k, v] of Object.entries(exComments)) {
+                  if (v.trim()) cleaned[k] = v.trim();
+                }
+                onPublish(comment.trim(), Object.keys(cleaned).length > 0 ? cleaned : undefined);
+              }}
             >
               <Globe className="w-4 h-4" /> Publier sur le flux
             </button>

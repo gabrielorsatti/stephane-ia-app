@@ -55,6 +55,7 @@ export interface ExerciseEntry {
   cardio?: CardioData;
   durationMinutes?: number;
   intensity?: Intensity;
+  comment?: string;
 }
 
 export interface Session {

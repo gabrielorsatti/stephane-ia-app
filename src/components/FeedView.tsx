@@ -186,6 +186,9 @@ function FeedCard({
                   ? `${ex.durationMinutes} min${ex.intensity ? ` · ${ex.intensity}` : ""}`
                   : ex.sets.map((s) => `${s.reps}×${s.poids || "PDC"}`).join(" · ")}
               </div>
+              {ex.comment && (
+                <div className="text-text-muted italic mt-0.5">« {ex.comment} »</div>
+              )}
             </div>
           ))}
         </div>

@@ -231,13 +231,19 @@ export function TrainingHub({
     });
   }
 
-  function handlePublish(userComment: string) {
+  function handlePublish(userComment: string, exerciseComments?: Record<string, string>) {
     if (!publishSnapshot) return;
-    updateSession(publishSnapshot.id, {
+    const patch: Partial<Session> = {
       isPublished: true,
       userComment: userComment || undefined,
       publishedAt: new Date().toISOString(),
-    });
+    };
+    if (exerciseComments) {
+      patch.exercices = publishSnapshot.exercices.map((ex) =>
+        exerciseComments[ex.nom] ? { ...ex, comment: exerciseComments[ex.nom] } : ex,
+      );
+    }
+    updateSession(publishSnapshot.id, patch);
     setPublishSnapshot(null);
   }
 

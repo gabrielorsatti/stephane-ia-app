@@ -11,6 +11,7 @@ export function groupExercises(exercices: ExerciseEntry[]): ExerciseEntry[] {
         existing.durationMinutes = (existing.durationMinutes ?? 0) + ex.durationMinutes;
         if (ex.intensity) existing.intensity = ex.intensity;
       }
+      if (ex.comment && !existing.comment) existing.comment = ex.comment;
     } else {
       map.set(ex.nom, { ...ex, sets: [...ex.sets] });
     }
