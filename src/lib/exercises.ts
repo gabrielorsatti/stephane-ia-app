@@ -845,7 +845,7 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
   {
     canonical: "Course",
     categorie: "Cardio",
-    aliases: ["course", "running", "run"],
+    aliases: ["course", "course a pied", "course à pied", "running", "run", "jogging", "footing"],
   },
   {
     canonical: "Tapis de course",

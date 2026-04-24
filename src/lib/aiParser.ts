@@ -5,6 +5,7 @@
 import type { ExerciseEntry, Category } from "../types";
 import { chatCompletion, getLLMConfig } from "./llm";
 import { ALL_CATEGORIES } from "../types";
+import { findExercise } from "./exercises";
 
 export function isAIParserAvailable(): boolean {
   return getLLMConfig() !== null;
@@ -62,17 +63,21 @@ export async function aiParseSession(
     throw new Error("Le LLM n'a pas renvoyé un tableau JSON");
   }
 
-  const exercices: ExerciseEntry[] = parsed.map((item: Record<string, unknown>) => ({
-    nom: String(item.nom ?? "Inconnu"),
-    categorie: validCategory(item.categorie),
-    sets: Array.isArray(item.sets)
-      ? item.sets.map((s: Record<string, unknown>) => ({
-          reps: Number(s.reps ?? 0),
-          poids: Number(s.poids ?? 0),
-        }))
-      : [],
-    ...(item.cardio ? { cardio: item.cardio as ExerciseEntry["cardio"] } : {}),
-  }));
+  const exercices: ExerciseEntry[] = parsed.map((item: Record<string, unknown>) => {
+    const rawNom = String(item.nom ?? "Inconnu");
+    const match = findExercise(rawNom);
+    return {
+      nom: match?.canonical ?? rawNom,
+      categorie: match?.categorie ?? validCategory(item.categorie),
+      sets: Array.isArray(item.sets)
+        ? item.sets.map((s: Record<string, unknown>) => ({
+            reps: Number(s.reps ?? 0),
+            poids: Number(s.poids ?? 0),
+          }))
+        : [],
+      ...(item.cardio ? { cardio: item.cardio as ExerciseEntry["cardio"] } : {}),
+    };
+  });
 
   return { exercices, raw };
 }

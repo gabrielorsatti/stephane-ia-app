@@ -239,7 +239,7 @@ export function TrainingHub({
       publishedAt: new Date().toISOString(),
     };
     if (exerciseComments) {
-      patch.exercices = publishSnapshot.exercices.map((ex) =>
+      patch.exercices = publishSnapshot.session.exercices.map((ex) =>
         exerciseComments[ex.nom] ? { ...ex, comment: exerciseComments[ex.nom] } : ex,
       );
     }
