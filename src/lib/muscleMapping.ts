@@ -137,10 +137,8 @@ export function computeMuscleHeat(sessions: Session[], days = 7): MuscleHeatData
       } else {
         const duration = ex.durationMinutes ?? ex.cardio?.duree ?? 0;
         const factor = INTENSITY_FACTOR[ex.intensity ?? "modéré"] ?? 1;
-        effort = duration * 10 * factor;
+        effort = duration > 0 ? duration * 10 * factor : 300;
       }
-
-      if (effort <= 0) continue;
 
       for (const [muscle, weight] of Object.entries(mapping)) {
         scores[muscle as MuscleGroup] += effort * (weight as number);
