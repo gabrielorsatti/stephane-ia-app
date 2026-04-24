@@ -2,6 +2,7 @@ import { Brain, Globe, Lock, MessageSquarePlus, Zap } from "lucide-react";
 import { useState } from "react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import type { Session } from "../types";
+import { formatExerciseStats } from "../lib/formatExerciseStats";
 import { groupExercises } from "../lib/groupExercises";
 import { sessionVolume, sessionDurationScore } from "../lib/scoring";
 import { xpProgress, levelFromXp } from "../lib/leveling";
@@ -104,9 +105,7 @@ export function PublishModal({ session, xpGained, totalXpBefore, onPublish, onKe
                   </button>
                 </div>
                 <div className="text-xs text-text-muted">
-                  {ex.durationMinutes
-                    ? `${ex.durationMinutes} min${ex.intensity ? ` · ${ex.intensity}` : ""}`
-                    : ex.sets.map((s) => `${s.reps}×${s.poids || "PDC"}`).join(" · ")}
+                  {formatExerciseStats(ex)}
                 </div>
                 {exCommentOpen[ex.nom] && (
                   <input

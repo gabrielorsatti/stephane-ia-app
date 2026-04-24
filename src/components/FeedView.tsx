@@ -3,6 +3,7 @@ import { fr } from "date-fns/locale";
 import { Clock, Dumbbell, Flag, MessageCircle, Rss, Send, Zap } from "lucide-react";
 import { useState } from "react";
 import type { FeedComment, FeedPost } from "../types";
+import { formatExerciseStats } from "../lib/formatExerciseStats";
 import { groupExercises } from "../lib/groupExercises";
 import { sessionVolume } from "../lib/scoring";
 import { EmptyState } from "./EmptyState";
@@ -182,9 +183,7 @@ function FeedCard({
                 </span>
               </div>
               <div className="text-text-dim">
-                {ex.durationMinutes
-                  ? `${ex.durationMinutes} min${ex.intensity ? ` · ${ex.intensity}` : ""}`
-                  : ex.sets.map((s) => `${s.reps}×${s.poids || "PDC"}`).join(" · ")}
+                {formatExerciseStats(ex)}
               </div>
               {ex.comment && (
                 <div className="text-text-muted italic mt-0.5">« {ex.comment} »</div>
