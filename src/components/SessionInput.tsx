@@ -16,7 +16,9 @@ import { aiParseSession, isAIParserAvailable } from "../lib/aiParser";
 import type { ExerciseEntry, Session, SetEntry } from "../types";
 
 interface Props {
+  mode?: "edit" | "append";
   onSave: (session: Omit<Session, "id">) => void;
+  onAppend?: (exercices: ExerciseEntry[]) => void;
   prefillText?: string;
   prefillVersion?: number;
   editing?: {
@@ -30,7 +32,9 @@ interface Props {
 type ParseMode = "idle" | "loading" | "done" | "error";
 
 export function SessionInput({
+  mode = "edit",
   onSave,
+  onAppend,
   prefillText,
   prefillVersion,
   editing,
@@ -43,7 +47,6 @@ export function SessionInput({
     new Date().toISOString().slice(0, 10),
   );
 
-  // Résultat du parsing (IA ou regex).
   const [exercices, setExercices] = useState<ExerciseEntry[]>([]);
   const [unrecognized, setUnrecognized] = useState<string[]>([]);
   const [parseMode, setParseMode] = useState<ParseMode>("idle");
@@ -51,7 +54,6 @@ export function SessionInput({
   const [usedAI, setUsedAI] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Fallback regex en temps réel (prévisualisation légère pendant la saisie).
   const regexResult = useMemo(() => parseInput(text), [text]);
 
   useEffect(() => {
@@ -71,7 +73,6 @@ export function SessionInput({
     }
   }, [editing]);
 
-  // Parsing IA.
   async function handleAIParse() {
     if (!text.trim()) return;
     abortRef.current?.abort();
@@ -93,14 +94,12 @@ export function SessionInput({
       setParseError(
         err instanceof Error ? err.message : "Erreur inconnue",
       );
-      // Fallback automatique sur regex.
       setExercices(regexResult.exercices);
       setUnrecognized(regexResult.unrecognized);
       setParseMode("error");
     }
   }
 
-  // Parsing regex (fallback explicite ou si pas de LLM).
   function handleRegexParse() {
     setExercices(regexResult.exercices);
     setUnrecognized(regexResult.unrecognized);
@@ -108,8 +107,6 @@ export function SessionInput({
     setUsedAI(false);
   }
 
-  // L'ensemble d'exercices affichés : si parseMode=done, on montre le résultat
-  // confirmé. Sinon on montre le regex en temps réel comme hint.
   const displayExercices = parseMode === "done" || parseMode === "error"
     ? exercices
     : regexResult.exercices;
@@ -121,12 +118,16 @@ export function SessionInput({
 
   function handleSave() {
     if (!canSave) return;
-    onSave({
-      date,
-      exercices: displayExercices,
-      notes: notes.trim() || undefined,
-      bodyWeight: bodyWeight ? parseFloat(bodyWeight) : undefined,
-    });
+    if (mode === "append" && onAppend) {
+      onAppend(displayExercices);
+    } else {
+      onSave({
+        date,
+        exercices: displayExercices,
+        notes: notes.trim() || undefined,
+        bodyWeight: bodyWeight ? parseFloat(bodyWeight) : undefined,
+      });
+    }
     setText("");
     setNotes("");
     setBodyWeight("");
@@ -156,6 +157,7 @@ export function SessionInput({
   }
 
   const aiAvailable = isAIParserAvailable();
+  const isAppend = mode === "append";
 
   return (
     <div className="card space-y-4">
@@ -163,7 +165,7 @@ export function SessionInput({
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-accent" />
           <h2 className="text-lg font-semibold">
-            {editing ? "Modifier la séance" : "Nouvelle séance"}
+            {editing ? "Modifier la séance" : isAppend ? "Ajouter des exercices" : "Nouvelle séance"}
           </h2>
         </div>
         {editing && onCancelEdit && (
@@ -173,30 +175,33 @@ export function SessionInput({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <label className="flex items-center gap-2 col-span-1">
-          <Calendar className="w-4 h-4 text-text-muted" />
+      {/* Date / weight / notes — only in edit mode */}
+      {!isAppend && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <label className="flex items-center gap-2 col-span-1">
+            <Calendar className="w-4 h-4 text-text-muted" />
+            <input
+              type="date"
+              className="input"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </label>
           <input
-            type="date"
-            className="input"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+            className="input md:col-span-1"
+            placeholder="Poids de corps (kg)"
+            inputMode="decimal"
+            value={bodyWeight}
+            onChange={(e) => setBodyWeight(e.target.value)}
           />
-        </label>
-        <input
-          className="input md:col-span-1"
-          placeholder="Poids de corps (kg)"
-          inputMode="decimal"
-          value={bodyWeight}
-          onChange={(e) => setBodyWeight(e.target.value)}
-        />
-        <input
-          className="input md:col-span-1"
-          placeholder="Notes (optionnel)"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
-      </div>
+          <input
+            className="input md:col-span-1"
+            placeholder="Notes (optionnel)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
+      )}
 
       <textarea
         className="input min-h-[110px] font-mono text-sm"
@@ -204,7 +209,6 @@ export function SessionInput({
         value={text}
         onChange={(e) => {
           setText(e.target.value);
-          // Quand l'utilisateur modifie le texte, reset le parsing confirmé.
           if (parseMode === "done" || parseMode === "error") {
             setParseMode("idle");
             setExercices([]);
@@ -213,7 +217,6 @@ export function SessionInput({
         }}
       />
 
-      {/* Boutons d'analyse */}
       <div className="flex flex-wrap gap-2">
         {aiAvailable && (
           <button
@@ -288,6 +291,10 @@ export function SessionInput({
           {editing ? (
             <>
               <Save className="w-4 h-4" /> Mettre à jour
+            </>
+          ) : isAppend ? (
+            <>
+              <Plus className="w-4 h-4" /> Ajouter
             </>
           ) : (
             <>

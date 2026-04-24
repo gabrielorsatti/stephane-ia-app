@@ -65,6 +65,8 @@ export interface Session {
   notes?: string;
   bodyWeight?: number;
   createdAt?: string; // ISO timestamp — used for smart session merging
+  startedAt?: string; // ISO timestamp — live session start
+  durationSeconds?: number; // elapsed wall-clock time
   coachCommentary?: string;
   isPublished?: boolean;
   userComment?: string;

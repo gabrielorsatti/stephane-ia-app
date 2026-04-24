@@ -1,8 +1,9 @@
 import {
-  Activity,
   BookOpen,
   ChevronRight,
+  Clock,
   Dumbbell,
+  Flag,
   History,
   Plus,
   Sparkles,
@@ -12,9 +13,10 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ProgramTemplate } from "../data/programs";
-import type { PersonalRecordOverride, Session } from "../types";
+import type { ExerciseEntry, PersonalRecordOverride, Session } from "../types";
 import { sessionScore, sessionVolume } from "../lib/scoring";
 import { levelFromXp } from "../lib/leveling";
+import { useLiveSession, useElapsedTimer, formatTimer } from "../hooks/useLiveSession";
 import { LevelUpCelebration } from "./LevelUpCelebration";
 import { CardioStatsCard } from "./CardioStatsCard";
 import { CategoryChart } from "./CategoryChart";
@@ -91,23 +93,25 @@ export function TrainingHub({
   const [celebratedPRs, setCelebratedPRs] = useState<Set<string>>(new Set());
   const [isInputOpen, setIsInputOpen] = useState(false);
 
+  const { liveSession, startLiveSession, stopLiveSession } = useLiveSession();
+
+  const liveSessionData = useMemo(() => {
+    if (!liveSession) return null;
+    return sessions.find((s) => s.id === liveSession.sessionId) ?? null;
+  }, [liveSession, sessions]);
+
+  // Clear stale live session if the referenced session was deleted
+  useEffect(() => {
+    if (liveSession && !liveSessionData) {
+      stopLiveSession();
+    }
+  }, [liveSession, liveSessionData, stopLiveSession]);
+
+  const elapsed = useElapsedTimer(liveSession?.startedAt ?? null);
+
   const editingSession = editingId
     ? sessions.find((s) => s.id === editingId)
     : undefined;
-
-  const MERGE_WINDOW_MS = 3 * 60 * 60 * 1000;
-  const activeSession = useMemo(() => {
-    if (publishSnapshot) return undefined;
-    const now = Date.now();
-    const today = new Date().toISOString().slice(0, 10);
-    return sessions.find((s) => {
-      if (s.date !== today) return false;
-      const created = s.createdAt
-        ? new Date(s.createdAt).getTime()
-        : parseInt(s.id, 10);
-      return !isNaN(created) && now - created < MERGE_WINDOW_MS && !s.isPublished;
-    });
-  }, [sessions, publishSnapshot]);
 
   const heroStats = useMemo(() => {
     const last30 = sessions.filter(
@@ -137,10 +141,6 @@ export function TrainingHub({
 
   // ── Input modal ──
 
-  function openInput() {
-    setIsInputOpen(true);
-  }
-
   const closeInput = useCallback(() => {
     setIsInputOpen(false);
     if (!editingId) {
@@ -149,7 +149,6 @@ export function TrainingHub({
     }
   }, [editingId]);
 
-  // Scroll lock & Escape key
   useEffect(() => {
     if (!isInputOpen) return;
     document.body.style.overflow = "hidden";
@@ -163,7 +162,77 @@ export function TrainingHub({
     };
   }, [isInputOpen, closeInput]);
 
-  // ── Session actions ──
+  // ── Live session lifecycle ──
+
+  function beginSession(prefill?: string) {
+    const now = new Date();
+    const result = addSession({
+      date: now.toISOString().slice(0, 10),
+      exercices: [],
+      startedAt: now.toISOString(),
+    });
+    startLiveSession(result.id);
+    if (prefill) {
+      setPrefillText(prefill);
+      setPrefillVersion((v) => v + 1);
+    }
+    setIsInputOpen(true);
+  }
+
+  function handleAppend(exercices: ExerciseEntry[]) {
+    if (!liveSessionData || exercices.length === 0) return;
+    updateSession(liveSessionData.id, {
+      exercices: [...liveSessionData.exercices, ...exercices],
+    });
+    setIsInputOpen(false);
+    setPrefillText("");
+    setPrefillVersion((v) => v + 1);
+    setShowRestTimer(true);
+
+    const updatedSession: Session = {
+      ...liveSessionData,
+      exercices: [...liveSessionData.exercices, ...exercices],
+    };
+    const prs = detectNewPRs(updatedSession, sessions, celebratedPRs);
+    if (prs.length > 0) {
+      setPrAlerts(prs);
+      setCelebratedPRs((prev) => {
+        const next = new Set(prev);
+        for (const pr of prs) next.add(`${pr.exerciseName}:${pr.type}`);
+        return next;
+      });
+    }
+  }
+
+  function finishSession() {
+    if (!liveSessionData || !liveSession) return;
+    const durationSeconds = Math.floor(
+      (Date.now() - new Date(liveSession.startedAt).getTime()) / 1000,
+    );
+    updateSession(liveSessionData.id, { durationSeconds });
+    stopLiveSession();
+
+    const finalSession: Session = { ...liveSessionData, durationSeconds };
+    void requestCommentary(finalSession.id, finalSession);
+
+    const xpGained = sessionScore(finalSession);
+    if (xpGained > 0 && onAddXp) {
+      void onAddXp(xpGained).then(({ oldXp, newXp }) => {
+        const oldLevel = levelFromXp(oldXp);
+        const newLevel = levelFromXp(newXp);
+        if (newLevel > oldLevel) setLevelUpLevel(newLevel);
+      });
+    }
+
+    setPublishSnapshot({
+      id: finalSession.id,
+      session: finalSession,
+      xpGained,
+      totalXpBefore: totalXp ?? 0,
+    });
+  }
+
+  // ── Legacy one-shot save (editing old sessions) ──
 
   function startEdit(session: Session) {
     setPrefillText(sessionToNlp(session));
@@ -182,28 +251,6 @@ export function TrainingHub({
       setPrefillVersion((v) => v + 1);
       setIsInputOpen(false);
       void requestCommentary(editingId, { ...session, id: editingId });
-    } else {
-      const result = addSession(session);
-      setIsInputOpen(false);
-      setShowRestTimer(true);
-      const prs = detectNewPRs(result.session, sessions, celebratedPRs);
-      if (prs.length > 0) {
-        setPrAlerts(prs);
-        setCelebratedPRs((prev) => {
-          const next = new Set(prev);
-          for (const pr of prs) next.add(`${pr.exerciseName}:${pr.type}`);
-          return next;
-        });
-      }
-      void requestCommentary(result.id, result.session);
-      const xp = sessionScore(result.session);
-      if (xp > 0 && onAddXp) {
-        void onAddXp(xp).then(({ oldXp, newXp }) => {
-          const oldLevel = levelFromXp(oldXp);
-          const newLevel = levelFromXp(newXp);
-          if (newLevel > oldLevel) setLevelUpLevel(newLevel);
-        });
-      }
     }
   }
 
@@ -218,17 +265,6 @@ export function TrainingHub({
       historySummary,
     );
     if (commentary) updateSession(sessionId, { coachCommentary: commentary });
-  }
-
-  function finishSession() {
-    if (!activeSession) return;
-    const xpGained = sessionScore(activeSession);
-    setPublishSnapshot({
-      id: activeSession.id,
-      session: { ...activeSession },
-      xpGained,
-      totalXpBefore: totalXp ?? 0,
-    });
   }
 
   function handlePublish(userComment: string, exerciseComments?: Record<string, string>) {
@@ -252,10 +288,13 @@ export function TrainingHub({
   }
 
   function fillFromProgram(text: string) {
-    setPrefillText(text);
-    setPrefillVersion((v) => v + 1);
-    setEditingId(null);
-    setIsInputOpen(true);
+    if (liveSessionData) {
+      setPrefillText(text);
+      setPrefillVersion((v) => v + 1);
+      setIsInputOpen(true);
+    } else {
+      beginSession(text);
+    }
     setDirection("back");
     setView("main");
   }
@@ -263,6 +302,7 @@ export function TrainingHub({
   // ── Render ──
 
   const Wrap = direction === "forward" ? SlideIn : SlideBack;
+  const isLive = !!liveSessionData;
 
   // Sub-views
   if (view === "history") {
@@ -327,26 +367,64 @@ export function TrainingHub({
       <Wrap id="training-main">
         <div className="flex flex-col gap-4 px-4 pb-6">
 
-          {/* ── Active session banner ── */}
-          {activeSession && (
-            <button
-              onClick={finishSession}
-              className="flex w-full items-center gap-3 rounded-2xl bg-gradient-to-r from-accent/15 via-accent/10 to-transparent border border-accent/25 px-4 py-3.5 text-left transition-all active:scale-[0.98]"
-            >
-              <div className="relative flex h-9 w-9 shrink-0 items-center justify-center">
-                <span className="absolute inset-0 rounded-full bg-accent/20 animate-ping" />
-                <Activity className="relative h-5 w-5 text-accent" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold">Séance en cours</div>
-                <div className="text-xs text-text-muted truncate">
-                  {activeSession.exercices.length} exercice
-                  {activeSession.exercices.length !== 1 ? "s" : ""} · Appuie
-                  pour terminer
+          {/* ══════ Live Session Command Center ══════ */}
+          {isLive && (
+            <div className="rounded-2xl bg-gradient-to-br from-accent/[0.12] via-accent/[0.06] to-transparent border border-accent/25 p-4 space-y-3">
+              {/* Header: timer + count */}
+              <div className="flex items-center gap-3">
+                <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
+                  <span className="absolute inset-0 rounded-full bg-accent/20 animate-ping" />
+                  <Zap className="relative h-5 w-5 text-accent" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold">Séance en cours</div>
+                  <div className="text-xs text-text-muted">
+                    {liveSessionData.exercices.length} exercice
+                    {liveSessionData.exercices.length !== 1 ? "s" : ""}
+                    {sessionVolume(liveSessionData) > 0 &&
+                      ` · ${formatKg(sessionVolume(liveSessionData))}`}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 bg-bg-card/70 border border-border/50 rounded-xl px-3 py-1.5">
+                  <Clock className="h-3.5 w-3.5 text-accent" />
+                  <span className="text-sm font-mono font-bold tabular-nums">
+                    {formatTimer(elapsed)}
+                  </span>
                 </div>
               </div>
-              <ChevronRight className="h-4 w-4 text-accent shrink-0" />
-            </button>
+
+              {/* Quick exercise list */}
+              {liveSessionData.exercices.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {[...new Set(liveSessionData.exercices.map((e) => e.nom))].map(
+                    (nom) => (
+                      <span
+                        key={nom}
+                        className="chip bg-bg-card/60 border border-border/40 text-text-muted text-xs"
+                      >
+                        {nom}
+                      </span>
+                    ),
+                  )}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsInputOpen(true)}
+                  className="btn-primary flex-1 text-sm"
+                >
+                  <Plus className="h-4 w-4" /> Ajouter
+                </button>
+                <button
+                  onClick={finishSession}
+                  className="btn-ghost flex-1 text-sm !border-accent/30 !text-accent hover:!bg-accent/10"
+                >
+                  <Flag className="h-4 w-4" /> Terminer
+                </button>
+              </div>
+            </div>
           )}
 
           {/* ── Hero Progression Card ── */}
@@ -354,15 +432,11 @@ export function TrainingHub({
             onClick={() => goTo("progression")}
             className="relative w-full overflow-hidden rounded-2xl p-5 text-left transition-all duration-200 active:scale-[0.97] group"
           >
-            {/* Glass layer */}
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent/[0.08] via-lavender/[0.06] to-powder/[0.04] border border-accent/15 group-hover:border-accent/30 transition-colors" />
-
-            {/* Glow accents */}
             <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-accent/10 blur-2xl pointer-events-none" />
             <div className="absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-lavender/[0.08] blur-2xl pointer-events-none" />
 
             <div className="relative">
-              {/* Header row */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/15">
@@ -382,7 +456,6 @@ export function TrainingHub({
                 </div>
               </div>
 
-              {/* Stats row */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="rounded-xl bg-bg-card/60 border border-border/30 px-2 py-2 text-center">
                   <div className="text-lg font-bold leading-tight">
@@ -419,7 +492,6 @@ export function TrainingHub({
                 </div>
               </div>
 
-              {/* Top progression chip */}
               {heroStats.topProg && (
                 <div className="mt-3 flex items-center gap-2 rounded-xl bg-green-500/[0.08] border border-green-500/15 px-3 py-1.5">
                   <Sparkles className="h-3.5 w-3.5 text-green-500 shrink-0" />
@@ -437,7 +509,7 @@ export function TrainingHub({
             </div>
           </button>
 
-          {/* ── Navigation cards — 1 col mobile, 3 cols desktop ── */}
+          {/* ── Navigation cards ── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <NavCard
               icon={History}
@@ -459,16 +531,18 @@ export function TrainingHub({
             />
           </div>
 
-          {/* ── CTA Nouvelle séance — in-flow, never overlaps ── */}
-          <div className="pt-4 pb-2">
-            <button
-              onClick={openInput}
-              className="w-full flex items-center justify-center gap-3 rounded-2xl bg-accent py-5 text-white font-bold text-lg shadow-lg shadow-accent/20 transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.97]"
-            >
-              <Plus className="h-6 w-6" strokeWidth={2.5} />
-              Nouvelle séance
-            </button>
-          </div>
+          {/* ── CTA Nouvelle séance (hidden when live) ── */}
+          {!isLive && (
+            <div className="pt-4 pb-2">
+              <button
+                onClick={() => beginSession()}
+                className="w-full flex items-center justify-center gap-3 rounded-2xl bg-accent py-5 text-white font-bold text-lg shadow-lg shadow-accent/20 transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:shadow-accent/30 active:scale-[0.97]"
+              >
+                <Plus className="h-6 w-6" strokeWidth={2.5} />
+                Nouvelle séance
+              </button>
+            </div>
+          )}
         </div>
       </Wrap>
 
@@ -479,12 +553,15 @@ export function TrainingHub({
           role="dialog"
           aria-modal="true"
         >
-          {/* Header bar */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-bg-card">
             <div className="flex items-center gap-2">
               <Zap className="h-5 w-5 text-accent" />
               <h2 className="text-base font-bold">
-                {editingId ? "Modifier la séance" : "Nouvelle séance"}
+                {editingId
+                  ? "Modifier la séance"
+                  : isLive
+                    ? "Ajouter des exercices"
+                    : "Nouvelle séance"}
               </h2>
             </div>
             <button
@@ -496,10 +573,11 @@ export function TrainingHub({
             </button>
           </div>
 
-          {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto px-4 py-4">
             <SessionInput
+              mode={editingId ? "edit" : isLive ? "append" : "edit"}
               onSave={handleSave}
+              onAppend={handleAppend}
               prefillText={prefillText}
               prefillVersion={prefillVersion}
               editing={

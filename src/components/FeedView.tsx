@@ -152,17 +152,27 @@ function FeedCard({
         <div className="min-w-0 flex-1">
           <div className="text-xs text-text-dim">{timeAgo}</div>
         </div>
-        <div className="flex items-center gap-1 text-text-muted">
-          {isDurationBased ? (
-            <>
+        <div className="flex items-center gap-3 text-text-muted">
+          {session.durationSeconds != null && session.durationSeconds > 0 && (
+            <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
-              <span className="text-xs font-medium">{totalDuration} min</span>
-            </>
+              <span className="text-xs font-medium">
+                {Math.round(session.durationSeconds / 60)} min
+              </span>
+            </div>
+          )}
+          {isDurationBased ? (
+            !session.durationSeconds && (
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                <span className="text-xs font-medium">{totalDuration} min</span>
+              </div>
+            )
           ) : (
-            <>
+            <div className="flex items-center gap-1">
               <Dumbbell className="w-4 h-4" />
               <span className="text-xs font-medium">{vol} kg</span>
-            </>
+            </div>
           )}
         </div>
       </div>
