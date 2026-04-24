@@ -3,10 +3,18 @@ import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
 export function UpdateToast() {
+  const intervalMS = 60 * 1000;
+
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
+    onRegisteredSW(_url, registration) {
+      if (!registration) return;
+      setInterval(() => {
+        void registration.update();
+      }, intervalMS);
+    },
     onRegisterError(err) {
       console.error("[PWA] registration error", err);
     },
