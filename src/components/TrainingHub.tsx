@@ -459,7 +459,7 @@ export function TrainingHub({
       {view === "main" && !isInputOpen && (
         <button
           onClick={openInput}
-          className="fixed bottom-24 right-6 z-[100] flex items-center gap-2 rounded-full bg-accent px-5 py-3.5 text-white font-semibold shadow-xl shadow-accent/25 transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:shadow-accent/30 active:scale-95 sm:px-6 sm:py-4"
+          className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-white font-semibold shadow-xl shadow-accent/25 transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:shadow-accent/30 active:scale-95 sm:px-7 sm:py-4"
           aria-label="Nouvelle séance"
         >
           <Plus className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
