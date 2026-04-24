@@ -166,12 +166,13 @@ export function TrainingHub({
 
   function beginSession(prefill?: string) {
     const now = new Date();
+    const ts = now.toISOString();
     const result = addSession({
-      date: now.toISOString().slice(0, 10),
+      date: ts.slice(0, 10),
       exercices: [],
-      startedAt: now.toISOString(),
+      startedAt: ts,
     });
-    startLiveSession(result.id);
+    startLiveSession(result.id, ts);
     if (prefill) {
       setPrefillText(prefill);
       setPrefillVersion((v) => v + 1);

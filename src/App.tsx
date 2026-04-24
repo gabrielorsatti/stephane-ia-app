@@ -31,10 +31,9 @@ import { UserProfileView } from "./components/UserProfileView";
 import { VolumeChart } from "./components/VolumeChart";
 import { GoalSettingModal } from "./components/GoalSettingModal";
 import { StreakBadge } from "./components/StreakBadge";
-import { WeeklyChallengeCard } from "./components/WeeklyChallengeCard";
+import { MuscularHeatmap } from "./components/MuscularHeatmap";
 import { WeeklyProgressBar } from "./components/WeeklyProgressBar";
 import { computeStreaks } from "./lib/streaks";
-import { generateWeeklyChallenge } from "./lib/weeklyChallenge";
 import { sessionsThisWeek } from "./lib/weeklyGoal";
 
 const TrainingHub = lazy(() => import("./components/TrainingHub").then(m => ({ default: m.TrainingHub })));
@@ -148,7 +147,6 @@ function AppInner() {
   const [reportTarget, setReportTarget] = useState<{ id: string; type: "session" | "comment" } | null>(null);
   const weeklyCount = useMemo(() => sessionsThisWeek(sessions), [sessions]);
   const streak = useMemo(() => computeStreaks(sessions), [sessions]);
-  const challenge = useMemo(() => generateWeeklyChallenge(sessions), [sessions]);
   const needsGoalSetup = !profileLoading && profile != null && profile.weeklyGoal == null;
 
   const navigate = useCallback(
@@ -261,7 +259,7 @@ function AppInner() {
                 />
               )}
 
-              <WeeklyChallengeCard challenge={challenge} />
+              <MuscularHeatmap sessions={sessions} />
 
               {crowdCheckPending && favoriteGym && (
                 <CrowdCheckPrompt

@@ -25,8 +25,8 @@ function save(state: LiveSessionState | null) {
 export function useLiveSession() {
   const [state, setState] = useState<LiveSessionState | null>(load);
 
-  const start = useCallback((sessionId: string) => {
-    const next: LiveSessionState = { sessionId, startedAt: new Date().toISOString() };
+  const start = useCallback((sessionId: string, startedAt: string) => {
+    const next: LiveSessionState = { sessionId, startedAt };
     save(next);
     setState(next);
   }, []);
