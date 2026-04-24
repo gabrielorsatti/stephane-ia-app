@@ -3,8 +3,29 @@ import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
 
 declare const self: ServiceWorkerGlobalScope;
 
+const CACHE_VERSION = "v2";
+
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
+
+// On activate: purge ALL caches that don't belong to the current Workbox
+// precache. This nukes stale github.io caches and old versions.
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          const isCurrentWorkbox = key.includes("workbox-precache");
+          const isCurrentVersion = key.includes(CACHE_VERSION);
+          if (!isCurrentWorkbox && !isCurrentVersion) {
+            return caches.delete(key);
+          }
+          return undefined;
+        }),
+      );
+    }).then(() => self.clients.claim()),
+  );
+});
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
@@ -12,9 +33,7 @@ self.addEventListener("message", (event) => {
   }
 });
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
-});
+// ── Push notifications ──
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;

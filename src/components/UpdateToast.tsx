@@ -2,6 +2,33 @@ import { RefreshCw, X } from "lucide-react";
 import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
+// Nuke any stale Service Workers left over from the old github.io origin
+// or from a previous deployment with a different scope.
+function purgeLeacySW() {
+  if (!("serviceWorker" in navigator)) return;
+
+  navigator.serviceWorker.getRegistrations().then((regs) => {
+    for (const reg of regs) {
+      const scope = reg.scope;
+      // Unregister anything not scoped to the current origin root
+      if (!scope.startsWith(window.location.origin + "/")) {
+        void reg.unregister();
+      }
+    }
+  });
+
+  // Clear any lingering caches from old deployments
+  if ("caches" in window) {
+    caches.keys().then((keys) => {
+      for (const key of keys) {
+        if (key.includes("github.io") || key.includes("stephane-ia-app")) {
+          void caches.delete(key);
+        }
+      }
+    });
+  }
+}
+
 export function UpdateToast() {
   const intervalMS = 60 * 1000;
 
@@ -19,6 +46,11 @@ export function UpdateToast() {
       console.error("[PWA] registration error", err);
     },
   });
+
+  // Run legacy cleanup once on mount
+  useEffect(() => {
+    purgeLeacySW();
+  }, []);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;

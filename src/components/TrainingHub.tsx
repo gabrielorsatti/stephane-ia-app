@@ -10,7 +10,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ProgramTemplate } from "../data/programs";
 import type {
   PersonalRecordOverride,
@@ -87,9 +87,7 @@ export function TrainingHub({
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [prAlerts, setPrAlerts] = useState<PRAlert[]>([]);
   const [celebratedPRs, setCelebratedPRs] = useState<Set<string>>(new Set());
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const drawerRef = useRef<HTMLDivElement>(null);
+  const [isInputOpen, setDrawerOpen] = useState(false);
 
   const editingSession = editingId
     ? sessions.find((s) => s.id === editingId)
@@ -133,11 +131,11 @@ export function TrainingHub({
     setView("main");
   }
 
-  function openDrawer() {
+  function openInput() {
     setDrawerOpen(true);
   }
 
-  const closeDrawer = useCallback(() => {
+  const closeInput = useCallback(() => {
     setDrawerOpen(false);
     if (!editingId) {
       setPrefillText("");
@@ -147,13 +145,13 @@ export function TrainingHub({
 
   // Close drawer on Escape key
   useEffect(() => {
-    if (!drawerOpen) return;
+    if (!isInputOpen) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") closeDrawer();
+      if (e.key === "Escape") closeInput();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [drawerOpen, closeDrawer]);
+  }, [isInputOpen, closeInput]);
 
   function startEdit(session: Session) {
     setPrefillText(sessionToNlp(session));
@@ -411,8 +409,8 @@ export function TrainingHub({
 
       {/* ── FAB "Nouvelle séance" ── */}
       <button
-        onClick={openDrawer}
-        className="fixed bottom-20 right-4 z-40 flex items-center gap-2.5 rounded-full bg-accent pl-4 pr-5 py-3.5 text-white font-semibold shadow-xl shadow-accent/25 transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:shadow-accent/30 active:scale-95"
+        onClick={openInput}
+        className="fixed bottom-24 right-6 z-50 flex items-center gap-2.5 rounded-full bg-accent pl-4 pr-5 py-3.5 text-white font-semibold shadow-xl shadow-accent/25 transition-all duration-200 hover:scale-105 hover:shadow-2xl hover:shadow-accent/30 active:scale-95"
         aria-label="Nouvelle séance"
       >
         <Plus className="h-5 w-5" strokeWidth={2.5} />
@@ -420,17 +418,16 @@ export function TrainingHub({
       </button>
 
       {/* ── Drawer / Bottom sheet ── */}
-      {drawerOpen && (
+      {isInputOpen && (
         <div className="fixed inset-0 z-50 flex flex-col">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fadeIn"
-            onClick={closeDrawer}
+            onClick={closeInput}
           />
 
           {/* Sheet */}
           <div
-            ref={drawerRef}
             className="relative mt-auto w-full max-h-[92vh] overflow-y-auto rounded-t-3xl bg-bg-card border-t border-border shadow-2xl"
             style={{ animation: "drawerSlideUp 300ms cubic-bezier(0.16, 1, 0.3, 1) both" }}
           >
@@ -448,7 +445,7 @@ export function TrainingHub({
                 </h2>
               </div>
               <button
-                onClick={closeDrawer}
+                onClick={closeInput}
                 className="flex h-8 w-8 items-center justify-center rounded-xl bg-bg-soft hover:bg-bg-elev transition-colors"
                 aria-label="Fermer"
               >
@@ -475,7 +472,7 @@ export function TrainingHub({
                   setEditingId(null);
                   setPrefillText("");
                   setPrefillVersion((v) => v + 1);
-                  closeDrawer();
+                  closeInput();
                 }}
               />
             </div>
