@@ -739,6 +739,108 @@ export const EXERCISE_CATALOG: ExerciseDef[] = [
     aliases: ["crunch poulie", "cable crunch"],
   },
 
+  // ────────── Pliométrie (explosivité, détente, réactivité) ──────────
+  {
+    canonical: "Box jumps",
+    categorie: "Pliométrie",
+    aliases: ["box jump", "box jumps", "saut sur box", "saut box"],
+    type: "bodyweight",
+  },
+  {
+    canonical: "Depth jumps",
+    categorie: "Pliométrie",
+    aliases: ["depth jump", "depth jumps", "saut en profondeur", "drop jump"],
+    type: "bodyweight",
+  },
+  {
+    canonical: "Broad jumps",
+    categorie: "Pliométrie",
+    aliases: ["broad jump", "broad jumps", "saut en longueur", "standing long jump"],
+    type: "bodyweight",
+  },
+  {
+    canonical: "Jump squats",
+    categorie: "Pliométrie",
+    aliases: ["jump squat", "jump squats", "squat jump", "squat saute"],
+    type: "bodyweight",
+  },
+  {
+    canonical: "Tuck jumps",
+    categorie: "Pliométrie",
+    aliases: ["tuck jump", "tuck jumps", "saut groupe"],
+    type: "bodyweight",
+  },
+  {
+    canonical: "Hurdle hops",
+    categorie: "Pliométrie",
+    aliases: ["hurdle hop", "hurdle hops", "saut haies", "sauts de haies"],
+    type: "bodyweight",
+  },
+  {
+    canonical: "Plyo push-ups",
+    categorie: "Pliométrie",
+    aliases: ["plyo push up", "plyo pushup", "pompes plyo", "pompes claquees", "clap push up"],
+    type: "bodyweight",
+  },
+  {
+    canonical: "Lateral bounds",
+    categorie: "Pliométrie",
+    aliases: ["lateral bound", "lateral bounds", "sauts lateraux", "saut lateral"],
+    type: "bodyweight",
+  },
+
+  // ────────── Power Training (haltérophilie, puissance, lancers) ──────────
+  {
+    canonical: "Épaulé-jeté",
+    categorie: "Power Training",
+    aliases: ["epaule jete", "epaule-jete", "clean and jerk", "clean & jerk", "c&j"],
+  },
+  {
+    canonical: "Épaulé (Clean)",
+    categorie: "Power Training",
+    aliases: ["epaule", "clean", "power clean", "squat clean"],
+  },
+  {
+    canonical: "Arraché (Snatch)",
+    categorie: "Power Training",
+    aliases: ["arrache", "snatch", "power snatch", "squat snatch"],
+  },
+  {
+    canonical: "Hang clean",
+    categorie: "Power Training",
+    aliases: ["hang clean", "epaule suspend", "clean suspend"],
+  },
+  {
+    canonical: "Push press",
+    categorie: "Power Training",
+    aliases: ["push press", "developpe pousse"],
+  },
+  {
+    canonical: "Push jerk",
+    categorie: "Power Training",
+    aliases: ["push jerk", "jerk", "jete"],
+  },
+  {
+    canonical: "Med ball slams",
+    categorie: "Power Training",
+    aliases: ["med ball slam", "med ball slams", "ball slam", "slam ball", "medecine ball slam"],
+  },
+  {
+    canonical: "Med ball throws",
+    categorie: "Power Training",
+    aliases: ["med ball throw", "med ball throws", "lancer medecine ball", "wall ball"],
+  },
+  {
+    canonical: "Kettlebell swing",
+    categorie: "Power Training",
+    aliases: ["kettlebell swing", "kb swing", "swing kettlebell", "russian swing", "american swing"],
+  },
+  {
+    canonical: "Kettlebell snatch",
+    categorie: "Power Training",
+    aliases: ["kettlebell snatch", "kb snatch"],
+  },
+
   // ────────── Cardio ──────────
   {
     canonical: "Course",

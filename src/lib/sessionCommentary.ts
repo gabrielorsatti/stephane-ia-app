@@ -6,7 +6,7 @@ import { sessionVolume, exerciseVolume } from "./scoring";
 
 const COMMENTARY_SYSTEM = `Tu es Stéphane, coach diplômé en préparation physique, musculation et bien-être. Tu adaptes ton discours au TYPE de séance détecté.
 
-═══ MODE MUSCULATION (Poussée, Tirage, Jambes, Épaules, Bras, Abdos) ═══
+═══ MODE MUSCULATION (Poussée, Tirage, Jambes, Épaules, Bras, Abdos, Pliométrie, Power Training) ═══
 
 Vocabulaire technique : surcharge progressive, échec postural, temps sous tension, fatigue centrale, volume effectif.
 
@@ -43,7 +43,8 @@ Ton : bienveillant, chaleureux, inclusif. Pas de jargon de salle de musculation.
 
 ═══ ANALYSE DE TENDANCE (si historySummary fourni) ═══
 
-Quand un résumé des 12 dernières semaines est joint :
+Quand un résumé de tendance est joint :
+- La fenêtre d'analyse s'adapte automatiquement : si l'utilisateur est nouveau (ex. 2-3 semaines), les stats portent uniquement sur sa période d'activité réelle. Ne reproche JAMAIS une inactivité antérieure à son inscription.
 - Compare le volume de cette séance à la moyenne hebdomadaire. Si c'est un record → célèbre-le comme un événement majeur.
 - Si tu détectes une stagnation (volume/charge stable sur 4+ semaines) → suggère un deload ou un changement d'exercice.
 - Si tu détectes une baisse inexpliquée → encourage l'utilisateur, rappelle que c'est normal et suggère de vérifier sommeil/nutrition.
@@ -56,7 +57,7 @@ Tu es une IA, pas un médecin. Si tu détectes une mention de douleur, blessure 
 ═══ FORMAT (les deux modes) ═══
 Un seul paragraphe fluide de 80-120 mots. PAS de bullet points, PAS de titres. Commence directement par l'analyse.`;
 
-const BILAN_SYSTEM = `Tu es Stéphane, coach diplômé en préparation physique et bien-être. On te fournit un résumé statistique des 12 dernières semaines d'entraînement d'un utilisateur.
+const BILAN_SYSTEM = `Tu es Stéphane, coach diplômé en préparation physique et bien-être. On te fournit un résumé statistique de l'activité récente d'un utilisateur (la fenêtre d'analyse s'adapte : de quelques semaines pour les nouveaux à 12 semaines max pour les habitués). Ne reproche JAMAIS une inactivité antérieure à l'inscription de l'utilisateur.
 
 Rédige un bilan de coaching structuré en 3 parties :
 
@@ -88,6 +89,8 @@ function detectSplit(session: Session): string {
     if (topCat === "Bras") return "Séance Bras (isolation)";
     if (topCat === "Cardio") return "Séance Cardio";
     if (topCat === "Abdos") return "Séance Core";
+    if (topCat === "Pliométrie") return "Séance Pliométrie (explosivité)";
+    if (topCat === "Power Training") return "Séance Power / Haltérophilie";
     if (topCat === "Cours Collectif") return "Cours Collectif (Bien-être)";
     if (topCat === "Mobilité") return "Mobilité & Santé";
   }
@@ -119,7 +122,7 @@ function formatSessionForPrompt(session: Session, programs: ProgramTemplate[], h
     : "";
 
   const historyCtx = historySummary
-    ? `\n\n═══ TENDANCES 12 SEMAINES ═══\n${historySummary}`
+    ? `\n\n═══ TENDANCES RÉCENTES ═══\n${historySummary}`
     : "";
 
   return `Séance du ${session.date} — Type détecté : ${split} — volume total ${vol}kg${session.bodyWeight ? ` — PDC ${session.bodyWeight}kg` : ""}${session.notes ? ` — notes : ${session.notes}` : ""}\n\n${exos}${programCtx}${historyCtx}`;

@@ -73,28 +73,71 @@ export function parseSegment(segment: string): ExerciseEntry | null {
     };
   }
 
-  // 1. Extraction des sets : "NxM", "N*M", "N séries de M", "N séries M rep"
-  let sets = 0;
-  let reps = 0;
-  const setsRepsMatch =
-    norm.match(/(\d+)\s*(?:x|\*|×)\s*(\d+)/) ||
-    norm.match(/(\d+)\s*series?\s*(?:de\s*)?(\d+)/) ||
-    norm.match(/(\d+)\s*sets?\s*(?:de\s*|of\s*)?(\d+)/);
-  if (setsRepsMatch) {
-    sets = parseInt(setsRepsMatch[1], 10);
-    reps = parseInt(setsRepsMatch[2], 10);
-  }
-
-  // 2. Extraction du poids : "80kg", "à 80", "@80", "80 kg"
+  // 1. Extraction du poids (avant sets/reps pour ne pas confondre les nombres).
   let poids = 0;
   const weightMatch =
     norm.match(/(?:a|@)\s*(\d+(?:[.,]\d+)?)\s*(?:kg|kgs)?/) ||
     norm.match(/(\d+(?:[.,]\d+)?)\s*(?:kg|kgs)\b/);
   if (weightMatch) {
     poids = toNumber(weightMatch[1]);
-  } else if (setsRepsMatch) {
-    // Fallback : troisième nombre isolé après le motif sets x reps.
-    const after = norm.slice(setsRepsMatch.index! + setsRepsMatch[0].length);
+  }
+
+  // 2. Extraction des sets et reps — ordre flexible.
+  let sets = 0;
+  let reps = 0;
+
+  // 2a. Forme compacte : "3x10", "3*10", "3×10"
+  const compactMatch =
+    norm.match(/(\d+)\s*(?:x|\*|×)\s*(\d+)(?!\s*(?:kg|kgs)\b)/);
+  if (compactMatch) {
+    sets = parseInt(compactMatch[1], 10);
+    reps = parseInt(compactMatch[2], 10);
+  }
+
+  // 2b. Forme "N séries de M" / "N sets de M"
+  if (!sets) {
+    const setsDeMatch =
+      norm.match(/(\d+)\s*series?\s*(?:de\s*)?(\d+)/) ||
+      norm.match(/(\d+)\s*sets?\s*(?:de\s*|of\s*)?(\d+)/);
+    if (setsDeMatch) {
+      sets = parseInt(setsDeMatch[1], 10);
+      reps = parseInt(setsDeMatch[2], 10);
+    }
+  }
+
+  // 2c. Forme inversée : "10 reps x 3", "10 rep x 3"
+  if (!sets) {
+    const repsFirstMatch = norm.match(
+      /(\d+)\s*(?:reps?|repetitions?)\s*(?:x|\*|×)\s*(\d+)/,
+    );
+    if (repsFirstMatch) {
+      reps = parseInt(repsFirstMatch[1], 10);
+      sets = parseInt(repsFirstMatch[2], 10);
+    }
+  }
+
+  // 2d. Composants séparés : "3 sets 10 reps" ou "10 reps 3 sets" (ordre libre)
+  if (!sets) {
+    const setsAlone = norm.match(/(\d+)\s*(?:sets?|series?)\b/);
+    const repsAlone = norm.match(/(\d+)\s*(?:reps?|repetitions?)\b/);
+    if (setsAlone && repsAlone) {
+      sets = parseInt(setsAlone[1], 10);
+      reps = parseInt(repsAlone[1], 10);
+    }
+  }
+
+  // 2e. Reps seules sans sets explicites → 1 set ("DC 10 à 80kg", "10 reps DC 80kg")
+  if (!sets && !reps) {
+    const repsOnly = norm.match(/(\d+)\s*(?:reps?|repetitions?)\b/);
+    if (repsOnly) {
+      reps = parseInt(repsOnly[1], 10);
+      sets = 1;
+    }
+  }
+
+  // Fallback poids : troisième nombre isolé si pas encore trouvé.
+  if (!poids && compactMatch) {
+    const after = norm.slice(compactMatch.index! + compactMatch[0].length);
     const fallback = after.match(/(?:^|\s)(\d+(?:[.,]\d+)?)(?:\s|$)/);
     if (fallback) poids = toNumber(fallback[1]);
   }

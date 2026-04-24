@@ -6,6 +6,8 @@ export type Category =
   | "Épaules"
   | "Bras"
   | "Abdos"
+  | "Pliométrie"
+  | "Power Training"
   | "Cardio"
   | "Cours Collectif"
   | "Mobilité"
@@ -18,6 +20,8 @@ export const ALL_CATEGORIES: Category[] = [
   "Épaules",
   "Bras",
   "Abdos",
+  "Pliométrie",
+  "Power Training",
   "Cardio",
   "Cours Collectif",
   "Mobilité",

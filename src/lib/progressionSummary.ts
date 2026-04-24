@@ -193,10 +193,25 @@ export function buildProgressionSummary(
   const cutoff = cutoffDate(weeks);
   const filtered = sessions.filter((s) => s.date >= cutoff);
 
+  // Effective weeks: don't penalize new users by dividing over a 12-week
+  // window when they've only been active for 2 weeks.
+  const effectiveWeeks = filtered.length > 0
+    ? Math.min(
+        weeks,
+        Math.max(
+          1,
+          Math.ceil(
+            (Date.now() - new Date(filtered.reduce((min, s) => s.date < min ? s.date : min, filtered[0].date) + "T00:00:00").getTime())
+            / (7 * 86_400_000),
+          ),
+        ),
+      )
+    : weeks;
+
   const buckets = bucketByWeek(filtered);
   const weekCount = Math.max(buckets.length, 1);
   const totalSessions = filtered.length;
-  const avgSessionsPerWeek = Math.round((totalSessions / Math.max(weeks, 1)) * 10) / 10;
+  const avgSessionsPerWeek = Math.round((totalSessions / Math.max(effectiveWeeks, 1)) * 10) / 10;
 
   const volumes = buckets.map((b) => b.totalVolume);
   const avgWeekVolume = volumes.length > 0 ? volumes.reduce((a, b) => a + b, 0) / volumes.length : 0;
@@ -221,7 +236,7 @@ export function buildProgressionSummary(
   const topProgressions = findTopProgressions(filtered, 3);
 
   const partial = {
-    weeks,
+    weeks: effectiveWeeks,
     totalSessions,
     avgSessionsPerWeek,
     volumeTrendPercent,

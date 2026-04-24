@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   Dumbbell,
   History,
+  Plus,
   TrendingUp,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -241,28 +242,34 @@ export function TrainingHub({
     );
   }
 
+  function scrollToInput() {
+    document.getElementById("session-input-area")?.scrollIntoView({ behavior: "smooth" });
+  }
+
   return (
     <Wrap id="training-main">
       <div className="space-y-4">
-        <SessionInput
-          onSave={handleSave}
-          prefillText={prefillText}
-          prefillVersion={prefillVersion}
-          editing={
-            editingSession
-              ? {
-                  date: editingSession.date,
-                  notes: editingSession.notes,
-                  bodyWeight: editingSession.bodyWeight,
-                }
-              : undefined
-          }
-          onCancelEdit={() => {
-            setEditingId(null);
-            setPrefillText("");
-            setPrefillVersion((v) => v + 1);
-          }}
-        />
+        <div id="session-input-area">
+          <SessionInput
+            onSave={handleSave}
+            prefillText={prefillText}
+            prefillVersion={prefillVersion}
+            editing={
+              editingSession
+                ? {
+                    date: editingSession.date,
+                    notes: editingSession.notes,
+                    bodyWeight: editingSession.bodyWeight,
+                  }
+                : undefined
+            }
+            onCancelEdit={() => {
+              setEditingId(null);
+              setPrefillText("");
+              setPrefillVersion((v) => v + 1);
+            }}
+          />
+        </div>
 
         {activeSession && (
           <button
@@ -273,17 +280,35 @@ export function TrainingHub({
           </button>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Progression — elevated visual hierarchy */}
+        <button
+          onClick={() => goTo("progression")}
+          className="w-full relative overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 via-accent-muted/20 to-transparent p-4 text-left transition-all hover:shadow-lg hover:shadow-accent/10 hover:border-accent/50 active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/20">
+              <TrendingUp className="h-6 w-6 text-accent" />
+            </div>
+            <div>
+              <div className="text-base font-bold">Progression</div>
+              <div className="text-xs text-text-muted">
+                Courbes, records personnels et bilan du coach
+              </div>
+            </div>
+          </div>
+        </button>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <NavCard
             icon={History}
             label="Historique"
-            description="Toutes tes séances passées"
+            description="Tes séances passées"
             onClick={() => goTo("history")}
           />
           <NavCard
             icon={BookOpen}
             label="Programmes"
-            description="Tes templates de séances"
+            description="Templates de séances"
             onClick={() => goTo("programs")}
           />
           <NavCard
@@ -292,14 +317,18 @@ export function TrainingHub({
             description="Catalogue complet"
             onClick={() => goTo("exercises")}
           />
-          <NavCard
-            icon={TrendingUp}
-            label="Progression"
-            description="Courbes et records personnels"
-            onClick={() => goTo("progression")}
-          />
         </div>
       </div>
+
+      {/* FAB — Nouvelle séance */}
+      <button
+        onClick={scrollToInput}
+        className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-white font-semibold shadow-lg shadow-accent/30 transition-transform hover:scale-105 active:scale-95"
+        aria-label="Nouvelle séance"
+      >
+        <Plus className="h-5 w-5" />
+        <span className="hidden sm:inline">Nouvelle séance</span>
+      </button>
 
       {publishSnapshot && (
         <PublishModal

@@ -46,6 +46,47 @@ describe("parseSegment", () => {
     expect(parseSegment("DC 80kg")).toBeNull();
   });
 
+  // ── Formats flexibles ──
+  it("parse '10 reps x 3 @ 80' (reps d'abord)", () => {
+    const ex = parseSegment("DC 10 reps x 3 @ 80");
+    expect(ex).not.toBeNull();
+    expect(ex!.nom).toBe("Développé couché");
+    expect(ex!.sets).toHaveLength(3);
+    expect(ex!.sets[0]).toEqual({ reps: 10, poids: 80 });
+  });
+
+  it("parse '80kg 3 sets de 10' (poids en premier)", () => {
+    const ex = parseSegment("squat 80kg 3 sets de 10");
+    expect(ex).not.toBeNull();
+    expect(ex!.nom).toBe("Squat");
+    expect(ex!.sets).toHaveLength(3);
+    expect(ex!.sets[0]).toEqual({ reps: 10, poids: 80 });
+  });
+
+  it("parse '3 sets 10 reps 80kg' (composants séparés)", () => {
+    const ex = parseSegment("DC 3 sets 10 reps 80kg");
+    expect(ex).not.toBeNull();
+    expect(ex!.nom).toBe("Développé couché");
+    expect(ex!.sets).toHaveLength(3);
+    expect(ex!.sets[0]).toEqual({ reps: 10, poids: 80 });
+  });
+
+  it("parse '10 reps 3 series' (reps puis series)", () => {
+    const ex = parseSegment("tractions 10 reps 3 series");
+    expect(ex).not.toBeNull();
+    expect(ex!.nom).toBe("Tractions");
+    expect(ex!.sets).toHaveLength(3);
+    expect(ex!.sets[0]).toEqual({ reps: 10, poids: 0 });
+  });
+
+  it("parse '5 reps DC 80kg' (reps seules → 1 set)", () => {
+    const ex = parseSegment("5 reps DC 80kg");
+    expect(ex).not.toBeNull();
+    expect(ex!.nom).toBe("Développé couché");
+    expect(ex!.sets).toHaveLength(1);
+    expect(ex!.sets[0]).toEqual({ reps: 5, poids: 80 });
+  });
+
   it("gère le poids du corps (pas de kg mentionné)", () => {
     const ex = parseSegment("tractions 3x10");
     expect(ex!.nom).toBe("Tractions");
