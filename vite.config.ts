@@ -2,12 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
-// `base` est exigé par GitHub Pages quand le site est servi sous un
-// sous-chemin (https://<user>.github.io/<repo>/). En dev local on reste à "/".
-const base = process.env.GITHUB_ACTIONS ? "/stephane-ia-app/" : "/";
-
 export default defineConfig({
-  base,
+  base: "/",
   plugins: [
     react(),
     VitePWA({

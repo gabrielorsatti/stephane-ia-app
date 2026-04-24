@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 
-const NEW_URL = "https://gabrielorsatti.github.io/stephane-ia-app/";
+const NEW_URL = "https://app.stephane.fit/";
 
 export function MigrationBanner() {
   if (!window.location.href.includes("Personnal-gym-tracker")) return null;
