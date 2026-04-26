@@ -9,10 +9,14 @@ import {
   Loader2,
   AlertTriangle,
   Pencil,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parseInput } from "../lib/parser";
 import { aiParseSession, isAIParserAvailable } from "../lib/aiParser";
+import { compareWithLast, type ExerciseDelta } from "../lib/exerciseComparison";
 import type { ExerciseEntry, Session, SetEntry } from "../types";
 
 interface Props {
@@ -27,6 +31,8 @@ interface Props {
     bodyWeight?: number;
   };
   onCancelEdit?: () => void;
+  sessions?: Session[];
+  excludeSessionId?: string;
 }
 
 type ParseMode = "idle" | "loading" | "done" | "error";
@@ -39,6 +45,8 @@ export function SessionInput({
   prefillVersion,
   editing,
   onCancelEdit,
+  sessions,
+  excludeSessionId,
 }: Props) {
   const [text, setText] = useState("");
   const [notes, setNotes] = useState("");
@@ -276,6 +284,8 @@ export function SessionInput({
           usedAI={usedAI}
           onRemove={removeExercise}
           onUpdate={updateExercise}
+          sessions={sessions}
+          excludeSessionId={excludeSessionId}
         />
       )}
 
@@ -314,6 +324,8 @@ function ExerciceList({
   usedAI,
   onRemove,
   onUpdate,
+  sessions,
+  excludeSessionId,
 }: {
   exercices: ExerciseEntry[];
   unrecognized: string[];
@@ -321,7 +333,25 @@ function ExerciceList({
   usedAI: boolean;
   onRemove: (idx: number) => void;
   onUpdate: (idx: number, updated: ExerciseEntry) => void;
+  sessions?: Session[];
+  excludeSessionId?: string;
 }) {
+  const sortedSessions = useMemo(() => {
+    if (!sessions?.length) return [];
+    return sessions
+      .filter((s) => s.id !== excludeSessionId)
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [sessions, excludeSessionId]);
+
+  const deltas = useMemo(() => {
+    if (!sortedSessions.length) return new Map<number, ExerciseDelta | null>();
+    const map = new Map<number, ExerciseDelta | null>();
+    for (let i = 0; i < exercices.length; i++) {
+      map.set(i, compareWithLast(exercices[i], sortedSessions));
+    }
+    return map;
+  }, [exercices, sortedSessions]);
+
   if (!exercices.length && !unrecognized.length) {
     return (
       <p className="text-xs text-text-dim">
@@ -347,6 +377,7 @@ function ExerciceList({
           key={i}
           exercise={ex}
           confirmed={confirmed}
+          delta={deltas.get(i) ?? null}
           onRemove={() => onRemove(i)}
           onUpdate={(updated) => onUpdate(i, updated)}
         />
@@ -366,11 +397,13 @@ function ExerciceList({
 function ExerciseRow({
   exercise,
   confirmed,
+  delta,
   onRemove,
   onUpdate,
 }: {
   exercise: ExerciseEntry;
   confirmed: boolean;
+  delta: ExerciseDelta | null;
   onRemove: () => void;
   onUpdate: (updated: ExerciseEntry) => void;
 }) {
@@ -396,32 +429,35 @@ function ExerciseRow({
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm bg-bg-soft border border-border rounded-lg px-3 py-2">
-      <div className="flex-1 flex flex-wrap items-center gap-2 min-w-0">
-        <span className="font-medium">{exercise.nom}</span>
-        <span className="chip bg-accent-muted/40 text-accent-soft">
-          {exercise.categorie}
-        </span>
-        <span className="text-text-muted">{setsLabel}</span>
-      </div>
-      {confirmed && (
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            className="text-text-dim hover:text-text p-1"
-            onClick={() => setEditing(true)}
-            title="Modifier"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
-          <button
-            className="text-text-dim hover:text-rose-400 p-1"
-            onClick={onRemove}
-            title="Retirer"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
+    <div className="bg-bg-soft border border-border rounded-lg px-3 py-2">
+      <div className="flex items-center gap-2 text-sm">
+        <div className="flex-1 flex flex-wrap items-center gap-2 min-w-0">
+          <span className="font-medium">{exercise.nom}</span>
+          <span className="chip bg-accent-muted/40 text-accent-soft">
+            {exercise.categorie}
+          </span>
+          <span className="text-text-muted">{setsLabel}</span>
         </div>
-      )}
+        {confirmed && (
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              className="text-text-dim hover:text-text p-1"
+              onClick={() => setEditing(true)}
+              title="Modifier"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+            <button
+              className="text-text-dim hover:text-rose-400 p-1"
+              onClick={onRemove}
+              title="Retirer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
+      {delta && <DeltaBadge delta={delta} />}
     </div>
   );
 }
@@ -543,4 +579,51 @@ function formatCardio(
   if (cardio.duree) parts.push(`${cardio.duree} min`);
   if (cardio.denivele) parts.push(`+${cardio.denivele} m`);
   return parts.join(" · ") || "—";
+}
+
+function DeltaBadge({ delta }: { delta: ExerciseDelta }) {
+  const isUp = delta.volumePct > 1;
+  const isDown = delta.volumePct < -1;
+  const color = isUp
+    ? "text-emerald-400"
+    : isDown
+      ? "text-rose-400"
+      : "text-text-dim";
+  const Icon = isUp ? TrendingUp : isDown ? TrendingDown : Minus;
+
+  const volLabel = delta.hasWeight ? "vol" : "reps";
+  const volSign = delta.volumePct > 0 ? "+" : "";
+  const parts: string[] = [`${volSign}${delta.volumePct.toFixed(0)}% ${volLabel}`];
+  if (delta.hasWeight && delta.maxWeightDiff !== 0) {
+    parts.push(
+      `${delta.maxWeightDiff > 0 ? "+" : ""}${delta.maxWeightDiff}kg`,
+    );
+  }
+  if (delta.repsDiff !== 0 && delta.hasWeight) {
+    parts.push(
+      `${delta.repsDiff > 0 ? "+" : ""}${delta.repsDiff} reps`,
+    );
+  }
+
+  const daysAgo = Math.round(
+    (Date.now() - new Date(delta.lastDate).getTime()) / 86400000,
+  );
+  const ago =
+    daysAgo <= 0
+      ? "auj."
+      : daysAgo === 1
+        ? "hier"
+        : daysAgo < 7
+          ? `il y a ${daysAgo}j`
+          : daysAgo < 30
+            ? `il y a ${Math.round(daysAgo / 7)} sem`
+            : `il y a ${Math.round(daysAgo / 30)} mois`;
+
+  return (
+    <div className={`flex items-center gap-1.5 mt-1 text-[10px] leading-tight ${color}`}>
+      <Icon className="w-3 h-3 shrink-0" />
+      <span className="font-semibold">{parts.join(" · ")}</span>
+      <span className="text-text-dim">vs {ago}</span>
+    </div>
+  );
 }

@@ -583,6 +583,8 @@ export function TrainingHub({
               onAppend={handleAppend}
               prefillText={prefillText}
               prefillVersion={prefillVersion}
+              sessions={sessions}
+              excludeSessionId={liveSession?.sessionId ?? editingId ?? undefined}
               editing={
                 editingSession
                   ? {
