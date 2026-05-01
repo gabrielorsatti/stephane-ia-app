@@ -20,8 +20,6 @@ import { useLiveSession, useElapsedTimer, formatTimer } from "../hooks/useLiveSe
 import { LevelUpCelebration } from "./LevelUpCelebration";
 import { CardioStatsCard } from "./CardioStatsCard";
 import { CategoryChart } from "./CategoryChart";
-import { MuscularHeatmap } from "./MuscularHeatmap";
-import { OccupancyChart } from "./OccupancyChart";
 import { StatsCards } from "./StatsCards";
 import { generateSessionCommentary } from "../lib/sessionCommentary";
 import { buildProgressionSummary } from "../lib/progressionSummary";
@@ -343,14 +341,12 @@ export function TrainingHub({
       <Wrap id="training-progression">
         <HubHeader title="Retour à Training" onBack={goBack} />
         <div className="space-y-4 px-4">
-          <MuscularHeatmap sessions={sessions} />
           <CoachBilan sessions={sessions} userId={userId} />
           <StatsCards sessions={sessions} bodyWeight={bodyWeight} />
           <ProgressionChart sessions={sessions} overrides={overrides} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <CategoryChart sessions={sessions} />
             <CardioStatsCard sessions={sessions} />
-            <OccupancyChart />
           </div>
           <PersonalRecords
             sessions={sessions}
