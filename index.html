@@ -27,6 +27,27 @@
   </head>
   <body class="bg-bg text-text antialiased">
     <div id="root"></div>
+    <script>
+      // Force nuke stale SW + caches when app version changes
+      (function(){
+        var APP_VERSION = "2026-05-09b";
+        var stored = localStorage.getItem("app_version");
+        if (stored !== APP_VERSION) {
+          localStorage.setItem("app_version", APP_VERSION);
+          if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              regs.forEach(function(r) { r.unregister(); });
+            });
+          }
+          if ("caches" in window) {
+            caches.keys().then(function(keys) {
+              keys.forEach(function(k) { caches.delete(k); });
+            });
+          }
+          if (stored) location.reload();
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
