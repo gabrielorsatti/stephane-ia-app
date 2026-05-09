@@ -30,7 +30,7 @@
     <script>
       // Force nuke stale SW + caches when app version changes
       (function(){
-        var APP_VERSION = "2026-05-09b";
+        var APP_VERSION = "2026-05-09c";
         var stored = localStorage.getItem("app_version");
         if (stored !== APP_VERSION) {
           localStorage.setItem("app_version", APP_VERSION);
@@ -45,6 +45,29 @@
             });
           }
           if (stored) location.reload();
+        }
+        // iOS: force immediate SW update check on every load
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.ready.then(function(reg) {
+            reg.update();
+            // If a new SW is waiting, activate it immediately
+            if (reg.waiting) {
+              reg.waiting.postMessage({ type: "SKIP_WAITING" });
+            }
+            reg.addEventListener("updatefound", function() {
+              var newSW = reg.installing;
+              if (newSW) {
+                newSW.addEventListener("statechange", function() {
+                  if (newSW.state === "installed" && navigator.serviceWorker.controller) {
+                    newSW.postMessage({ type: "SKIP_WAITING" });
+                  }
+                });
+              }
+            });
+          });
+          navigator.serviceWorker.addEventListener("controllerchange", function() {
+            window.location.reload();
+          });
         }
       })();
     </script>
