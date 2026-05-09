@@ -87,7 +87,8 @@ export async function chatCompletionWithUsage(
   }
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`LLM HTTP ${res.status} — ${text.slice(0, 300)}`);
+    const keyHint = cfg.apiKey ? cfg.apiKey.slice(0, 8) + "…" : "MISSING";
+    throw new Error(`LLM HTTP ${res.status} [key=${keyHint}] — ${text.slice(0, 300)}`);
   }
   const json = await res.json();
   const content = json?.choices?.[0]?.message?.content;
