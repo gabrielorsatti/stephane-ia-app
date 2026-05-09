@@ -33,7 +33,7 @@ export function getLLMConfig(): LLMConfig | null {
     import.meta.env.VITE_LLM_BASE_URL ?? "https://llm.lab.groupe-genes.fr/openai";
   const model =
     import.meta.env.VITE_LLM_MODEL ??
-    "meta-llama/Llama-3.3-70B-Instruct";
+    "openai/gpt-oss-120b";
   if (!apiKey) return null;
   return { apiKey, baseUrl, model };
 }
@@ -67,7 +67,7 @@ export async function chatCompletionWithUsage(
     model: cfg.model,
     messages,
     temperature: opts.temperature ?? 0.4,
-    max_tokens: opts.maxTokens ?? 1500,
+    max_tokens: opts.maxTokens ?? 2500,
   };
   let res: Response;
   try {

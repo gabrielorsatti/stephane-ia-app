@@ -13,7 +13,7 @@ export function buildCoachContext(args: {
   programs: ProgramTemplate[];
   recentSessionsCount?: number;
 }): string {
-  const recentN = args.recentSessionsCount ?? 8;
+  const recentN = args.recentSessionsCount ?? 16;
   const sortedSessions = [...args.sessions].sort((a, b) =>
     a.date < b.date ? 1 : -1,
   );
@@ -27,10 +27,13 @@ export function buildCoachContext(args: {
     "## Profil utilisateur",
     formatBodyWeight(sortedBw),
     "",
-    "## Records personnels actuels (top 12 par 1RM estimé)",
-    formatRecords(records.slice(0, 12)),
+    "## Records personnels actuels (top 15 par 1RM estimé)",
+    formatRecords(records.slice(0, 15)),
     "",
-    `## ${recent.length} séances les plus récentes`,
+    "## Progression semaine par semaine (4 dernières semaines)",
+    formatWeeklyProgression(sortedSessions),
+    "",
+    `## ${recent.length} séances les plus récentes (détail)`,
     formatSessions(recent),
     "",
     `## Statistiques globales (sur ${args.sessions.length} séances)`,
@@ -91,6 +94,50 @@ function formatSessions(sessions: Session[]): string {
       return `### ${s.date} — vol ${vol}kg${s.bodyWeight ? ` · pdc ${s.bodyWeight}kg` : ""}\n${exos}${s.notes ? `\n  Notes : ${s.notes}` : ""}`;
     })
     .join("\n\n");
+}
+
+function formatWeeklyProgression(sessions: Session[]): string {
+  if (sessions.length < 2) return "Pas assez de données pour calculer la progression.";
+
+  const weeks: Map<string, Session[]> = new Map();
+  for (const s of sessions) {
+    const d = new Date(s.date);
+    const startOfWeek = new Date(d);
+    startOfWeek.setDate(d.getDate() - d.getDay() + 1);
+    const key = startOfWeek.toISOString().slice(0, 10);
+    if (!weeks.has(key)) weeks.set(key, []);
+    weeks.get(key)!.push(s);
+  }
+
+  const sortedWeeks = [...weeks.entries()]
+    .sort(([a], [b]) => (a > b ? -1 : 1))
+    .slice(0, 4);
+
+  if (sortedWeeks.length === 0) return "Aucune donnée hebdomadaire.";
+
+  const lines: string[] = [];
+  for (const [weekStart, weekSessions] of sortedWeeks) {
+    const vol = Math.round(weekSessions.reduce((acc, s) => acc + sessionVolume(s), 0));
+    const nbSessions = weekSessions.length;
+    const exercises: Map<string, { maxWeight: number; totalSets: number }> = new Map();
+    for (const s of weekSessions) {
+      for (const ex of s.exercices) {
+        if (ex.cardio) continue;
+        const existing = exercises.get(ex.nom) ?? { maxWeight: 0, totalSets: 0 };
+        const maxW = Math.max(...ex.sets.map((set) => set.poids));
+        existing.maxWeight = Math.max(existing.maxWeight, maxW);
+        existing.totalSets += ex.sets.length;
+        exercises.set(ex.nom, existing);
+      }
+    }
+    const topExos = [...exercises.entries()]
+      .sort(([, a], [, b]) => b.maxWeight - a.maxWeight)
+      .slice(0, 5)
+      .map(([name, data]) => `${name}: ${data.maxWeight}kg (${data.totalSets} séries)`)
+      .join(", ");
+    lines.push(`- **Sem. ${weekStart}** : ${nbSessions} séances, vol. total ${vol}kg | ${topExos}`);
+  }
+  return lines.join("\n");
 }
 
 function formatGlobalStats(sessions: Session[]): string {
