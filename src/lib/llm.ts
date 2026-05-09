@@ -31,9 +31,7 @@ export function getLLMConfig(): LLMConfig | null {
   const apiKey = import.meta.env.VITE_LLM_API_KEY;
   const baseUrl =
     import.meta.env.VITE_LLM_BASE_URL ?? "https://llm.lab.groupe-genes.fr/openai";
-  const model =
-    import.meta.env.VITE_LLM_MODEL ??
-    "openai/gpt-oss-120b";
+  const model = "openai/gpt-oss-120b";
   if (!apiKey) return null;
   return { apiKey, baseUrl, model };
 }
