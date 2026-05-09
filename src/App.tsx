@@ -5,6 +5,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { ADMIN_UID } from "./components/AdminPanel";
 import { AuthGate } from "./components/AuthGate";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ForceUpdate } from "./components/ForceUpdate";
 import { OfflineBadge } from "./components/OfflineBadge";
 import { PrivacyPolicy } from "./components/PrivacyPolicy";
 import { ReportModal } from "./components/ReportModal";
@@ -61,10 +62,12 @@ import { getSupabase } from "./lib/supabase";
 export default function App() {
   return (
     <ErrorBoundary>
-      <MigrationBanner />
-      <AuthGate>
-        <AppInner />
-      </AuthGate>
+      <ForceUpdate>
+        <MigrationBanner />
+        <AuthGate>
+          <AppInner />
+        </AuthGate>
+      </ForceUpdate>
     </ErrorBoundary>
   );
 }
