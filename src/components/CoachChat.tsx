@@ -84,6 +84,11 @@ const SUGGESTIONS: Array<{ label: string; prompt: string }> = [
     prompt:
       "Compare mes objectifs de programme avec mes dernières performances. Identifie ceux qui sont atteints (à relever), inatteignables (à assouplir) ou obsolètes.",
   },
+  {
+    label: "Bilan de la semaine",
+    prompt:
+      "Fais un bilan de ma semaine d'entraînement : nombre de séances, volume total, groupes musculaires travaillés, points forts et axes d'amélioration. Présente sous forme de tableau Markdown.",
+  },
 ];
 
 interface DisplayMessage {
@@ -256,9 +261,12 @@ export function CoachChat({
         className="card !p-3 max-h-[60vh] overflow-y-auto space-y-3"
       >
         {messages.length === 0 && !loading && (
-          <div className="text-center text-text-dim text-sm py-10 px-4">
-            <Bot className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            Démarre une conversation avec ton coach.
+          <div className="text-center text-text-dim text-sm py-10 px-4 space-y-2">
+            <Bot className="w-10 h-10 mx-auto mb-3 opacity-60 text-accent" />
+            <p className="text-text font-medium">Salut, je suis Stéphane !</p>
+            <p className="text-text-muted text-xs max-w-xs mx-auto">
+              Pose-moi une question, clique sur une suggestion ci-dessus, ou demande-moi d'ajuster tes charges.
+            </p>
           </div>
         )}
         {messages.map((m, i) => (
