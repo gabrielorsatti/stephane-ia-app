@@ -3,13 +3,14 @@ import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
 
 declare const self: ServiceWorkerGlobalScope;
 
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v5";
+
+// Force le nouveau SW à prendre le contrôle immédiatement
+self.addEventListener("install", () => self.skipWaiting());
 
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
-// On activate: purge ALL caches that don't belong to the current Workbox
-// precache. This nukes stale github.io caches and old versions.
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
